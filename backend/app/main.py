@@ -1,5 +1,12 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+
+from .database import engine, get_db, Base
+from . import models
+
+# Create database tables
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="YouTube Assistant API",
@@ -31,31 +38,20 @@ async def health_check():
     return {"status": "healthy"}
 
 @app.get("/api/videos")
-async def get_videos():
+async def get_videos(db: Session = Depends(get_db)):
     """Get list of video ideas"""
-    return {
-        "videos": [
-            {
-                "id": 1,
-                "title": "Introduction to Test Automation",
-                "description": "Learn the basics of test automation",
-                "status": "planned"
-            },
-            {
-                "id": 2,
-                "title": "Advanced Selenium Techniques",
-                "description": "Deep dive into Selenium best practices",
-                "status": "in_progress"
-            }
-        ]
-    }
+    videos = db.query(models.Video).all()
+    return {"videos": videos}
 
 @app.post("/api/videos")
-async def create_video(video: dict):
+async def create_video(video: dict, db: Session = Depends(get_db)):
     """Create a new video idea"""
-    return {
-        "id": 3,
-        "title": video.get("title"),
-        "description": video.get("description"),
-        "status": "planned"
-    }
+    db_video = models.Video(
+        title=video.get("title"),
+        description=video.get("description"),
+        status=video.get("status", "planned")
+    )
+    db.add(db_video)
+    db.commit()
+    db.refresh(db_video)
+    return db_video
