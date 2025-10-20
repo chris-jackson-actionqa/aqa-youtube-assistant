@@ -54,7 +54,19 @@ async def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
         
     Returns:
         ProjectResponse: Created project object
+        
+    Raises:
+        HTTPException: 400 if project with same title already exists (case-insensitive)
     """
+    # Check for duplicate titles (case-insensitive)
+    # Using ilike() for case-insensitive comparison handles different capitalization
+    existing_project = db.query(Video).filter(Video.title.ilike(project.title)).first()
+    if existing_project:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Project with title '{project.title}' already exists (case-insensitive match)"
+        )
+    
     db_project = Video(
         title=project.title,
         description=project.description,
@@ -117,6 +129,7 @@ async def update_project(project_id: int, project_update: ProjectUpdate, db: Ses
         
     Raises:
         HTTPException: 404 if project not found
+        HTTPException: 400 if updating to a title that already exists (case-insensitive)
     """
     db_project = db.query(Video).filter(Video.id == project_id).first()
     if db_project is None:
@@ -124,6 +137,19 @@ async def update_project(project_id: int, project_update: ProjectUpdate, db: Ses
     
     # Update only provided fields
     update_data = project_update.model_dump(exclude_unset=True)
+    
+    # If title is being updated, check for duplicates (excluding current project)
+    if "title" in update_data:
+        existing_project = db.query(Video).filter(
+            Video.title.ilike(update_data["title"]),
+            Video.id != project_id
+        ).first()
+        if existing_project:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Project with title '{update_data['title']}' already exists (case-insensitive match)"
+            )
+    
     for field, value in update_data.items():
         setattr(db_project, field, value)
     
