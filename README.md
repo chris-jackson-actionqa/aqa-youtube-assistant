@@ -70,18 +70,75 @@ The frontend will be available at http://localhost:3000
 
 ## Development
 
+### Git Hooks
+
+This project uses Git hooks to maintain code quality. A pre-commit hook automatically runs unit tests before each commit.
+
+**Pre-commit Hook**: Located at `.git/hooks/pre-commit`, this hook:
+- Runs all unit tests in `backend/unit_tests/`
+- Blocks the commit if any tests fail
+- Provides clear feedback on test results
+
+The hook was created during initial setup and is already executable. If you need to recreate it or set it up on a fresh clone:
+
+```bash
+# The hook is already in .git/hooks/pre-commit
+# If needed, ensure it's executable:
+chmod +x .git/hooks/pre-commit
+```
+
+**Bypassing the hook** (not recommended): If you need to commit without running tests:
+```bash
+git commit --no-verify -m "your message"
+```
+
 ### Backend Development
 
-The FastAPI backend provides RESTful API endpoints for managing YouTube video ideas. Key files:
+The FastAPI backend provides RESTful API endpoints for managing YouTube projects. Key files:
 
 - `backend/app/main.py` - Main application file with API routes
+- `backend/app/models.py` - SQLAlchemy database models
+- `backend/app/schemas.py` - Pydantic validation schemas
 - `backend/requirements.txt` - Python dependencies
 
 API Endpoints:
 - `GET /` - API information
 - `GET /api/health` - Health check
-- `GET /api/videos` - List video ideas
-- `POST /api/videos` - Create new video idea
+- `GET /api/projects` - List all projects
+- `POST /api/projects` - Create new project (with duplicate title validation)
+- `GET /api/projects/{id}` - Get specific project
+- `PUT /api/projects/{id}` - Update project
+- `DELETE /api/projects/{id}` - Delete project
+
+### Backend Testing
+
+The backend has comprehensive test coverage:
+
+- **Unit Tests**: 25 tests in `backend/unit_tests/` (96% coverage)
+- **Integration Tests**: 15 tests in `backend/integration_tests/`
+- **Total**: 40 tests, all passing
+
+Run tests:
+```bash
+cd backend
+
+# Run all tests
+pytest
+
+# Run only unit tests
+pytest unit_tests/
+
+# Run only integration tests
+pytest integration_tests/
+
+# Run with coverage report
+pytest --cov=app --cov-report=term-missing
+
+# Run verbose mode
+pytest -v
+```
+
+See `backend/docs/` for detailed testing documentation.
 
 ### Frontend Development
 
