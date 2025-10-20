@@ -1,12 +1,5 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-
-from .database import engine, get_db, Base
-from . import models
-
-# Create database tables
-Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="YouTube Assistant API",
@@ -17,7 +10,7 @@ app = FastAPI(
 # Configure CORS to allow the Next.js frontend to communicate with the backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Next.js default port
+    allow_origins=["http://localhost:3031"],  # Next.js default port
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -37,21 +30,32 @@ async def health_check():
     """Health check endpoint"""
     return {"status": "healthy"}
 
-@app.get("/api/videos")
-async def get_videos(db: Session = Depends(get_db)):
-    """Get list of video ideas"""
-    videos = db.query(models.Video).all()
-    return {"videos": videos}
+@app.get("/api/projects")
+async def get_projects():
+    """Get list of video projects"""
+    return {
+        "projects": [
+            {
+                "id": 1,
+                "title": "Introduction to Test Automation",
+                "description": "Learn the basics of test automation",
+                "status": "planned"
+            },
+            {
+                "id": 2,
+                "title": "Advanced Selenium Techniques",
+                "description": "Deep dive into Selenium best practices",
+                "status": "in_progress"
+            }
+        ]
+    }
 
-@app.post("/api/videos")
-async def create_video(video: dict, db: Session = Depends(get_db)):
-    """Create a new video idea"""
-    db_video = models.Video(
-        title=video.get("title"),
-        description=video.get("description"),
-        status=video.get("status", "planned")
-    )
-    db.add(db_video)
-    db.commit()
-    db.refresh(db_video)
-    return db_video
+@app.post("/api/projects")
+async def create_project(video: dict):
+    """Create a new video project"""
+    return {
+        "id": 3,
+        "title": video.get("title"),
+        "description": video.get("description"),
+        "status": "planned"
+    }
