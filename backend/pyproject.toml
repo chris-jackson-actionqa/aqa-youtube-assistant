@@ -21,6 +21,8 @@ omit = [
 ]
 
 [tool.coverage.report]
+# Fail if coverage drops below 95%
+fail_under = 95
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",
