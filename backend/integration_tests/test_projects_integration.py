@@ -20,7 +20,7 @@ class TestDatabasePersistence:
         """Test that created projects persist in the database file."""
         # Create a project
         project_data = {
-            "title": "Persistent Project",
+            "name": "Persistent Project",
             "description": "This should persist",
             "status": "planned"
         }
@@ -34,14 +34,14 @@ class TestDatabasePersistence:
         # Verify we can retrieve it
         get_response = client.get(f"/api/projects/{project_id}")
         assert get_response.status_code == 200
-        assert get_response.json()["title"] == "Persistent Project"
+        assert get_response.json()["name": == "Persistent Project"
     
     def test_multiple_operations_persist(self, client):
         """Test that multiple CRUD operations persist correctly."""
         # Create multiple projects
-        project1 = client.post("/api/projects", json={"title": "Project 1"})
-        project2 = client.post("/api/projects", json={"title": "Project 2"})
-        project3 = client.post("/api/projects", json={"title": "Project 3"})
+        project1 = client.post("/api/projects", json={"name": "Project 1"})
+        project2 = client.post("/api/projects", json={"name": "Project 2"})
+        project3 = client.post("/api/projects", json={"name": "Project 3"})
         
         assert project1.status_code == 201
         assert project2.status_code == 201
@@ -75,22 +75,22 @@ class TestDatabaseConstraints:
     def test_title_uniqueness_constraint(self, client, create_sample_project):
         """Test that database enforces title uniqueness at DB level."""
         # Create first project via API
-        client.post("/api/projects", json={"title": "Unique Title"})
+        client.post("/api/projects", json={"name": "Unique Title"})
         
         # Attempt to create duplicate via API
-        response = client.post("/api/projects", json={"title": "Unique Title"})
+        response = client.post("/api/projects", json={"name": "Unique Title"})
         assert response.status_code == 400
         assert "already exists" in response.json()["detail"].lower()
     
     def test_case_insensitive_uniqueness(self, client):
         """Test that title uniqueness is case-insensitive."""
         # Create with one case
-        client.post("/api/projects", json={"title": "Test Project"})
+        client.post("/api/projects", json={"name": "Test Project"})
         
         # Try different cases
-        response1 = client.post("/api/projects", json={"title": "test project"})
-        response2 = client.post("/api/projects", json={"title": "TEST PROJECT"})
-        response3 = client.post("/api/projects", json={"title": "TeSt PrOjEcT"})
+        response1 = client.post("/api/projects", json={"name": "test project"})
+        response2 = client.post("/api/projects", json={"name": "TEST PROJECT"})
+        response3 = client.post("/api/projects", json={"name": "TeSt PrOjEcT"})
         
         assert response1.status_code == 400
         assert response2.status_code == 400
@@ -103,14 +103,14 @@ class TestDatabaseTransactions:
     def test_failed_create_does_not_persist(self, client, create_sample_project):
         """Test that validation failures don't create partial data."""
         # Create a project with a title
-        create_sample_project(title="Existing Project")
+        create_sample_project(name="Existing Project")
         
         # Get initial count
         initial_response = client.get("/api/projects")
         initial_count = len(initial_response.json())
         
         # Attempt to create duplicate (should fail)
-        client.post("/api/projects", json={"title": "Existing Project"})
+        client.post("/api/projects", json={"name": "Existing Project"})
         
         # Verify count hasn't changed
         final_response = client.get("/api/projects")
@@ -120,19 +120,19 @@ class TestDatabaseTransactions:
     def test_failed_update_preserves_original(self, client, create_sample_project):
         """Test that failed updates don't modify the database."""
         # Create two projects
-        project1 = create_sample_project(title="Project 1")
-        project2 = create_sample_project(title="Project 2")
+        project1 = create_sample_project(name="Project 1")
+        project2 = create_sample_project(name="Project 2")
         
         # Attempt to update project2 to have project1's title (should fail)
         response = client.put(
             f"/api/projects/{project2.id}",
-            json={"title": "Project 1"}
+            json={"name": "Project 1"}
         )
         assert response.status_code == 400
         
         # Verify project2 unchanged
         get_response = client.get(f"/api/projects/{project2.id}")
-        assert get_response.json()["title"] == "Project 2"
+        assert get_response.json()["name": == "Project 2"
 
 
 class TestDatabaseIDGeneration:
@@ -141,9 +141,9 @@ class TestDatabaseIDGeneration:
     def test_sequential_id_generation(self, client):
         """Test that IDs are generated sequentially."""
         # Create three projects
-        response1 = client.post("/api/projects", json={"title": "Project 1"})
-        response2 = client.post("/api/projects", json={"title": "Project 2"})
-        response3 = client.post("/api/projects", json={"title": "Project 3"})
+        response1 = client.post("/api/projects", json={"name": "Project 1"})
+        response2 = client.post("/api/projects", json={"name": "Project 2"})
+        response3 = client.post("/api/projects", json={"name": "Project 3"})
         
         id1 = response1.json()["id"]
         id2 = response2.json()["id"]
@@ -160,12 +160,12 @@ class TestDatabaseIDGeneration:
         This test documents actual SQLite behavior.
         """
         # Create and delete a project
-        response1 = client.post("/api/projects", json={"title": "Project 1"})
+        response1 = client.post("/api/projects", json={"name": "Project 1"})
         project1_id = response1.json()["id"]
         client.delete(f"/api/projects/{project1_id}")
         
         # Create new project
-        response2 = client.post("/api/projects", json={"title": "Project 2"})
+        response2 = client.post("/api/projects", json={"name": "Project 2"})
         project2_id = response2.json()["id"]
         
         # SQLite behavior: May reuse ID if last row was deleted
@@ -179,7 +179,7 @@ class TestDatabaseTimestamps:
     
     def test_created_at_set_on_creation(self, client):
         """Test that created_at is automatically set."""
-        response = client.post("/api/projects", json={"title": "Timestamped"})
+        response = client.post("/api/projects", json={"name": "Timestamped"})
         data = response.json()
         
         assert "created_at" in data
@@ -188,7 +188,7 @@ class TestDatabaseTimestamps:
     def test_updated_at_changes_on_update(self, client):
         """Test that updated_at changes when project is updated."""
         # Create project
-        create_response = client.post("/api/projects", json={"title": "Original"})
+        create_response = client.post("/api/projects", json={"name": "Original"})
         project_id = create_response.json()["id"]
         original_updated_at = create_response.json()["updated_at"]
         
@@ -206,7 +206,7 @@ class TestDatabaseTimestamps:
     def test_created_at_unchanged_on_update(self, client):
         """Test that created_at doesn't change when updating."""
         # Create project
-        create_response = client.post("/api/projects", json={"title": "Original"})
+        create_response = client.post("/api/projects", json={"name": "Original"})
         project_id = create_response.json()["id"]
         original_created_at = create_response.json()["created_at"]
         
@@ -231,7 +231,7 @@ class TestCompleteWorkflows:
         """Test a complete project lifecycle from creation to deletion."""
         # 1. Create a project
         create_response = client.post("/api/projects", json={
-            "title": "Complete Workflow Project",
+            "name": "Complete Workflow Project",
             "description": "Testing full lifecycle",
             "status": "planned"
         })
@@ -287,7 +287,7 @@ class TestCompleteWorkflows:
         projects = []
         for i in range(5):
             response = client.post("/api/projects", json={
-                "title": f"Project {i+1}",
+                "name": f"Project {i+1}",
                 "status": "planned"
             })
             assert response.status_code == 201
@@ -323,29 +323,29 @@ class TestErrorRecovery:
     def test_database_state_after_validation_error(self, client):
         """Test that database remains consistent after validation errors."""
         # Create valid project
-        client.post("/api/projects", json={"title": "Valid Project"})
+        client.post("/api/projects", json={"name": "Valid Project"})
         
         # Attempt invalid operations
-        client.post("/api/projects", json={"title": ""})  # Empty title
+        client.post("/api/projects", json={"name": ""})  # Empty title
         client.post("/api/projects", json={})  # Missing title
-        client.post("/api/projects", json={"title": "Valid Project"})  # Duplicate
+        client.post("/api/projects", json={"name": "Valid Project"})  # Duplicate
         
         # Database should still have only one valid project
         list_response = client.get("/api/projects")
         assert len(list_response.json()) == 1
-        assert list_response.json()[0]["title"] == "Valid Project"
+        assert list_response.json()[0]["name": == "Valid Project"
     
     def test_database_state_after_not_found_errors(self, client, create_sample_project):
         """Test that 404 errors don't affect database state."""
         # Create a project
-        project = create_sample_project(title="Test Project")
+        project = create_sample_project(name="Test Project")
         
         # Attempt operations on non-existent IDs
         client.get("/api/projects/9999")
-        client.put("/api/projects/9999", json={"title": "Updated"})
+        client.put("/api/projects/9999", json={"name": "Updated"})
         client.delete("/api/projects/9999")
         
         # Original project should be unchanged
         get_response = client.get(f"/api/projects/{project.id}")
         assert get_response.status_code == 200
-        assert get_response.json()["title"] == "Test Project"
+        assert get_response.json()["name": == "Test Project"

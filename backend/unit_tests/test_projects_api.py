@@ -31,7 +31,7 @@ class TestCreateProject:
         
         assert response.status_code == 201
         data = response.json()
-        assert data["title"] == sample_project_data["title"]
+        assert data["name"] == sample_project_data["name"]
         assert data["description"] == sample_project_data["description"]
         assert data["status"] == sample_project_data["status"]
         assert "id" in data
@@ -41,24 +41,24 @@ class TestCreateProject:
     def test_create_project_minimal(self, client):
         """Test creating project with only required fields."""
         minimal_data = {
-            "title": "Minimal Project"
+            "name": "Minimal Project"
         }
         response = client.post("/api/projects", json=minimal_data)
         
         assert response.status_code == 201
         data = response.json()
-        assert data["title"] == "Minimal Project"
+        assert data["name"] == "Minimal Project"
         assert data["status"] == "planned"  # Default value
         assert data["description"] is None
     
-    def test_create_project_duplicate_title_exact(self, client, create_sample_project):
-        """Test that duplicate titles are rejected (exact match)."""
+    def test_create_project_duplicate_name_exact(self, client, create_sample_project):
+        """Test that duplicate names are rejected (exact match)."""
         # Create first project
-        create_sample_project(title="Duplicate Test")
+        create_sample_project(name="Duplicate Test")
         
         # Attempt to create duplicate
         duplicate_data = {
-            "title": "Duplicate Test",
+            "name": "Duplicate Test",
             "description": "This should fail",
             "status": "planned"
         }
@@ -67,14 +67,14 @@ class TestCreateProject:
         assert response.status_code == 400
         assert "already exists" in response.json()["detail"].lower()
     
-    def test_create_project_duplicate_title_different_case(self, client, create_sample_project):
-        """Test that duplicate titles are rejected even with different capitalization."""
+    def test_create_project_duplicate_name_different_case(self, client, create_sample_project):
+        """Test that duplicate names are rejected even with different capitalization."""
         # Create first project
-        create_sample_project(title="Test Automation")
+        create_sample_project(name="Test Automation")
         
         # Attempt to create with different case
         duplicate_data = {
-            "title": "test automation",
+            "name": "test automation",
             "description": "Different case",
             "status": "planned"
         }
@@ -83,7 +83,58 @@ class TestCreateProject:
         assert response.status_code == 400
         assert "already exists" in response.json()["detail"].lower()
     
-    def test_create_project_missing_title(self, client):
+    def test_create_project_missing_name(self, client):
+        """Test that creating project without name fails validation."""
+        invalid_data = {
+            "description": "No name provided",
+            "status": "planned"
+        }
+        response = client.post("/api/projects", json=invalid_data)
+        
+        assert response.status_code == 422  # Validation error
+    
+    def test_create_project_empty_name(self, client):
+        """Test that empty name fails validation."""
+        invalid_data = {
+            "name": "",
+            "description": "Empty name",
+            "status": "planned"
+        }
+        response = client.post("/api/projects", json=invalid_data)
+    
+    def test_create_project_duplicate_name_exact(self, client, create_sample_project):
+        """Test that duplicate names are rejected (exact match)."""
+        # Create first project
+        create_sample_project(name="Duplicate Test")
+        
+        # Attempt to create duplicate
+        duplicate_data = {
+            "name": "Duplicate Test",
+            "description": "This should fail",
+            "status": "planned"
+        }
+        response = client.post("/api/projects", json=duplicate_data)
+        
+        assert response.status_code == 400
+        assert "already exists" in response.json()["detail"].lower()
+    
+    def test_create_project_duplicate_name_different_case(self, client, create_sample_project):
+        """Test that duplicate names are rejected even with different capitalization."""
+        # Create first project
+        create_sample_project(name="Test Automation")
+        
+        # Attempt to create with different case
+        duplicate_data = {
+            "name": "test automation",
+            "description": "Different case",
+            "status": "planned"
+        }
+        response = client.post("/api/projects", json=duplicate_data)
+        
+        assert response.status_code == 400
+        assert "already exists" in response.json()["detail"].lower()
+    
+    def test_create_project_missing_name(self, client):
         """Test that creating project without title fails validation."""
         invalid_data = {
             "description": "No title provided",
@@ -93,10 +144,10 @@ class TestCreateProject:
         
         assert response.status_code == 422  # Validation error
     
-    def test_create_project_empty_title(self, client):
+    def test_create_project_empty_name(self, client):
         """Test that empty title fails validation."""
         invalid_data = {
-            "title": "",
+            "name": "",
             "description": "Empty title",
             "status": "planned"
         }
@@ -117,7 +168,7 @@ class TestGetProjects:
     
     def test_get_projects_single(self, client, create_sample_project):
         """Test getting projects with one project in database."""
-        project = create_sample_project(title="Single Project")
+        project = create_sample_project(name="Single Project")
         
         response = client.get("/api/projects")
         
@@ -125,13 +176,13 @@ class TestGetProjects:
         data = response.json()
         assert len(data) == 1
         assert data[0]["id"] == project.id
-        assert data[0]["title"] == "Single Project"
+        assert data[0]["name"] == "Single Project"
     
     def test_get_projects_multiple(self, client, create_sample_project):
         """Test getting multiple projects."""
-        project1 = create_sample_project(title="Project 1", status="planned")
-        project2 = create_sample_project(title="Project 2", status="in_progress")
-        project3 = create_sample_project(title="Project 3", status="completed")
+        project1 = create_sample_project(name="Project 1", status="planned")
+        project2 = create_sample_project(name="Project 2", status="in_progress")
+        project3 = create_sample_project(name="Project 3", status="completed")
         
         response = client.get("/api/projects")
         
@@ -139,10 +190,10 @@ class TestGetProjects:
         data = response.json()
         assert len(data) == 3
         
-        titles = [p["title"] for p in data]
-        assert "Project 1" in titles
-        assert "Project 2" in titles
-        assert "Project 3" in titles
+        names = [p["name"] for p in data]
+        assert "Project 1" in names
+        assert "Project 2" in names
+        assert "Project 3" in names
 
 
 class TestGetProjectById:
@@ -151,7 +202,7 @@ class TestGetProjectById:
     def test_get_project_by_id_success(self, client, create_sample_project):
         """Test successfully getting a project by ID."""
         project = create_sample_project(
-            title="Specific Project",
+            name="Specific Project",
             description="Test description",
             status="in_progress"
         )
@@ -161,7 +212,7 @@ class TestGetProjectById:
         assert response.status_code == 200
         data = response.json()
         assert data["id"] == project.id
-        assert data["title"] == "Specific Project"
+        assert data["name"] == "Specific Project"
         assert data["description"] == "Test description"
         assert data["status"] == "in_progress"
     
@@ -185,13 +236,13 @@ class TestUpdateProject:
     def test_update_project_full(self, client, create_sample_project):
         """Test updating all fields of a project."""
         project = create_sample_project(
-            title="Original Title",
+            name="Original Name",
             description="Original description",
             status="planned"
         )
         
         update_data = {
-            "title": "Updated Title",
+            "name": "Updated Name",
             "description": "Updated description",
             "status": "in_progress"
         }
@@ -200,14 +251,14 @@ class TestUpdateProject:
         assert response.status_code == 200
         data = response.json()
         assert data["id"] == project.id
-        assert data["title"] == "Updated Title"
+        assert data["name"] == "Updated Name"
         assert data["description"] == "Updated description"
         assert data["status"] == "in_progress"
     
     def test_update_project_partial(self, client, create_sample_project):
         """Test partial update (only some fields)."""
         project = create_sample_project(
-            title="Original Title",
+            name="Original Name",
             description="Original description",
             status="planned"
         )
@@ -219,16 +270,16 @@ class TestUpdateProject:
         
         assert response.status_code == 200
         data = response.json()
-        assert data["title"] == "Original Title"  # Unchanged
+        assert data["name"] == "Original Name"  # Unchanged
         assert data["description"] == "Original description"  # Unchanged
         assert data["status"] == "in_progress"  # Changed
     
-    def test_update_project_same_title(self, client, create_sample_project):
-        """Test that updating with same title is allowed."""
-        project = create_sample_project(title="My Project", status="planned")
+    def test_update_project_same_name(self, client, create_sample_project):
+        """Test that updating with same name is allowed."""
+        project = create_sample_project(name="My Project", status="planned")
         
         update_data = {
-            "title": "My Project",
+            "name": "My Project",
             "status": "in_progress"
         }
         response = client.put(f"/api/projects/{project.id}", json=update_data)
@@ -236,28 +287,28 @@ class TestUpdateProject:
         assert response.status_code == 200
         assert response.json()["status"] == "in_progress"
     
-    def test_update_project_duplicate_title(self, client, create_sample_project):
-        """Test that updating to an existing title is rejected."""
-        project1 = create_sample_project(title="Project 1")
-        project2 = create_sample_project(title="Project 2")
+    def test_update_project_duplicate_name(self, client, create_sample_project):
+        """Test that updating to an existing name is rejected."""
+        project1 = create_sample_project(name="Project 1")
+        project2 = create_sample_project(name="Project 2")
         
         # Try to update project2 to have same title as project1
         update_data = {
-            "title": "Project 1"
+            "name": "Project 1"
         }
         response = client.put(f"/api/projects/{project2.id}", json=update_data)
         
         assert response.status_code == 400
         assert "already exists" in response.json()["detail"].lower()
     
-    def test_update_project_duplicate_title_different_case(self, client, create_sample_project):
+    def test_update_project_duplicate_name_different_case(self, client, create_sample_project):
         """Test that case-insensitive duplicate check works on update."""
-        project1 = create_sample_project(title="Test Project")
-        project2 = create_sample_project(title="Another Project")
+        project1 = create_sample_project(name="Test Project")
+        project2 = create_sample_project(name="Another Project")
         
         # Try to update project2 with different case of project1's title
         update_data = {
-            "title": "test project"
+            "name": "test project"
         }
         response = client.put(f"/api/projects/{project2.id}", json=update_data)
         
@@ -267,19 +318,19 @@ class TestUpdateProject:
     def test_update_project_not_found(self, client):
         """Test updating a non-existent project returns 404."""
         update_data = {
-            "title": "Updated Title"
+            "name": "Updated Name"
         }
         response = client.put("/api/projects/9999", json=update_data)
         
         assert response.status_code == 404
         assert "not found" in response.json()["detail"].lower()
     
-    def test_update_project_empty_title(self, client, create_sample_project):
+    def test_update_project_empty_name(self, client, create_sample_project):
         """Test that empty title fails validation."""
-        project = create_sample_project(title="Original Title")
+        project = create_sample_project(name="Original Name")
         
         update_data = {
-            "title": ""
+            "name": ""
         }
         response = client.put(f"/api/projects/{project.id}", json=update_data)
         
@@ -287,7 +338,7 @@ class TestUpdateProject:
     
     def test_update_project_timestamps(self, client, create_sample_project):
         """Test that updated_at timestamp changes on update."""
-        project = create_sample_project(title="Original")
+        project = create_sample_project(name="Original")
         original_updated_at = project.updated_at
         
         update_data = {
@@ -306,7 +357,7 @@ class TestDeleteProject:
     
     def test_delete_project_success(self, client, create_sample_project):
         """Test successfully deleting a project."""
-        project = create_sample_project(title="To Be Deleted")
+        project = create_sample_project(name="To Be Deleted")
         
         response = client.delete(f"/api/projects/{project.id}")
         
@@ -326,9 +377,9 @@ class TestDeleteProject:
     
     def test_delete_project_verify_list(self, client, create_sample_project):
         """Test that deleted project is removed from list."""
-        project1 = create_sample_project(title="Project 1")
-        project2 = create_sample_project(title="Project 2")
-        project3 = create_sample_project(title="Project 3")
+        project1 = create_sample_project(name="Project 1")
+        project2 = create_sample_project(name="Project 2")
+        project3 = create_sample_project(name="Project 3")
         
         # Delete middle project
         response = client.delete(f"/api/projects/{project2.id}")
@@ -340,10 +391,10 @@ class TestDeleteProject:
         data = list_response.json()
         assert len(data) == 2
         
-        titles = [p["title"] for p in data]
-        assert "Project 1" in titles
-        assert "Project 2" not in titles
-        assert "Project 3" in titles
+        names = [p["name"] for p in data]
+        assert "Project 1" in names
+        assert "Project 2" not in names
+        assert "Project 3" in names
 
 
 class TestRootEndpoint:

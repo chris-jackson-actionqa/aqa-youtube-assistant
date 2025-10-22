@@ -5,7 +5,7 @@ from typing import List
 from datetime import datetime
 
 from .database import engine, get_db
-from .models import Base, Video
+from .models import Base, Project
 from .schemas import ProjectCreate, ProjectUpdate, ProjectResponse
 
 # Create database tables
@@ -49,26 +49,26 @@ async def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
     Create a new video project.
     
     Args:
-        project: Project data (title, description, status)
+        project: Project data (name, description, status)
         db: Database session
         
     Returns:
         ProjectResponse: Created project object
         
     Raises:
-        HTTPException: 400 if project with same title already exists (case-insensitive)
+        HTTPException: 400 if project with same name already exists (case-insensitive)
     """
-    # Check for duplicate titles (case-insensitive)
+    # Check for duplicate names (case-insensitive)
     # Using ilike() for case-insensitive comparison handles different capitalization
-    existing_project = db.query(Video).filter(Video.title.ilike(project.title)).first()
+    existing_project = db.query(Project).filter(Project.name.ilike(project.name)).first()
     if existing_project:
         raise HTTPException(
             status_code=400, 
-            detail=f"Project with title '{project.title}' already exists (case-insensitive match)"
+            detail=f"Project with name '{project.name}' already exists (case-insensitive match)"
         )
     
-    db_project = Video(
-        title=project.title,
+    db_project = Project(
+        name=project.name,
         description=project.description,
         status=project.status
     )
@@ -89,7 +89,7 @@ async def get_projects(db: Session = Depends(get_db)):
     Returns:
         List[ProjectResponse]: List of all projects
     """
-    projects = db.query(Video).all()
+    projects = db.query(Project).all()
     return projects
 
 
@@ -108,7 +108,7 @@ async def get_project(project_id: int, db: Session = Depends(get_db)):
     Raises:
         HTTPException: 404 if project not found
     """
-    project = db.query(Video).filter(Video.id == project_id).first()
+    project = db.query(Project).filter(Project.id == project_id).first()
     if project is None:
         raise HTTPException(status_code=404, detail=f"Project with id {project_id} not found")
     return project
@@ -129,25 +129,25 @@ async def update_project(project_id: int, project_update: ProjectUpdate, db: Ses
         
     Raises:
         HTTPException: 404 if project not found
-        HTTPException: 400 if updating to a title that already exists (case-insensitive)
+        HTTPException: 400 if updating to a name that already exists (case-insensitive)
     """
-    db_project = db.query(Video).filter(Video.id == project_id).first()
+    db_project = db.query(Project).filter(Project.id == project_id).first()
     if db_project is None:
         raise HTTPException(status_code=404, detail=f"Project with id {project_id} not found")
     
     # Update only provided fields
     update_data = project_update.model_dump(exclude_unset=True)
     
-    # If title is being updated, check for duplicates (excluding current project)
-    if "title" in update_data:
-        existing_project = db.query(Video).filter(
-            Video.title.ilike(update_data["title"]),
-            Video.id != project_id
+    # If name is being updated, check for duplicates (excluding current project)
+    if "name" in update_data:
+        existing_project = db.query(Project).filter(
+            Project.name.ilike(update_data["name"]),
+            Project.id != project_id
         ).first()
         if existing_project:
             raise HTTPException(
                 status_code=400,
-                detail=f"Project with title '{update_data['title']}' already exists (case-insensitive match)"
+                detail=f"Project with name '{update_data['name']}' already exists (case-insensitive match)"
             )
     
     for field, value in update_data.items():
@@ -171,7 +171,7 @@ async def delete_project(project_id: int, db: Session = Depends(get_db)):
     Raises:
         HTTPException: 404 if project not found
     """
-    db_project = db.query(Video).filter(Video.id == project_id).first()
+    db_project = db.query(Project).filter(Project.id == project_id).first()
     if db_project is None:
         raise HTTPException(status_code=404, detail=f"Project with id {project_id} not found")
     
