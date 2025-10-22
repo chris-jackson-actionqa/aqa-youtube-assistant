@@ -5,7 +5,7 @@
 
 export interface Project {
   id: number;
-  title: string;
+  name: string;
   description: string | null;
   status: string;
   created_at: string;
@@ -13,13 +13,13 @@ export interface Project {
 }
 
 export interface ProjectCreate {
-  title: string;
+  name: string;
   description?: string | null;
   status?: string;
 }
 
 export interface ProjectUpdate {
-  title?: string;
+  name?: string;
   description?: string | null;
   status?: string;
 }
