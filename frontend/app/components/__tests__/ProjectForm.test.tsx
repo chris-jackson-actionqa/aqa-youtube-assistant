@@ -21,7 +21,7 @@ describe('ProjectForm', () => {
       render(<ProjectForm />)
       
       expect(screen.getByText('Create New Project')).toBeInTheDocument()
-      expect(screen.getByLabelText(/project title/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/project name/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/description/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/status/i)).toBeInTheDocument()
       expect(screen.getByRole('button', { name: /create project/i })).toBeInTheDocument()
@@ -53,7 +53,7 @@ describe('ProjectForm', () => {
       const user = userEvent.setup()
       render(<ProjectForm />)
       
-      const titleInput = screen.getByLabelText(/project title/i)
+      const titleInput = screen.getByLabelText(/project name/i)
       await user.type(titleInput, 'Test Project')
       
       const submitButton = screen.getByRole('button', { name: /create project/i })
@@ -63,7 +63,7 @@ describe('ProjectForm', () => {
     it('should respect maxLength of 255 characters for title', () => {
       render(<ProjectForm />)
       
-      const titleInput = screen.getByLabelText(/project title/i) as HTMLInputElement
+      const titleInput = screen.getByLabelText(/project name/i) as HTMLInputElement
       expect(titleInput.maxLength).toBe(255)
     })
   })
@@ -73,7 +73,7 @@ describe('ProjectForm', () => {
       const user = userEvent.setup()
       const mockProject = {
         id: 1,
-        title: 'Test Project',
+        name: 'Test Project',
         description: 'Test Description',
         status: 'planned',
         created_at: new Date().toISOString(),
@@ -84,13 +84,13 @@ describe('ProjectForm', () => {
       
       render(<ProjectForm />)
       
-      await user.type(screen.getByLabelText(/project title/i), 'Test Project')
+      await user.type(screen.getByLabelText(/project name/i), 'Test Project')
       await user.type(screen.getByLabelText(/description/i), 'Test Description')
       await user.click(screen.getByRole('button', { name: /create project/i }))
       
       await waitFor(() => {
         expect(api.createProject).toHaveBeenCalledWith({
-          title: 'Test Project',
+          name: 'Test Project',
           description: 'Test Description',
           status: 'planned',
         })
@@ -101,7 +101,7 @@ describe('ProjectForm', () => {
       const user = userEvent.setup()
       const mockProject = {
         id: 1,
-        title: 'Test Project',
+        name: 'Test Project',
         description: null,
         status: 'planned',
         created_at: new Date().toISOString(),
@@ -112,7 +112,7 @@ describe('ProjectForm', () => {
       
       render(<ProjectForm />)
       
-      await user.type(screen.getByLabelText(/project title/i), 'Test Project')
+      await user.type(screen.getByLabelText(/project name/i), 'Test Project')
       await user.click(screen.getByRole('button', { name: /create project/i }))
       
       await waitFor(() => {
@@ -124,7 +124,7 @@ describe('ProjectForm', () => {
       const user = userEvent.setup()
       const mockProject = {
         id: 1,
-        title: 'Test Project',
+        name: 'Test Project',
         description: 'Test Description',
         status: 'planned',
         created_at: new Date().toISOString(),
@@ -135,7 +135,7 @@ describe('ProjectForm', () => {
       
       render(<ProjectForm />)
       
-      const titleInput = screen.getByLabelText(/project title/i) as HTMLInputElement
+      const titleInput = screen.getByLabelText(/project name/i) as HTMLInputElement
       const descriptionInput = screen.getByLabelText(/description/i) as HTMLTextAreaElement
       
       await user.type(titleInput, 'Test Project')
@@ -153,7 +153,7 @@ describe('ProjectForm', () => {
       const onSuccess = jest.fn()
       const mockProject = {
         id: 1,
-        title: 'Test Project',
+        name: 'Test Project',
         description: null,
         status: 'planned',
         created_at: new Date().toISOString(),
@@ -164,7 +164,7 @@ describe('ProjectForm', () => {
       
       render(<ProjectForm onSuccess={onSuccess} />)
       
-      await user.type(screen.getByLabelText(/project title/i), 'Test Project')
+      await user.type(screen.getByLabelText(/project name/i), 'Test Project')
       await user.click(screen.getByRole('button', { name: /create project/i }))
       
       // Wait for the 1.5s delay before callback
@@ -183,7 +183,7 @@ describe('ProjectForm', () => {
       
       render(<ProjectForm />)
       
-      await user.type(screen.getByLabelText(/project title/i), 'Test Project')
+      await user.type(screen.getByLabelText(/project name/i), 'Test Project')
       
       const submitButton = screen.getByRole('button', { name: /create project/i })
       await user.click(submitButton)
@@ -207,7 +207,7 @@ describe('ProjectForm', () => {
       
       render(<ProjectForm />)
       
-      await user.type(screen.getByLabelText(/project title/i), 'Duplicate Project')
+      await user.type(screen.getByLabelText(/project name/i), 'Duplicate Project')
       await user.click(screen.getByRole('button', { name: /create project/i }))
       
       await waitFor(() => {
@@ -229,7 +229,7 @@ describe('ProjectForm', () => {
       
       render(<ProjectForm />)
       
-      await user.type(screen.getByLabelText(/project title/i), 'Test Project')
+      await user.type(screen.getByLabelText(/project name/i), 'Test Project')
       await user.click(screen.getByRole('button', { name: /create project/i }))
       
       await waitFor(() => {
@@ -251,7 +251,7 @@ describe('ProjectForm', () => {
       
       render(<ProjectForm />)
       
-      await user.type(screen.getByLabelText(/project title/i), 'Test')
+      await user.type(screen.getByLabelText(/project name/i), 'Test')
       await user.click(screen.getByRole('button', { name: /create project/i }))
       
       await waitFor(() => {
@@ -266,7 +266,7 @@ describe('ProjectForm', () => {
       
       render(<ProjectForm />)
       
-      await user.type(screen.getByLabelText(/project title/i), 'Test Project')
+      await user.type(screen.getByLabelText(/project name/i), 'Test Project')
       await user.click(screen.getByRole('button', { name: /create project/i }))
       
       await waitFor(() => {
@@ -293,7 +293,7 @@ describe('ProjectForm', () => {
       
       render(<ProjectForm onCancel={onCancel} />)
       
-      const titleInput = screen.getByLabelText(/project title/i) as HTMLInputElement
+      const titleInput = screen.getByLabelText(/project name/i) as HTMLInputElement
       await user.type(titleInput, 'Test Project')
       await user.click(screen.getByRole('button', { name: /cancel/i }))
       

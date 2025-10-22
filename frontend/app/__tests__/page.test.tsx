@@ -33,7 +33,7 @@ describe('Home Page', () => {
   const mockProjects: Project[] = [
     {
       id: 1,
-      title: 'Test Project 1',
+      name: 'Test Project 1',
       description: 'Test Description 1',
       status: 'planned',
       created_at: '2025-10-15T10:00:00Z',
@@ -41,7 +41,7 @@ describe('Home Page', () => {
     },
     {
       id: 2,
-      title: 'Test Project 2',
+      name: 'Test Project 2',
       description: null,
       status: 'in_progress',
       created_at: '2025-10-16T11:00:00Z',
@@ -49,7 +49,7 @@ describe('Home Page', () => {
     },
     {
       id: 3,
-      title: 'Test Project 3',
+      name: 'Test Project 3',
       description: 'Test Description 3',
       status: 'completed',
       created_at: '2025-10-17T12:00:00Z',
@@ -57,7 +57,7 @@ describe('Home Page', () => {
     },
     {
       id: 4,
-      title: 'Test Project 4',
+      name: 'Test Project 4',
       description: 'Test Description 4',
       status: 'archived',
       created_at: '2025-10-18T13:00:00Z',

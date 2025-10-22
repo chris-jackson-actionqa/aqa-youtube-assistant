@@ -52,7 +52,7 @@ describe('API Client', () => {
     it('should successfully create a project', async () => {
       const mockProject: Project = {
         id: 1,
-        title: 'Test Project',
+        name: 'Test Project',
         description: 'Test Description',
         status: 'planned',
         created_at: '2025-10-21T00:00:00Z',
@@ -60,7 +60,7 @@ describe('API Client', () => {
       }
 
       const projectData: ProjectCreate = {
-        title: 'Test Project',
+        name: 'Test Project',
         description: 'Test Description',
         status: 'planned',
       }
@@ -87,7 +87,7 @@ describe('API Client', () => {
 
     it('should throw ApiError on 400 Bad Request', async () => {
       const projectData: ProjectCreate = {
-        title: 'Duplicate',
+        name: 'Duplicate',
         description: null,
       }
 
@@ -117,7 +117,7 @@ describe('API Client', () => {
       const mockProjects: Project[] = [
         {
           id: 1,
-          title: 'Project 1',
+          name: 'Project 1',
           description: 'Description 1',
           status: 'planned',
           created_at: '2025-10-21T00:00:00Z',
@@ -125,7 +125,7 @@ describe('API Client', () => {
         },
         {
           id: 2,
-          title: 'Project 2',
+          name: 'Project 2',
           description: null,
           status: 'in_progress',
           created_at: '2025-10-21T00:00:00Z',
@@ -166,7 +166,7 @@ describe('API Client', () => {
     it('should successfully fetch a single project', async () => {
       const mockProject: Project = {
         id: 1,
-        title: 'Test Project',
+        name: 'Test Project',
         description: 'Test Description',
         status: 'completed',
         created_at: '2025-10-21T00:00:00Z',
@@ -216,13 +216,13 @@ describe('API Client', () => {
   describe('updateProject', () => {
     it('should successfully update a project', async () => {
       const updateData: ProjectUpdate = {
-        title: 'Updated Title',
+        name: 'Updated Name',
         status: 'completed',
       }
 
       const mockUpdatedProject: Project = {
         id: 1,
-        title: 'Updated Title',
+        name: 'Updated Name',
         description: 'Original Description',
         status: 'completed',
         created_at: '2025-10-21T00:00:00Z',
@@ -256,7 +256,7 @@ describe('API Client', () => {
 
       const mockUpdatedProject: Project = {
         id: 1,
-        title: 'Original Title',
+        name: 'Original Name',
         description: 'New description only',
         status: 'planned',
         created_at: '2025-10-21T00:00:00Z',
@@ -429,7 +429,7 @@ describe('API Client', () => {
     it('should merge custom headers with default headers', async () => {
       const mockProject: Project = {
         id: 1,
-        title: 'Test',
+        name: 'Test',
         description: null,
         status: 'planned',
         created_at: '2025-10-21T00:00:00Z',
@@ -441,7 +441,7 @@ describe('API Client', () => {
         json: async () => mockProject,
       })
 
-      await createProject({ title: 'Test' })
+      await createProject({ name: 'Test' })
 
       expect(global.fetch).toHaveBeenCalledWith(
         expect.any(String),
