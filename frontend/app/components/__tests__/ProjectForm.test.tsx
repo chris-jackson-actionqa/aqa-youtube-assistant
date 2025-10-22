@@ -193,7 +193,7 @@ describe('ProjectForm', () => {
   })
 
   describe('Error Handling', () => {
-    it('should display error message on API failure', async () => {
+    it('should display error message on API failure with object details', async () => {
       const user = userEvent.setup()
       
       // Create a proper ApiError instance
@@ -211,7 +211,29 @@ describe('ProjectForm', () => {
       await user.click(screen.getByRole('button', { name: /create project/i }))
       
       await waitFor(() => {
-        expect(screen.getByText(/project already exists/i)).toBeInTheDocument()
+        expect(screen.getByText('Project already exists')).toBeInTheDocument()
+      })
+    })
+
+    it('should display error message when details is not an object', async () => {
+      const user = userEvent.setup()
+      
+      // Create ApiError with non-object details (string)
+      const apiError = Object.create(api.ApiError.prototype)
+      apiError.message = 'Invalid request'
+      apiError.status = 400
+      apiError.details = 'String error details'
+      apiError.name = 'ApiError'
+      
+      ;(api.createProject as jest.Mock).mockRejectedValue(apiError)
+      
+      render(<ProjectForm />)
+      
+      await user.type(screen.getByLabelText(/project title/i), 'Test Project')
+      await user.click(screen.getByRole('button', { name: /create project/i }))
+      
+      await waitFor(() => {
+        expect(screen.getByText('Invalid request')).toBeInTheDocument()
       })
     })
 
