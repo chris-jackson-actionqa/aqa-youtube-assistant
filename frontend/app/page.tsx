@@ -136,7 +136,7 @@ export default function Home() {
                            rounded-lg hover:shadow-lg transition-shadow"
                 >
                   <div className="flex items-start justify-between mb-3">
-                    <h3 className="text-xl font-semibold">{project.title}</h3>
+                    <h3 className="text-xl font-semibold">{project.name}</h3>
                     <span className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusStyle(project.status)}`}>
                       {project.status.replace('_', ' ').toUpperCase()}
                     </span>
