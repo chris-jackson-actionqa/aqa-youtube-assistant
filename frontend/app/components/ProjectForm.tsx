@@ -10,7 +10,7 @@ interface ProjectFormProps {
 }
 
 export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
-  const [title, setTitle] = useState('');
+  const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<ProjectStatus>('planned');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -25,17 +25,17 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
 
     try {
       const projectData: ProjectCreate = {
-        title: title.trim(),
+        name: name.trim(),
         description: description.trim() || null,
         status,
       };
 
       const newProject = await createProject(projectData);
       
-      setSuccessMessage(`Project "${newProject.title}" created successfully!`);
+      setSuccessMessage(`Project "${newProject.name}" created successfully!`);
       
       // Reset form
-      setTitle('');
+      setName('');
       setDescription('');
       setStatus('planned');
       
@@ -62,7 +62,7 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
   };
 
   const handleCancel = () => {
-    setTitle('');
+    setName('');
     setDescription('');
     setStatus('planned');
     setError(null);
@@ -91,19 +91,19 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Title Field */}
+        {/* Name Field */}
         <div>
-          <label htmlFor="title" className="block text-sm font-medium mb-2">
-            Project Title <span className="text-red-500">*</span>
+          <label htmlFor="name" className="block text-sm font-medium mb-2">
+            Project Name <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
-            id="title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            id="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             required
             maxLength={255}
-            placeholder="Enter project title"
+            placeholder="Enter project name"
             className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
                      focus:ring-2 focus:ring-blue-500 focus:border-transparent
                      bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
@@ -160,7 +160,7 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
         <div className="flex gap-3 pt-4">
           <button
             type="submit"
-            disabled={isSubmitting || !title.trim()}
+            disabled={isSubmitting || !name.trim()}
             className="flex-1 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg
                      disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed
                      transition-colors duration-200"
