@@ -34,7 +34,7 @@ class TestDatabasePersistence:
         # Verify we can retrieve it
         get_response = client.get(f"/api/projects/{project_id}")
         assert get_response.status_code == 200
-        assert get_response.json()["name": == "Persistent Project"
+        assert get_response.json()["name"] == "Persistent Project"
     
     def test_multiple_operations_persist(self, client):
         """Test that multiple CRUD operations persist correctly."""
@@ -132,7 +132,7 @@ class TestDatabaseTransactions:
         
         # Verify project2 unchanged
         get_response = client.get(f"/api/projects/{project2.id}")
-        assert get_response.json()["name": == "Project 2"
+        assert get_response.json()["name"] == "Project 2"
 
 
 class TestDatabaseIDGeneration:
@@ -333,7 +333,7 @@ class TestErrorRecovery:
         # Database should still have only one valid project
         list_response = client.get("/api/projects")
         assert len(list_response.json()) == 1
-        assert list_response.json()[0]["name": == "Valid Project"
+        assert list_response.json()[0]["name"] == "Valid Project"
     
     def test_database_state_after_not_found_errors(self, client, create_sample_project):
         """Test that 404 errors don't affect database state."""
@@ -348,4 +348,4 @@ class TestErrorRecovery:
         # Original project should be unchanged
         get_response = client.get(f"/api/projects/{project.id}")
         assert get_response.status_code == 200
-        assert get_response.json()["name": == "Test Project"
+        assert get_response.json()["name"] == "Test Project"

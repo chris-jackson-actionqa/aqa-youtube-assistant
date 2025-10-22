@@ -14,7 +14,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.main import app
 from app.database import Base, get_db
-from app.models import Video
+from app.models import Project
 
 
 # Test database configuration
@@ -92,7 +92,7 @@ def client(db_session):
 def sample_project_data():
     """Sample project data for testing."""
     return {
-        "title": "Integration Test Project",
+        "name": "Integration Test Project",
         "description": "Testing with real database",
         "status": "planned"
     }
@@ -107,13 +107,13 @@ def create_sample_project(db_session):
     """
     def _create_project(**kwargs):
         project_data = {
-            "title": "Sample Project",
+            "name": "Sample Project",
             "description": "Sample description",
             "status": "planned"
         }
         project_data.update(kwargs)
         
-        project = Video(**project_data)
+        project = Project(**project_data)
         db_session.add(project)
         db_session.commit()
         db_session.refresh(project)
