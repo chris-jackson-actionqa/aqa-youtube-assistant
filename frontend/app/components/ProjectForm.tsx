@@ -67,9 +67,7 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
     setStatus('planned');
     setError(null);
     setSuccessMessage(null);
-    if (onCancel) {
-      onCancel();
-    }
+    onCancel?.();
   };
 
   return (
