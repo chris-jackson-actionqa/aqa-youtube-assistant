@@ -58,6 +58,9 @@ build/
 *.db-wal
 *.db-shm
 
+# MCP Server files
+.playwright-mcp/
+
 # Testing
 htmlcov/
 .coverage
