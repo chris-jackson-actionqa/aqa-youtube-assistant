@@ -9,6 +9,15 @@ This directory contains specialized Copilot prompts that can be invoked for spec
 **When to use**: Writing new tests, improving coverage, debugging test failures  
 **Invoke with**: Reference this file in your request or use `@workspace` with testing keywords
 
+### 📋 [project-planner.md](./project-planner.md)
+**Purpose**: Strategic project planning and GitHub issue management with persistent context  
+**When to use**: Breaking down features, creating issues, sprint planning, tracking progress  
+**Invoke with**: Reference this file or use natural language like "plan the next sprint"  
+**MCP Servers**: GitHub (issues, epics, labels) + Chroma DB (context persistence)  
+**Guides**: 
+- [CHROMA_DB_GUIDE.md](./CHROMA_DB_GUIDE.md) - Chroma DB usage patterns
+- [PLANNER_EXAMPLES.md](./PLANNER_EXAMPLES.md) - Usage examples and invocation methods
+
 ## How to Use Prompts
 
 ### Method 1: Direct Reference
