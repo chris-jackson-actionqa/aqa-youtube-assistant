@@ -197,6 +197,22 @@ This project uses Model Context Protocol (MCP) servers to enhance development wo
 - Process external documentation for integration into project docs
 - Standardize document formats across the project
 
+## Specialized Copilot Prompts
+
+The project includes specialized prompts for specific workflows in `.github/copilot-prompts/`:
+
+### 🧪 Jest Unit Tester (`.github/copilot-prompts/jest-unit-tester.md`)
+**Purpose**: Comprehensive Jest testing agent for frontend components  
+**When to use**: Writing tests, improving coverage, debugging test failures  
+**Coverage target**: 98-100% for statements, branches, functions, lines
+
+**Invoke by**:
+- Attaching the file: `#file:.github/copilot-prompts/jest-unit-tester.md`
+- Natural language: "Write Jest tests for ComponentName"
+- Workspace reference: `@workspace` with testing keywords
+
+See `.github/copilot-prompts/README.md` for full list of available prompts.
+
 ## AI Assistant Guidelines
 
 **When assisting with this project**:
@@ -208,6 +224,7 @@ This project uses Model Context Protocol (MCP) servers to enhance development wo
 5. **Best Practices**: Recommend testing, error handling, and validation
 6. **Ask Questions**: When requirements are unclear, ask before implementing
 7. **Use MCP Tools**: Leverage GitHub MCP for project management and Git operations, Chroma DB for context persistence
+8. **Use Specialized Prompts**: Invoke task-specific prompts (like jest-unit-tester) for complex workflows
 
 **Use these references**:
 - Check `/docs/` for project-wide documentation
@@ -215,6 +232,7 @@ This project uses Model Context Protocol (MCP) servers to enhance development wo
 - Search issues for related discussions and decisions
 - Look at commit history for context on changes
 - Query Chroma DB for stored context from previous sessions
+- Use `.github/copilot-prompts/` for specialized task workflows
 
 ## Key Project Files
 
@@ -225,6 +243,39 @@ This project uses Model Context Protocol (MCP) servers to enhance development wo
 - `/backend/requirements.txt` - Python dependencies
 - `/frontend/package.json` - Node.js dependencies
 
+## Testing Standards
+
+### Frontend Testing (Jest)
+- **Framework**: Jest 30.2.0 + React Testing Library 16.3.0
+- **Coverage Thresholds**: 98% (statements, branches, functions, lines)
+- **Target**: 100% coverage
+- **Pre-commit Hook**: Automatically runs tests before commits
+- **Detailed Guide**: See `.github/copilot-prompts/jest-unit-tester.md`
+
+### Backend Testing (Pytest)
+- **Framework**: Pytest with coverage plugin
+- **Coverage Thresholds**: 95% (statements, branches, functions, lines)
+- **Test Organization**: `backend/unit_tests/` and `backend/integration_tests/`
+- **Pre-commit Hook**: Automatically runs tests before commits
+
+### When to Write Tests
+- **Always** when adding new components, functions, or API endpoints
+- **Before** committing code (enforced by pre-commit hook)
+- **To achieve** 98%+ coverage (frontend) or 95%+ coverage (backend)
+- **For test-driven development**: Write tests first, then implementation
+
+### How to Invoke Jest Testing Agent
+For comprehensive frontend testing assistance, reference the specialized prompt:
+```
+#file:.github/copilot-prompts/jest-unit-tester.md
+Add unit tests for ComponentName with 100% coverage
+```
+
+Or use natural language with testing keywords:
+```
+Write Jest tests for the UserProfile component
+```
+
 ## Common Tasks
 
 ### Adding a new API endpoint
@@ -232,14 +283,16 @@ This project uses Model Context Protocol (MCP) servers to enhance development wo
 2. Add route handler in `main.py` or separate router
 3. Update database models if needed
 4. Document endpoint behavior
-5. Test with frontend integration
+5. **Write unit tests** (backend/unit_tests/)
+6. Test with frontend integration
 
 ### Adding a new database model
 1. Define SQLAlchemy model in `models.py`
 2. Create Pydantic schemas for validation
 3. Update database (migrations when available)
 4. Create corresponding API endpoints
-5. Update documentation
+5. **Write unit tests** for CRUD operations
+6. Update documentation
 
 ### Adding a new frontend component
 1. Create component in appropriate directory
@@ -247,6 +300,7 @@ This project uses Model Context Protocol (MCP) servers to enhance development wo
 3. Integrate with backend API
 4. Add error handling and loading states
 5. Style with Tailwind CSS
+6. **Write unit tests** (see `.github/copilot-prompts/jest-unit-tester.md`)
 
 ## Questions or Clarifications
 

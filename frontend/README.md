@@ -20,6 +20,127 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Testing
+
+This project uses Jest and React Testing Library for unit testing with strict coverage requirements.
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode (useful during development)
+npm run test:watch
+
+# Run tests with coverage report
+npm run test:coverage
+```
+
+### Coverage Requirements
+
+All code must meet these coverage thresholds:
+- **Statements**: 98%
+- **Branches**: 98%
+- **Functions**: 98%
+- **Lines**: 98%
+
+The coverage thresholds are enforced in `jest.config.mjs` and will cause tests to fail if not met.
+
+### Writing Tests
+
+Tests should be placed in `__tests__` directories adjacent to the code they test:
+
+```
+app/
+  components/
+    ProjectForm.tsx
+    __tests__/
+      ProjectForm.test.tsx
+  lib/
+    api.ts
+    __tests__/
+      api.test.ts
+  page.tsx
+  __tests__/
+    page.test.tsx
+```
+
+### Test Structure
+
+Follow this pattern when writing tests:
+
+```typescript
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { ComponentToTest } from '../ComponentToTest';
+
+describe('ComponentToTest', () => {
+  describe('Feature Group', () => {
+    it('should do something specific', () => {
+      // Arrange: Set up test data and mocks
+      const mockFn = jest.fn();
+      
+      // Act: Render component and interact
+      render(<ComponentToTest onAction={mockFn} />);
+      const button = screen.getByRole('button', { name: /click me/i });
+      fireEvent.click(button);
+      
+      // Assert: Verify expected behavior
+      expect(mockFn).toHaveBeenCalledTimes(1);
+    });
+  });
+});
+```
+
+### Best Practices
+
+1. **Test user behavior, not implementation details**
+   - Use `screen.getByRole()`, `screen.getByLabelText()`, etc.
+   - Avoid testing internal state or implementation
+
+2. **Mock external dependencies**
+   - Mock API calls with `jest.mock()`
+   - Mock Next.js router and other framework features
+
+3. **Group related tests with `describe()` blocks**
+   - Organize by feature or functionality
+   - Use nested `describe()` for sub-features
+
+4. **Write descriptive test names**
+   - Use "should..." pattern: `it('should display error when API fails', ...)`
+   - Make test failures easy to understand
+
+5. **Test error states and edge cases**
+   - Empty states, loading states, error states
+   - Invalid inputs, boundary conditions
+
+6. **Aim for 100% coverage**
+   - Use coverage report to identify untested code
+   - View HTML report: `open htmlcov/index.html` (generated after `npm run test:coverage`)
+
+### Viewing Coverage Reports
+
+After running `npm run test:coverage`, view the detailed HTML report:
+
+```bash
+# Open the coverage report in your browser
+open coverage/index.html  # macOS
+xdg-open coverage/index.html  # Linux
+```
+
+The report shows:
+- Line-by-line coverage with uncovered lines highlighted
+- Branch coverage details
+- Function coverage
+
+### Pre-commit Hook
+
+Tests run automatically before each commit via git hooks. See `../.githooks/README.md` for details.
+
+If tests fail, the commit will be blocked. Fix the tests before committing:
+- All tests must pass
+- Coverage thresholds (98%) must be met
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

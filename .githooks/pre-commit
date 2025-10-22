@@ -1,0 +1,67 @@
+#!/bin/bash
+
+# Git pre-commit hook to run unit tests
+# This hook runs before each commit to ensure tests pass
+
+echo "Running unit tests before commit..."
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+# Run backend tests
+echo "🐍 Running backend tests..."
+cd backend
+
+# Run unit tests with pytest
+# -q for quiet mode (less verbose output)
+# --tb=short for shorter traceback on failures
+# -x to stop on first failure
+pytest unit_tests/ -q --tb=short -x
+
+# Capture the exit code
+BACKEND_EXIT_CODE=$?
+
+# Return to the root directory
+cd ..
+
+# If backend tests failed, prevent the commit
+if [ $BACKEND_EXIT_CODE -ne 0 ]; then
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "❌ Backend tests failed! Commit aborted."
+    echo "Fix the failing tests before committing."
+    exit 1
+fi
+
+echo "✅ Backend tests passed!"
+echo ""
+
+# Run frontend tests
+echo "⚛️  Running frontend tests..."
+cd frontend
+
+# Check if node_modules exists (frontend dependencies installed)
+if [ ! -d "node_modules" ]; then
+    echo "⚠️  Frontend dependencies not installed. Skipping frontend tests."
+    echo "Run 'cd frontend && npm install' to enable frontend testing."
+else
+    # Run Jest with coverage
+    npm run test:coverage --silent
+
+    # Capture the exit code
+    FRONTEND_EXIT_CODE=$?
+
+    # Return to the root directory
+    cd ..
+
+    # If frontend tests failed, prevent the commit
+    if [ $FRONTEND_EXIT_CODE -ne 0 ]; then
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "❌ Frontend tests failed! Commit aborted."
+        echo "Fix the failing tests or coverage thresholds before committing."
+        exit 1
+    fi
+
+    echo "✅ Frontend tests passed!"
+fi
+
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "✅ All tests passed!"
+exit 0

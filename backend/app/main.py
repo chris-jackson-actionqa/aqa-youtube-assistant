@@ -20,7 +20,7 @@ app = FastAPI(
 # Configure CORS to allow the Next.js frontend to communicate with the backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3031"],  # Next.js default port
+    allow_origins=["http://localhost:3000"],  # Next.js default port
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
