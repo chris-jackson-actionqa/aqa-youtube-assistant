@@ -68,13 +68,15 @@ test.describe('YouTube Assistant - Basic E2E Tests', () => {
   });
 
   test('displays empty state when no projects exist', async ({ page }) => {
-    // Arrange - ensure database is truly empty
+    // Arrange - load page first, then clear database to avoid race condition
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    
+    // Clear database after page has loaded
     const helpers = await setupTest(page);
     
-    // Act
-    await page.goto('/');
-    
-    // Wait for page to load
+    // Act - reload page to see empty state
+    await page.reload();
     await page.waitForLoadState('networkidle');
     
     // Assert - look for empty state message and create button
