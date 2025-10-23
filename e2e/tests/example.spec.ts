@@ -13,7 +13,7 @@ test.describe('YouTube Assistant - Basic E2E Tests', () => {
   
   test.beforeEach(async ({ page }) => {
     // Clear database before each test for isolation
-    const helpers = await setupTest(page);
+    await setupTest(page);
   });
 
   test('homepage loads successfully', async ({ page }) => {
@@ -52,42 +52,56 @@ test.describe('YouTube Assistant - Basic E2E Tests', () => {
     
     await page.goto('/');
     
-    // Act
+    // Act - First click the "Create New Project" button to show the form
+    await page.getByRole('button', { name: /create new project/i }).click();
+    
+    // Wait for form to be visible
+    await page.getByLabel(/project name/i).waitFor({ state: 'visible' });
+    
+    // Fill the form
     await page.getByLabel(/project name/i).fill(projectName);
     await page.getByLabel(/description/i).fill(projectDescription);
-    await page.getByRole('button', { name: /create|submit/i }).click();
+    await page.getByRole('button', { name: /create project/i }).click();
     
     // Assert - wait for the project to appear in the list
     await expect(page.getByText(projectName)).toBeVisible({ timeout: 5000 });
   });
 
   test('displays empty state when no projects exist', async ({ page }) => {
+    // Arrange - ensure database is truly empty
+    const helpers = await setupTest(page);
+    
     // Act
     await page.goto('/');
     
-    // Assert - look for empty state message or create form
-    const hasForm = await page.getByLabel(/project name/i).isVisible();
-    expect(hasForm).toBeTruthy();
+    // Wait for page to load
+    await page.waitForLoadState('networkidle');
+    
+    // Assert - look for empty state message and create button
+    // The empty state shows: "No projects yet. Create your first project to get started!"
+    await expect(page.getByText(/create your first project/i)).toBeVisible();
+    await expect(page.getByRole('button', { name: /create new project/i })).toBeVisible();
+    
+    // Verify project count is 0
+    await expect(page.getByText('0 projects')).toBeVisible();
   });
 
   test('form validation prevents empty project name', async ({ page }) => {
     // Arrange
     await page.goto('/');
     
-    // Act - try to submit with empty name
+    // Act - Click to show form
+    await page.getByRole('button', { name: /create new project/i }).click();
+    
+    // Wait for form to be visible
+    await page.getByLabel(/project name/i).waitFor({ state: 'visible' });
+    
+    // Try to submit with empty name (or just spaces)
     await page.getByLabel(/project name/i).fill('');
-    const submitButton = page.getByRole('button', { name: /create|submit/i });
+    const submitButton = page.getByRole('button', { name: /create project/i });
     
-    // Assert - button should be disabled or validation should prevent submission
-    const isDisabled = await submitButton.isDisabled();
-    
-    if (!isDisabled) {
-      await submitButton.click();
-      // Should show validation error or stay on same page
-      await expect(page).toHaveURL('/');
-    } else {
-      expect(isDisabled).toBeTruthy();
-    }
+    // Assert - button should be disabled when name is empty
+    await expect(submitButton).toBeDisabled();
   });
 });
 

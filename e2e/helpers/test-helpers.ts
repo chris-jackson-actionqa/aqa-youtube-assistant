@@ -47,20 +47,23 @@ export class ProjectHelpers {
     // Navigate to home if not already there
     await this.goToHomePage();
     
+    // Click the "Create New Project" button to show the form
+    await this.page.getByRole('button', { name: /create new project/i }).click();
+    
+    // Wait for form to be visible
+    await this.page.getByLabel(/project name/i).waitFor({ state: 'visible' });
+    
     // Fill the form using accessible selectors
-    const nameInput = this.page.getByLabel(/project name/i);
-    await nameInput.fill(name);
+    await this.page.getByLabel(/project name/i).fill(name);
     
     if (description) {
-      const descInput = this.page.getByLabel(/description/i);
-      await descInput.fill(description);
+      await this.page.getByLabel(/description/i).fill(description);
     }
     
     // Submit the form
-    const submitButton = this.page.getByRole('button', { name: /create|submit/i });
-    await submitButton.click();
+    await this.page.getByRole('button', { name: /create project/i }).click();
     
-    // Wait for the project to appear or success message
+    // Wait for success message or project to appear
     await this.page.waitForTimeout(1000);
   }
 
