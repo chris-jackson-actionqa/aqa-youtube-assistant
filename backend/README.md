@@ -34,5 +34,14 @@ Once the server is running, visit:
 
 - `GET /` - Root endpoint with API information
 - `GET /api/health` - Health check endpoint
-- `GET /api/videos` - Get list of video ideas
-- `POST /api/videos` - Create a new video idea
+- `GET /api/projects` - Get list of all projects (no pagination - returns all)
+- `POST /api/projects` - Create a new project (validates uniqueness, max lengths)
+- `GET /api/projects/{id}` - Get specific project by ID
+- `PUT /api/projects/{id}` - Update existing project
+- `DELETE /api/projects/{id}` - Delete project (hard delete with confirmation)
+
+**Browser Support**: Firefox only (desktop). See `docs/test-plans/PROJECT_FEATURE_DECISIONS.md` (Decision #8).
+
+**Data Model**: Single entity (`Project`). Each project represents one YouTube video idea with name, description, and status.
+
+**Pagination**: Deferred for MVP. All endpoints return complete datasets, which is acceptable for the expected scale (~52 projects/year). See Decision #7 in test planning documentation.
