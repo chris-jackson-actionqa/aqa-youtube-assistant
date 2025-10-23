@@ -63,8 +63,8 @@ export class ProjectHelpers {
     // Submit the form
     await this.page.getByRole('button', { name: /create project/i }).click();
     
-    // Wait for success message or project to appear
-    await this.page.waitForTimeout(1000);
+    // Wait for the new project card to appear in the list
+    await this.page.locator('[data-testid="project-card"]').filter({ hasText: name }).waitFor({ state: 'visible', timeout: 5000 });
   }
 
   /**
@@ -86,8 +86,8 @@ export class ProjectHelpers {
       // No confirmation modal, deletion was immediate
     }
     
-    // Wait for deletion to complete
-    await this.page.waitForTimeout(1000);
+    // Wait for the project card to be removed from the DOM
+    await projectCard.waitFor({ state: 'detached' });
   }
 
   /**
