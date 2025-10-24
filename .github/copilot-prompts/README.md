@@ -18,6 +18,17 @@ This directory contains specialized Copilot prompts that can be invoked for spec
 - [CHROMA_DB_GUIDE.md](./CHROMA_DB_GUIDE.md) - Chroma DB usage patterns
 - [PLANNER_EXAMPLES.md](./PLANNER_EXAMPLES.md) - Usage examples and invocation methods
 
+### 🐍 [backend-developer-agent.md](./backend-developer-agent.md)
+**Purpose**: Backend development agent for FastAPI, SQLAlchemy, and RESTful APIs  
+**When to use**: Building new endpoints, database models, API features, backend bug fixes  
+**Invoke with**: Reference this file or use natural language like "implement the projects API"  
+**MCP Servers**: GitHub (issues, branching) + Chroma DB (context) + Postman (API testing)  
+**Key Principles**: 
+- Never guess requirements - always ask for clarification
+- Code in small, reviewable increments with frequent commits
+- 95%+ test coverage required for all backend code
+- Only implement what's requested (no extra features)
+
 ## How to Use Prompts
 
 ### Method 1: Direct Reference
