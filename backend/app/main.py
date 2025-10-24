@@ -88,7 +88,7 @@ async def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(db_project)
         return db_project
-    except IntegrityError as e:
+    except IntegrityError:
         db.rollback()
         # Handle database-level unique constraint violation
         # This is a fallback in case application-level check was bypassed
@@ -188,7 +188,7 @@ async def update_project(project_id: int, project_update: ProjectUpdate, db: Ses
         db.commit()
         db.refresh(db_project)
         return db_project
-    except IntegrityError as e:
+    except IntegrityError:
         db.rollback()
         # Handle database-level unique constraint violation
         # This is a fallback in case application-level check was bypassed

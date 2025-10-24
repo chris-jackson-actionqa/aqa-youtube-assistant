@@ -643,6 +643,11 @@ class TestValidationEnhancements:
         Simulates database constraint violation during commit.
         This tests the defensive exception handling for race conditions
         where duplicate check passes but constraint fails.
+        
+        Note: We patch at the SQLAlchemy Session class level rather than the
+        db_session fixture instance because the FastAPI dependency injection
+        creates a new session for each request. Patching Session.commit ensures
+        the mock is applied to all session instances created during the test.
         """
         # Patch at the SQLAlchemy Session level to simulate constraint violation
         with patch('sqlalchemy.orm.Session.commit', side_effect=IntegrityError("UNIQUE constraint failed", None, None)):
@@ -664,6 +669,11 @@ class TestValidationEnhancements:
         
         Simulates database constraint violation during update commit.
         This covers the defensive exception handling.
+        
+        Note: We patch at the SQLAlchemy Session class level rather than the
+        db_session fixture instance because the FastAPI dependency injection
+        creates a new session for each request. Patching Session.commit ensures
+        the mock is applied to all session instances created during the test.
         """
         # Create project first
         project = create_sample_project(name="Original Name")
