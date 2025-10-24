@@ -104,11 +104,13 @@ The FastAPI backend provides RESTful API endpoints for managing YouTube projects
 API Endpoints:
 - `GET /` - API information
 - `GET /api/health` - Health check
-- `GET /api/projects` - List all projects
-- `POST /api/projects` - Create new project (with duplicate title validation)
+- `GET /api/projects` - List all projects (no pagination in MVP - returns all projects)
+- `POST /api/projects` - Create new project (with duplicate name validation)
 - `GET /api/projects/{id}` - Get specific project
 - `PUT /api/projects/{id}` - Update project
 - `DELETE /api/projects/{id}` - Delete project
+
+**Note**: Pagination is deferred for MVP. The `GET /api/projects` endpoint returns all projects, which is acceptable for the expected scale (~52 projects per year). See `docs/test-plans/PROJECT_FEATURE_DECISIONS.md` (Decision #7) for details.
 
 ### Backend Testing
 
