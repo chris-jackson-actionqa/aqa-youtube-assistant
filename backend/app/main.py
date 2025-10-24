@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from typing import List
 from datetime import datetime
 
@@ -48,6 +49,12 @@ async def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
     """
     Create a new video project.
     
+    Validation:
+    - Project name is automatically trimmed of leading/trailing whitespace
+    - Empty descriptions are converted to null
+    - Duplicate names rejected (case-insensitive)
+    - Database-level unique constraint enforced
+    
     Args:
         project: Project data (name, description, status)
         db: Database session
@@ -57,9 +64,12 @@ async def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
         
     Raises:
         HTTPException: 400 if project with same name already exists (case-insensitive)
+        
+    Related: Issue #27
     """
     # Check for duplicate names (case-insensitive)
     # Using ilike() for case-insensitive comparison handles different capitalization
+    # Note: Name has already been trimmed by Pydantic validator
     existing_project = db.query(Project).filter(Project.name.ilike(project.name)).first()
     if existing_project:
         raise HTTPException(
@@ -72,10 +82,20 @@ async def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
         description=project.description,
         status=project.status
     )
-    db.add(db_project)
-    db.commit()
-    db.refresh(db_project)
-    return db_project
+    
+    try:
+        db.add(db_project)
+        db.commit()
+        db.refresh(db_project)
+        return db_project
+    except IntegrityError as e:
+        db.rollback()
+        # Handle database-level unique constraint violation
+        # This is a fallback in case application-level check was bypassed
+        raise HTTPException(
+            status_code=400,
+            detail=f"Project with name '{project.name}' already exists"
+        )
 
 
 @app.get("/api/projects", response_model=List[ProjectResponse])
@@ -119,6 +139,12 @@ async def update_project(project_id: int, project_update: ProjectUpdate, db: Ses
     """
     Update an existing video project.
     
+    Validation:
+    - Project name is automatically trimmed of leading/trailing whitespace (if provided)
+    - Empty descriptions are converted to null
+    - Duplicate names rejected (case-insensitive)
+    - Database-level unique constraint enforced
+    
     Args:
         project_id: Project ID
         project_update: Updated project data
@@ -130,6 +156,8 @@ async def update_project(project_id: int, project_update: ProjectUpdate, db: Ses
     Raises:
         HTTPException: 404 if project not found
         HTTPException: 400 if updating to a name that already exists (case-insensitive)
+        
+    Related: Issue #27
     """
     db_project = db.query(Project).filter(Project.id == project_id).first()
     if db_project is None:
@@ -139,6 +167,7 @@ async def update_project(project_id: int, project_update: ProjectUpdate, db: Ses
     update_data = project_update.model_dump(exclude_unset=True)
     
     # If name is being updated, check for duplicates (excluding current project)
+    # Note: Name has already been trimmed by Pydantic validator
     if "name" in update_data:
         existing_project = db.query(Project).filter(
             Project.name.ilike(update_data["name"]),
@@ -154,9 +183,19 @@ async def update_project(project_id: int, project_update: ProjectUpdate, db: Ses
         setattr(db_project, field, value)
     
     db_project.updated_at = datetime.utcnow()
-    db.commit()
-    db.refresh(db_project)
-    return db_project
+    
+    try:
+        db.commit()
+        db.refresh(db_project)
+        return db_project
+    except IntegrityError as e:
+        db.rollback()
+        # Handle database-level unique constraint violation
+        # This is a fallback in case application-level check was bypassed
+        raise HTTPException(
+            status_code=400,
+            detail=f"Project with name '{update_data.get('name', 'unknown')}' already exists"
+        )
 
 
 @app.delete("/api/projects/{project_id}", status_code=204)
