@@ -28,7 +28,7 @@ test.describe('Project Creation Workflow', () => {
 
   test.describe('Happy Paths', () => {
     
-    // TODO: Unskip when project creation UI is fully implemented
+    // TODO: Unskip when project creation UI is fully implemented (#12, #15, #37)
     test.skip('should create a new project with name and description', async ({ page }) => {
       // Arrange
       const projectName = generateUniqueProjectName('My First Video');
@@ -48,7 +48,7 @@ test.describe('Project Creation Workflow', () => {
       await expect(page.getByRole('button', { name: /create new project/i })).toBeVisible();
     });
 
-    // TODO: Unskip when project creation UI is fully implemented
+    // TODO: Unskip when project creation UI is fully implemented (#12, #15, #37)
     test.skip('should create project with only name (no description)', async ({ page }) => {
       // Arrange
       const projectName = generateUniqueProjectName('Minimal Project');
@@ -63,7 +63,7 @@ test.describe('Project Creation Workflow', () => {
       await helpers.verifyProjectExists(projectName);
     });
 
-    // TODO: Unskip when empty state UI is implemented
+    // TODO: Unskip when empty state UI is implemented (#12, #15)
     test.skip('should show empty state and transition to project list after first creation', async ({ page }) => {
       // Arrange - verify empty state
       await expect(page.getByText(/create your first project/i)).toBeVisible();
@@ -78,7 +78,7 @@ test.describe('Project Creation Workflow', () => {
       await helpers.verifyProjectExists(projectName);
     });
 
-    // TODO: Unskip when project creation UI is fully implemented
+    // TODO: Unskip when project creation UI is fully implemented (#12, #15, #37)
     test.skip('should allow creating multiple projects sequentially', async ({ page }) => {
       // Arrange
       const project1 = generateUniqueProjectName('Project 1');
@@ -131,7 +131,7 @@ test.describe('Project Creation Workflow', () => {
       await expect(submitButton).toBeDisabled();
     });
 
-    // TODO: Unskip when project creation UI handles very long names properly
+    // TODO: Unskip when project creation UI handles very long names properly (#39)
     test.skip('should handle very long project names', async ({ page }) => {
       // Arrange - create a long name (255 characters)
       const longName = generateUniqueProjectName('A'.repeat(200));
@@ -146,7 +146,7 @@ test.describe('Project Creation Workflow', () => {
       await expect(page.getByText(longName.substring(0, 50))).toBeVisible();
     });
 
-    // TODO: Unskip when project creation UI handles special characters
+    // TODO: Unskip when project creation UI handles special characters (#39)
     test.skip('should handle special characters in project name', async ({ page }) => {
       // Arrange
       const specialName = generateUniqueProjectName('Project #1: "TypeScript"');
@@ -161,7 +161,7 @@ test.describe('Project Creation Workflow', () => {
 
   test.describe('Duplicate Detection', () => {
     
-    // TODO: Unskip when duplicate detection UI error messages are implemented
+    // TODO: Unskip when duplicate detection UI error messages are implemented (#38)
     test.skip('should show error when creating project with duplicate name', async ({ page }) => {
       // Arrange - create first project
       const projectName = generateUniqueProjectName('Duplicate Test');
@@ -181,7 +181,7 @@ test.describe('Project Creation Workflow', () => {
       await expect(projectCards).toHaveCount(1);
     });
 
-    // TODO: Unskip when case-insensitive duplicate detection is implemented
+    // TODO: Unskip when case-insensitive duplicate detection is implemented (#38)
     test.skip('should detect duplicate names case-insensitively', async ({ page }) => {
       // Arrange - create project with original case
       const originalName = generateUniqueProjectName('Test Project');
@@ -217,7 +217,7 @@ test.describe('Project Creation Workflow', () => {
       await expect(page.getByText(cancelledName)).not.toBeVisible();
     });
 
-    // TODO: Unskip when loading state UI is implemented
+    // TODO: Unskip when loading state UI is implemented (#37)
     test.skip('should show loading state during project creation', async ({ page }) => {
       // Arrange
       const projectName = generateUniqueProjectName('Loading Test');
@@ -246,7 +246,7 @@ test.describe('Project Creation Workflow', () => {
 
   test.describe('Error Handling', () => {
     
-    // TODO: Unskip when API error handling UI is implemented
+    // TODO: Unskip when API error handling UI is implemented (#38)
     test.skip('should handle API errors gracefully during creation', async ({ page }) => {
       // Arrange - mock API failure
       await page.route('**/api/projects', route => {
@@ -312,7 +312,7 @@ test.describe('Project Creation Workflow', () => {
 
   test.describe('Edge Cases', () => {
     
-    // TODO: Unskip when project creation UI is fully implemented
+    // TODO: Unskip when project creation UI is fully implemented (#12, #15, #39)
     test.skip('should handle rapid form submissions', async ({ page }) => {
       // Arrange
       const projectName = generateUniqueProjectName('Rapid Submit Test');
@@ -353,7 +353,7 @@ test.describe('Project Creation Workflow', () => {
       await expect(page.getByLabel(/description/i)).toHaveValue(description);
     });
 
-    // TODO: Unskip when project creation UI handles emoji
+    // TODO: Unskip when project creation UI handles emoji (#39)
     test.skip('should handle projects with emoji in name', async ({ page }) => {
       // Arrange
       const emojiName = generateUniqueProjectName('🎬 Video Project 🎥');
