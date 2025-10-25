@@ -84,7 +84,7 @@ export default defineConfig({
   /* Run your local dev servers before starting the tests */
   webServer: [
     {
-      command: 'cd backend && python -m uvicorn app.main:app --port 8000',
+      command: 'cd ../backend && python -m uvicorn app.main:app --port 8000',
       port: 8000,
       timeout: 120 * 1000,
       reuseExistingServer: !process.env.CI,
@@ -92,7 +92,7 @@ export default defineConfig({
       stderr: 'pipe',
     },
     {
-      command: 'cd frontend && npm run dev',
+      command: 'cd ../frontend && npm run dev',
       port: 3000,
       timeout: 120 * 1000,
       reuseExistingServer: !process.env.CI,
