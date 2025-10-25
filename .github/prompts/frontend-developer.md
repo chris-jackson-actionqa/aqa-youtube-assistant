@@ -78,7 +78,46 @@ Which approach should I take, or is there a different preference?"
 
 ## Workflow
 
-### Step 0: GitHub Issue Management (if working on an issue)
+### Step 0: Git and GitHub Workflow
+
+**CRITICAL**: Follow the [Git and GitHub Workflow Checklist](../.github/workflows/GIT_GITHUB_WORKFLOW_CHECKLIST.md) for ALL development work.
+
+**Key requirements from the checklist**:
+- ❌ **NEVER commit directly to `main`**
+- ✅ **ALWAYS create a feature branch before any code changes**
+- ✅ **Follow branch naming conventions**: `feature/`, `fix/`, `docs/`, `test/`
+- ✅ **Use conventional commit messages**: `feat:`, `fix:`, `test:`, `docs:`, etc.
+- ✅ **Commit frequently** in small, logical increments
+- ✅ **Run tests before every commit**
+
+**Quick Start**:
+```bash
+# 1. Update main
+git checkout main
+git pull origin main
+
+# 2. Create feature branch
+git checkout -b feature/issue-XX-short-description
+
+# 3. Verify you're on the new branch
+git branch --show-current
+
+# 4. Make changes, test, commit
+git add <files>
+git commit -m "feat: specific change description"
+
+# 5. Push and create PR
+git push -u origin feature/issue-XX-short-description
+```
+
+**See the full [Git and GitHub Workflow Checklist](../.github/workflows/GIT_GITHUB_WORKFLOW_CHECKLIST.md) for**:
+- Pre-commit checklist
+- Handling merge conflicts
+- Keeping branches up to date
+- Common scenarios and solutions
+- Best practices and anti-patterns
+
+### Step 1: GitHub Issue Management (if working on an issue)
 
 **ALWAYS manage issue status when working on GitHub issues**:
 
@@ -152,23 +191,6 @@ Tests: 78 passing, 100% coverage
 Closing as completed!"
 ```
 
-### Step 1: Create Feature Branch
-
-**ALWAYS start by creating a new branch** - never work directly on `main`.
-
-```bash
-# Checkout main and pull latest
-git checkout main
-git pull origin main
-
-# Create descriptive feature branch
-git checkout -b feature/[descriptive-name]
-# Examples:
-# - feature/add-project-delete-button
-# - feature/improve-form-accessibility
-# - fix/modal-focus-trap
-```
-
 ### Step 2: Break Down the Task
 
 Decompose the request into small, testable steps:
@@ -202,7 +224,8 @@ For each small step:
    ```bash
    npm test -- --coverage
    ```
-5. **Commit**: Create a focused commit
+5. **Review Pre-Commit Checklist**: Follow the [Pre-Commit Checklist](../.github/workflows/GIT_GITHUB_WORKFLOW_CHECKLIST.md#-pre-commit-checklist)
+6. **Commit**: Create a focused commit using [conventional commit format](../.github/workflows/GIT_GITHUB_WORKFLOW_CHECKLIST.md#stage-and-commit-changes)
    ```bash
    git add [relevant-files]
    git commit -m "feat: [describe single change]"
@@ -232,10 +255,12 @@ Aim for 100% coverage
 
 ### Step 5: Commit Frequently
 
+**Follow the [Git Workflow Checklist](../.github/workflows/GIT_GITHUB_WORKFLOW_CHECKLIST.md) for all commits**.
+
 **Commit after each logical unit of work**:
 
 ```bash
-# Good commit examples:
+# Use conventional commit format (see workflow checklist)
 git commit -m "feat: add delete button to ProjectCard component"
 git commit -m "feat: implement delete confirmation modal"
 git commit -m "test: add unit tests for delete functionality"
@@ -243,14 +268,23 @@ git commit -m "fix: correct focus trap in modal"
 git commit -m "a11y: add ARIA labels to delete button"
 ```
 
-**Commit message format**:
+**Commit types** (from workflow checklist):
 - `feat:` - New feature
 - `fix:` - Bug fix
 - `test:` - Adding tests
-- `a11y:` - Accessibility improvement
-- `style:` - Styling changes
-- `refactor:` - Code refactoring
 - `docs:` - Documentation
+- `style:` - Code style/formatting
+- `refactor:` - Code refactoring
+- `perf:` - Performance improvement
+- `chore:` - Build/tooling changes
+
+**Before EVERY commit, verify**:
+- ✅ All tests pass
+- ✅ Coverage meets threshold (98%+)
+- ✅ Code follows style guide
+- ✅ No debug statements or commented code
+
+See the full [Pre-Commit Checklist](../.github/workflows/GIT_GITHUB_WORKFLOW_CHECKLIST.md#-pre-commit-checklist) for complete requirements.
 
 ## MCP Tools Usage
 
@@ -286,10 +320,10 @@ git commit -m "a11y: add ARIA labels to delete button"
 1. Read issue: Get full context of feature request
 2. Search for related code: Find similar implementations
 3. Check for existing patterns: Maintain consistency
-4. Link commits: Reference issue number in commits
+4. Link commits: Reference issue number in commits (see workflow checklist)
 ```
 
-**Example**:
+**Example** (from [Git Workflow Checklist](../.github/workflows/GIT_GITHUB_WORKFLOW_CHECKLIST.md)):
 ```bash
 # Link to issue in commit
 git commit -m "feat: add project deletion (closes #42)"
@@ -504,33 +538,55 @@ npm test -- ComponentName.test.tsx
 
 ## Git Workflow Summary
 
-```bash
-# 0. If working on a GitHub issue, move it to "In Progress"
-# Add comment on issue #X describing implementation plan
+**CRITICAL**: See the complete [Git and GitHub Workflow Checklist](../.github/workflows/GIT_GITHUB_WORKFLOW_CHECKLIST.md) for detailed instructions.
 
-# 1. Always start with a new branch
+**Quick Reference**:
+
+```bash
+# 0. Move GitHub issue to "In Progress" (if applicable)
+# Add comment describing implementation plan
+
+# 1. ALWAYS start with a new branch (NEVER work on main)
 git checkout main
 git pull origin main
-git checkout -b feature/descriptive-name
+git checkout -b feature/issue-XX-short-description
 
 # 2. Make small changes and commit frequently
 # ... make changes ...
+# ... run tests (npm test -- --coverage) ...
+# ... review pre-commit checklist ...
 git add [files]
 git commit -m "feat: specific change description"
 
 # 3. Update issue with progress (if applicable)
 # Add comment on GitHub issue with what's completed
 
-# 4. Run tests before pushing
-npm test -- --coverage
+# 4. Push branch and create PR
+git push -u origin feature/issue-XX-short-description
+# Then create PR on GitHub using PR template
 
-# 5. Push branch and create PR
-git push origin feature/descriptive-name
-# Then create PR on GitHub referencing related issue
-
-# 6. Close issue when complete
+# 5. Close issue when complete
 # Add final comment summarizing work, reference commit/PR, close issue
 ```
+
+**Essential Rules**:
+- ❌ Never commit to `main` directly
+- ❌ Never force push to `main` or shared branches
+- ❌ Never commit broken code or failing tests
+- ✅ Always create a feature branch first
+- ✅ Always run tests before committing
+- ✅ Always follow pre-commit checklist
+- ✅ Always use conventional commit messages
+
+**For detailed guidance on**:
+- Branch naming conventions
+- Pre-commit checklist
+- Creating pull requests
+- Handling merge conflicts
+- Keeping branches up to date
+- Common scenarios and solutions
+
+**See**: [Git and GitHub Workflow Checklist](../.github/workflows/GIT_GITHUB_WORKFLOW_CHECKLIST.md)
 
 ## Communication Style
 

@@ -38,7 +38,6 @@ describe('ProjectList', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.resetAllMocks();
   });
 
   afterEach(() => {
@@ -154,11 +153,8 @@ describe('ProjectList', () => {
   });
 
   describe('Project Display', () => {
-    beforeEach(() => {
-      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
-    });
-
     it('displays all projects from API', async () => {
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
       await waitFor(() => {
@@ -169,6 +165,7 @@ describe('ProjectList', () => {
     });
 
     it('displays project descriptions', async () => {
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
       await waitFor(() => {
@@ -178,6 +175,7 @@ describe('ProjectList', () => {
     });
 
     it('does not display description when null', async () => {
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
       await waitFor(() => {
@@ -189,6 +187,7 @@ describe('ProjectList', () => {
     });
 
     it('displays status badges with correct labels', async () => {
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
       await waitFor(() => {
@@ -199,6 +198,7 @@ describe('ProjectList', () => {
     });
 
     it('displays relative time for created and updated dates', async () => {
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
       await waitFor(() => {
@@ -225,6 +225,7 @@ describe('ProjectList', () => {
     });
 
     it('renders projects in a grid layout', async () => {
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
       await waitFor(() => {
@@ -238,12 +239,9 @@ describe('ProjectList', () => {
   });
 
   describe('Project Selection', () => {
-    beforeEach(() => {
-      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
-    });
-
     it('calls onProjectSelect when select button is clicked', async () => {
       const onProjectSelect = jest.fn();
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList onProjectSelect={onProjectSelect} />);
 
       await waitFor(() => {
@@ -257,6 +255,7 @@ describe('ProjectList', () => {
     });
 
     it('highlights selected project', async () => {
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList selectedProjectId={1} />);
 
       await waitFor(() => {
@@ -266,6 +265,7 @@ describe('ProjectList', () => {
     });
 
     it('shows "Selected" text for selected project', async () => {
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList selectedProjectId={1} />);
 
       await waitFor(() => {
@@ -276,6 +276,7 @@ describe('ProjectList', () => {
 
     it('supports keyboard navigation for selection', async () => {
       const onProjectSelect = jest.fn();
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList onProjectSelect={onProjectSelect} />);
 
       await waitFor(() => {
@@ -290,6 +291,7 @@ describe('ProjectList', () => {
 
     it('supports space key for selection', async () => {
       const onProjectSelect = jest.fn();
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList onProjectSelect={onProjectSelect} />);
 
       await waitFor(() => {
@@ -304,6 +306,7 @@ describe('ProjectList', () => {
 
     it('does not trigger selection on other keys', async () => {
       const onProjectSelect = jest.fn();
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList onProjectSelect={onProjectSelect} />);
 
       await waitFor(() => {
@@ -318,13 +321,9 @@ describe('ProjectList', () => {
   });
 
   describe('Project Deletion', () => {
-    beforeEach(() => {
-      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
-    });
-
     it('calls deleteProject API when delete button is clicked', async () => {
       mockedApi.deleteProject.mockResolvedValueOnce({ message: 'Deleted' });
-
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
       await waitFor(() => {
@@ -341,7 +340,7 @@ describe('ProjectList', () => {
 
     it('removes deleted project from list', async () => {
       mockedApi.deleteProject.mockResolvedValueOnce({ message: 'Deleted' });
-
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
       await waitFor(() => {
@@ -359,7 +358,7 @@ describe('ProjectList', () => {
     it('calls onProjectDelete callback after successful deletion', async () => {
       const onProjectDelete = jest.fn();
       mockedApi.deleteProject.mockResolvedValueOnce({ message: 'Deleted' });
-
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList onProjectDelete={onProjectDelete} />);
 
       await waitFor(() => {
@@ -379,7 +378,7 @@ describe('ProjectList', () => {
       mockedApi.deleteProject.mockRejectedValueOnce(
         new api.ApiError(errorMessage, 500)
       );
-
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
       await waitFor(() => {
@@ -396,7 +395,7 @@ describe('ProjectList', () => {
 
     it('displays generic error message for non-ApiError deletion', async () => {
       mockedApi.deleteProject.mockRejectedValueOnce(new Error('Unknown error'));
-
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
       await waitFor(() => {
@@ -415,7 +414,7 @@ describe('ProjectList', () => {
       mockedApi.deleteProject.mockImplementation(
         () => new Promise(() => {}) // Never resolves
       );
-
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
       await waitFor(() => {
@@ -434,7 +433,7 @@ describe('ProjectList', () => {
 
     it('keeps other projects when one is deleted', async () => {
       mockedApi.deleteProject.mockResolvedValueOnce({ message: 'Deleted' });
-
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
       await waitFor(() => {
@@ -701,11 +700,8 @@ describe('ProjectList', () => {
   });
 
   describe('Accessibility', () => {
-    beforeEach(() => {
-      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
-    });
-
     it('has proper ARIA labels for project actions', async () => {
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
       await waitFor(() => {
@@ -715,6 +711,7 @@ describe('ProjectList', () => {
     });
 
     it('has proper ARIA label for status badges', async () => {
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
       await waitFor(() => {
@@ -724,6 +721,7 @@ describe('ProjectList', () => {
     });
 
     it('has semantic time elements', async () => {
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
       await waitFor(() => {
@@ -734,6 +732,7 @@ describe('ProjectList', () => {
     });
 
     it('uses list semantic structure', async () => {
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
       await waitFor(() => {
@@ -744,6 +743,7 @@ describe('ProjectList', () => {
     });
 
     it('has hidden decorative SVG icons', async () => {
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
       await waitFor(() => {
