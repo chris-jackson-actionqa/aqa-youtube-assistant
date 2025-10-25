@@ -229,6 +229,8 @@ For each small step:
    ```bash
    git add [relevant-files]
    git commit -m "feat: [describe single change]"
+   # ❌ NEVER use --no-verify or --no-hooks
+   # ✅ If commit fails, fix the issues, don't bypass hooks
    ```
 
 ### Step 4: Test as You Go
@@ -573,10 +575,12 @@ git push -u origin feature/issue-XX-short-description
 - ❌ Never commit to `main` directly
 - ❌ Never force push to `main` or shared branches
 - ❌ Never commit broken code or failing tests
+- ❌ **NEVER use `--no-verify` or `--no-hooks`** - Pre-commit hooks exist for quality control
 - ✅ Always create a feature branch first
 - ✅ Always run tests before committing
 - ✅ Always follow pre-commit checklist
 - ✅ Always use conventional commit messages
+- ✅ If pre-commit hooks fail, **fix the issues** - don't bypass them
 
 **For detailed guidance on**:
 - Branch naming conventions

@@ -4,8 +4,16 @@ import ProjectList from '../ProjectList';
 import * as api from '../../lib/api';
 import { Project } from '../../types/project';
 
-// Mock the API module
-jest.mock('../../lib/api');
+// Mock only the API functions, not the ApiError class
+jest.mock('../../lib/api', () => {
+  const actualApi = jest.requireActual('../../lib/api');
+  return {
+    ...actualApi,
+    getProjects: jest.fn(),
+    deleteProject: jest.fn(),
+  };
+});
+
 const mockedApi = api as jest.Mocked<typeof api>;
 
 describe('ProjectList', () => {
@@ -37,7 +45,9 @@ describe('ProjectList', () => {
   ];
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    // Reset implementations before each test to ensure clean slate
+    mockedApi.getProjects.mockReset();
+    mockedApi.deleteProject.mockReset();
   });
 
   afterEach(() => {
@@ -219,7 +229,7 @@ describe('ProjectList', () => {
 
       await waitFor(() => {
         const displayedText = screen.getByText(/aaa/);
-        expect(displayedText.textContent).toHaveLength(104); // 100 chars + '...'
+        expect(displayedText.textContent).toHaveLength(103); // 100 chars + '...'
         expect(displayedText.textContent).toContain('...');
       });
     });
