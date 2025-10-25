@@ -108,6 +108,32 @@ describe('ProjectForm', () => {
       expect(api.createProject).not.toHaveBeenCalled()
     })
 
+    it('should show error message for whitespace-only name when validation is bypassed', async () => {
+      const user = userEvent.setup()
+      
+      render(<ProjectForm />)
+      
+      const nameInput = screen.getByLabelText(/project name/i) as HTMLInputElement
+      const form = nameInput.closest('form') as HTMLFormElement
+      
+      // Type whitespace
+      await user.type(nameInput, '   ')
+      
+      // Remove the required attribute and disabled state to bypass HTML5 and button validation
+      nameInput.removeAttribute('required')
+      const submitButton = screen.getByRole('button', { name: /create project/i })
+      submitButton.removeAttribute('disabled')
+      
+      // Submit the form
+      await user.click(submitButton)
+      
+      await waitFor(() => {
+        expect(screen.getByText(/project name cannot be empty or contain only whitespace/i)).toBeInTheDocument()
+      })
+      
+      expect(api.createProject).not.toHaveBeenCalled()
+    })
+
     it('should respect maxLength of 2000 characters for description', () => {
       render(<ProjectForm />)
       
