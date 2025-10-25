@@ -65,7 +65,7 @@ async def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
     Raises:
         HTTPException: 400 if project with same name already exists (case-insensitive)
         
-    Related: Issue #27
+    Related: Issue #27, Issue #30
     """
     # Check for duplicate names (case-insensitive)
     # Using ilike() for case-insensitive comparison handles different capitalization
@@ -74,7 +74,7 @@ async def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
     if existing_project:
         raise HTTPException(
             status_code=400, 
-            detail=f"Project with name '{project.name}' already exists (case-insensitive match)"
+            detail=f"A project named '{project.name}' already exists"
         )
     
     db_project = Project(
@@ -91,10 +91,10 @@ async def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
     except IntegrityError:
         db.rollback()
         # Handle database-level unique constraint violation
-        # This is a fallback in case application-level check was bypassed
+        # This is a fallback in case application-level check was bypassed (e.g., race condition)
         raise HTTPException(
             status_code=400,
-            detail=f"Project with name '{project.name}' already exists"
+            detail=f"A project named '{project.name}' already exists"
         )
 
 
@@ -157,7 +157,7 @@ async def update_project(project_id: int, project_update: ProjectUpdate, db: Ses
         HTTPException: 404 if project not found
         HTTPException: 400 if updating to a name that already exists (case-insensitive)
         
-    Related: Issue #27
+    Related: Issue #27, Issue #30
     """
     db_project = db.query(Project).filter(Project.id == project_id).first()
     if db_project is None:
@@ -176,7 +176,7 @@ async def update_project(project_id: int, project_update: ProjectUpdate, db: Ses
         if existing_project:
             raise HTTPException(
                 status_code=400,
-                detail=f"Project with name '{update_data['name']}' already exists (case-insensitive match)"
+                detail=f"A project named '{update_data['name']}' already exists"
             )
     
     for field, value in update_data.items():
@@ -194,7 +194,7 @@ async def update_project(project_id: int, project_update: ProjectUpdate, db: Ses
         # This is a fallback in case application-level check was bypassed
         raise HTTPException(
             status_code=400,
-            detail=f"Project with name '{update_data.get('name', 'unknown')}' already exists"
+            detail=f"A project named '{update_data.get('name', 'unknown')}' already exists"
         )
 
 
