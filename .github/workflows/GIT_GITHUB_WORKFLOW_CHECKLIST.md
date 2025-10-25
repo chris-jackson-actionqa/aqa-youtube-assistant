@@ -342,12 +342,12 @@ git checkout feature/correct-branch
 # 1. Conflicts occur during merge/rebase
 # 2. Git will mark conflicted files
 
-# 3. Open conflicted files and look for:
-<<<<<<< HEAD
-Your changes
-=======
-Their changes
->>>>>>> branch-name
+# 3. Open conflicted files and look for conflict markers:
+# <<<<<<< HEAD
+# Your changes
+# =======
+# Their changes
+# >>>>>>> branch-name
 
 # 4. Edit to keep desired code
 # 5. Remove conflict markers
