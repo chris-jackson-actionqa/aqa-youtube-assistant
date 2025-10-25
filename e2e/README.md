@@ -167,6 +167,9 @@ Tests are configured to run in CI with:
 
 ## Related Documentation
 
+- **[E2E Testing Guide](../frontend/docs/E2E_TESTING_GUIDE.md)** - Comprehensive testing strategy and best practices
+- **[Test Case Inventory](./TEST_CASES.md)** - Complete catalog of all test cases
 - [Playwright Documentation](https://playwright.dev/)
 - [Test Automation Agent Prompt](../.github/copilot-prompts/test-automation-agent.md)
 - [Issue #19 - E2E Setup](https://github.com/chris-jackson-actionqa/aqa-youtube-assistant/issues/19)
+- [Issue #20 - E2E Test Plan](https://github.com/chris-jackson-actionqa/aqa-youtube-assistant/issues/20)
