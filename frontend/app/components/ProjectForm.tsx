@@ -23,9 +23,17 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
     setSuccessMessage(null);
     setIsSubmitting(true);
 
+    // Trim and validate name
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      setError('Project name cannot be empty or contain only whitespace');
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const projectData: ProjectCreate = {
-        name: name.trim(),
+        name: trimmedName,
         description: description.trim() || null,
         status,
       };
@@ -125,6 +133,7 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={4}
+            maxLength={2000}
             placeholder="Enter project description (optional)"
             className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
                      focus:ring-2 focus:ring-blue-500 focus:border-transparent
@@ -132,6 +141,9 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
                      placeholder-gray-400 dark:placeholder-gray-500"
             disabled={isSubmitting}
           />
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            {description.length} / 2000 characters
+          </p>
         </div>
 
         {/* Status Field */}

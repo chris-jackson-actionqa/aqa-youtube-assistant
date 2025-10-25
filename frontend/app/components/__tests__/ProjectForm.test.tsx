@@ -66,6 +66,126 @@ describe('ProjectForm', () => {
       const titleInput = screen.getByLabelText(/project name/i) as HTMLInputElement
       expect(titleInput.maxLength).toBe(255)
     })
+
+    it('should trim leading and trailing whitespace from project name', async () => {
+      const user = userEvent.setup()
+      const mockProject = {
+        id: 1,
+        name: 'Test Project',
+        description: null,
+        status: 'planned',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+      
+      ;(api.createProject as jest.Mock).mockResolvedValue(mockProject)
+      
+      render(<ProjectForm />)
+      
+      await user.type(screen.getByLabelText(/project name/i), '  Test Project  ')
+      await user.click(screen.getByRole('button', { name: /create project/i }))
+      
+      await waitFor(() => {
+        expect(api.createProject).toHaveBeenCalledWith({
+          name: 'Test Project',
+          description: null,
+          status: 'planned',
+        })
+      })
+    })
+
+    it('should reject whitespace-only project name', async () => {
+      const user = userEvent.setup()
+      
+      render(<ProjectForm />)
+      
+      const nameInput = screen.getByLabelText(/project name/i)
+      await user.type(nameInput, '   ')
+      
+      const submitButton = screen.getByRole('button', { name: /create project/i })
+      expect(submitButton).toBeDisabled()
+      
+      expect(api.createProject).not.toHaveBeenCalled()
+    })
+
+    it('should respect maxLength of 2000 characters for description', () => {
+      render(<ProjectForm />)
+      
+      const descriptionInput = screen.getByLabelText(/description/i) as HTMLTextAreaElement
+      expect(descriptionInput.maxLength).toBe(2000)
+    })
+
+    it('should convert empty description to null', async () => {
+      const user = userEvent.setup()
+      const mockProject = {
+        id: 1,
+        name: 'Test Project',
+        description: null,
+        status: 'planned',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+      
+      ;(api.createProject as jest.Mock).mockResolvedValue(mockProject)
+      
+      render(<ProjectForm />)
+      
+      await user.type(screen.getByLabelText(/project name/i), 'Test Project')
+      // Leave description empty
+      await user.click(screen.getByRole('button', { name: /create project/i }))
+      
+      await waitFor(() => {
+        expect(api.createProject).toHaveBeenCalledWith({
+          name: 'Test Project',
+          description: null,
+          status: 'planned',
+        })
+      })
+    })
+
+    it('should convert whitespace-only description to null', async () => {
+      const user = userEvent.setup()
+      const mockProject = {
+        id: 1,
+        name: 'Test Project',
+        description: null,
+        status: 'planned',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+      
+      ;(api.createProject as jest.Mock).mockResolvedValue(mockProject)
+      
+      render(<ProjectForm />)
+      
+      await user.type(screen.getByLabelText(/project name/i), 'Test Project')
+      await user.type(screen.getByLabelText(/description/i), '   ')
+      await user.click(screen.getByRole('button', { name: /create project/i }))
+      
+      await waitFor(() => {
+        expect(api.createProject).toHaveBeenCalledWith({
+          name: 'Test Project',
+          description: null,
+          status: 'planned',
+        })
+      })
+    })
+
+    it('should display character counter for description', () => {
+      render(<ProjectForm />)
+      
+      expect(screen.getByText('0 / 2000 characters')).toBeInTheDocument()
+    })
+
+    it('should update character counter as user types', async () => {
+      const user = userEvent.setup()
+      render(<ProjectForm />)
+      
+      const descriptionInput = screen.getByLabelText(/description/i)
+      await user.type(descriptionInput, 'Hello World')
+      
+      expect(screen.getByText('11 / 2000 characters')).toBeInTheDocument()
+    })
   })
 
   describe('Form Submission', () => {
