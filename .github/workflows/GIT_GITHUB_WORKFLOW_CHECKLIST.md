@@ -70,6 +70,28 @@ git add .
 git commit -m "type: description"
 ```
 
+**⚠️ CRITICAL: Pre-Commit Hooks**
+
+Pre-commit hooks run automatically when you commit. They exist to catch issues before they reach the repository:
+
+- **If pre-commit hooks fail**: The commit will be aborted
+- **Your responsibility**: Fix the issues, don't bypass the hooks
+- **NEVER use `--no-verify` or `--no-hooks`**: These flags bypass quality checks
+
+**Common hook failures and solutions:**
+```bash
+# ❌ WRONG: Bypassing hooks
+git commit --no-verify -m "message"
+
+# ✅ CORRECT: Fix the issues
+# 1. Read the error message
+# 2. Fix the failing tests or linting issues
+# 3. Stage the fixes
+git add <fixed-files>
+# 4. Commit normally (hooks will run again)
+git commit -m "message"
+```
+
 **Commit Message Format:**
 ```
 <type>: <short description>
@@ -411,12 +433,14 @@ git stash list                      # List all stashes
 - ✅ Rebase to keep history clean
 - ✅ Write descriptive PR descriptions
 - ✅ Respond to review feedback promptly
+- ✅ Fix issues when pre-commit hooks fail
 
 ### Don'ts ❌
 - ❌ Never commit directly to `main`
 - ❌ Never force push to `main` or shared branches
 - ❌ Never commit broken code
 - ❌ Never commit without testing
+- ❌ **Never use `--no-verify` or `--no-hooks` to bypass pre-commit checks**
 - ❌ Never push sensitive data (keys, passwords)
 - ❌ Never commit commented-out code
 - ❌ Never use `git add .` without reviewing changes
