@@ -95,6 +95,59 @@ class TestDatabaseConstraints:
         assert response1.status_code == 400
         assert response2.status_code == 400
         assert response3.status_code == 400
+    
+    def test_database_constraint_direct_enforcement(self, client, db_session):
+        """
+        Test that database-level case-insensitive UNIQUE constraint is enforced.
+        
+        This test verifies Issue #30 implementation - the functional index
+        on LOWER(name) that prevents duplicate names at the database level.
+        
+        Related: Issue #30, Decision #4
+        """
+        from app.models import Project
+        from sqlalchemy.exc import IntegrityError
+        
+        # Create first project via API
+        response = client.post("/api/projects", json={"name": "Database Test"})
+        assert response.status_code == 201
+        
+        # Try to bypass application-level validation by inserting directly via SQLAlchemy
+        # This should fail due to the database constraint
+        duplicate = Project(
+            name="database test",  # Different case
+            description="Direct DB insert attempt",
+            status="planned"
+        )
+        
+        db_session.add(duplicate)
+        
+        with pytest.raises(IntegrityError) as exc_info:
+            db_session.commit()
+        
+        # Verify it's the specific unique constraint that failed
+        assert "uix_project_name_lower" in str(exc_info.value).lower()
+        
+        db_session.rollback()
+    
+    def test_case_insensitive_uniqueness_with_trimming(self, client):
+        """Test that case-insensitive uniqueness works with whitespace trimming."""
+        # Create with one case
+        client.post("/api/projects", json={"name": "My Video"})
+        
+        # Try different variations that should all be rejected
+        test_cases = [
+            "my video",           # Different case
+            "  My Video  ",       # Same with spaces (will be trimmed)
+            "  my video  ",       # Different case with spaces
+            "MY VIDEO",           # All caps
+            "  MY VIDEO  ",       # All caps with spaces
+        ]
+        
+        for test_name in test_cases:
+            response = client.post("/api/projects", json={"name": test_name})
+            assert response.status_code == 400, f"Failed for name: '{test_name}'"
+            assert "already exists" in response.json()["detail"].lower()
 
 
 class TestDatabaseTransactions:

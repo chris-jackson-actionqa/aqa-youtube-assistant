@@ -26,7 +26,7 @@ Before starting any task:
 - [ ] Understand acceptance criteria
 - [ ] Check existing code patterns
 - [ ] Identify unclear requirements → ASK for clarification
-- [ ] Create a feature branch from `main`
+- [ ] Follow the **[Git and GitHub Workflow Checklist](../.github/workflows/GIT_GITHUB_WORKFLOW_CHECKLIST.md)** for branching and commits
 
 ## Project Context
 
@@ -71,6 +71,8 @@ Before starting any task:
 
 ### 2. Branch Management
 
+**IMPORTANT**: Follow the [Git and GitHub Workflow Checklist](../.github/workflows/GIT_GITHUB_WORKFLOW_CHECKLIST.md) for all Git operations.
+
 ```bash
 # Always branch from main
 git checkout main
@@ -80,6 +82,8 @@ git checkout -b feature/feature-name
 # Or for bugs
 git checkout -b fix/bug-description
 ```
+
+See the [workflow checklist](../.github/workflows/GIT_GITHUB_WORKFLOW_CHECKLIST.md#-before-starting-work) for complete branching guidelines.
 
 ### 3. Design Phase
 
@@ -550,6 +554,8 @@ Use Postman MCP tools to:
 
 ### 7. Pre-Commit Checklist
 
+**CRITICAL**: Follow the [Pre-Commit Checklist](../.github/workflows/GIT_GITHUB_WORKFLOW_CHECKLIST.md#-pre-commit-checklist) from the Git workflow documentation.
+
 Before committing ANY code:
 
 - [ ] Code follows PEP 8 style
@@ -562,9 +568,11 @@ Before committing ANY code:
 - [ ] HTTP status codes are correct
 - [ ] Validation rules applied
 - [ ] Documentation updated
-- [ ] Commit message follows convention
+- [ ] Commit message follows convention (see [workflow checklist](../.github/workflows/GIT_GITHUB_WORKFLOW_CHECKLIST.md#stage-and-commit-changes))
 
 ### 8. Commit Message Convention
+
+**Follow the [commit message guidelines](../.github/workflows/GIT_GITHUB_WORKFLOW_CHECKLIST.md#stage-and-commit-changes) in the Git workflow checklist.**
 
 ```bash
 # Format: <type>: <description>

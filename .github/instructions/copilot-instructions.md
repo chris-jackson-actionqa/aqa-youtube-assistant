@@ -151,12 +151,39 @@ def create_video(title: str, description: str) -> Video:
 
 ## Development Workflow
 
+**CRITICAL**: All development work MUST follow the [Git and GitHub Workflow Checklist](.github/workflows/GIT_GITHUB_WORKFLOW_CHECKLIST.md).
+
+### Git Workflow Requirements
+
+**Before ANY code changes**:
+1. **Branch First**: NEVER work directly on `main` - always create a feature branch
+2. **Update Main**: Ensure `main` is up to date before branching
+3. **Proper Naming**: Use branch naming conventions (`feature/`, `fix/`, `docs/`, `test/`)
+
+**During development**:
+1. **Small Commits**: Make one logical change at a time
+2. **Test First**: Run tests before every commit
+3. **Conventional Commits**: Follow commit message conventions (`feat:`, `fix:`, `test:`, `docs:`)
+
+**Before committing**:
+- Follow the [Pre-Commit Checklist](.github/workflows/GIT_GITHUB_WORKFLOW_CHECKLIST.md#-pre-commit-checklist)
+- All tests must pass
+- Coverage thresholds must be met
+
+**Creating Pull Requests**:
+- Follow the [PR Creation Checklist](.github/workflows/GIT_GITHUB_WORKFLOW_CHECKLIST.md#-creating-a-pull-request)
+- Link to related issues using `Fixes #XX` or `Related to #XX`
+- Include clear description of changes and testing performed
+
+### Standard Workflow Steps
+
 1. **Planning**: Create GitHub issue with requirements and acceptance criteria
-2. **Implementation**: Work on feature branch (branch from `main` or current development branch)
-3. **Documentation**: Update relevant docs and code comments
-4. **Testing**: Write/update tests as appropriate
-5. **Review**: Create PR with description linking to issue
-6. **Merge**: Squash and merge with meaningful commit message
+2. **Branching**: Create feature branch following [workflow checklist](.github/workflows/GIT_GITHUB_WORKFLOW_CHECKLIST.md#-before-starting-work)
+3. **Implementation**: Work in small increments with frequent commits
+4. **Documentation**: Update relevant docs and code comments
+5. **Testing**: Write/update tests as appropriate (enforced by pre-commit hook)
+6. **Review**: Create PR with description linking to issue
+7. **Merge**: Squash and merge with meaningful commit message
 
 ## MCP Server Tools
 
@@ -217,14 +244,20 @@ See `.github/copilot-prompts/README.md` for full list of available prompts.
 
 **When assisting with this project**:
 
-1. **Context First**: Always check existing documentation and issues before suggesting implementations
-2. **Consistency**: Follow established patterns in the codebase
-3. **Documentation**: Remind to update docs when making significant changes
-4. **Issue Linking**: Suggest creating or linking to GitHub issues for new features
-5. **Best Practices**: Recommend testing, error handling, and validation
-6. **Ask Questions**: When requirements are unclear, ask before implementing
-7. **Use MCP Tools**: Leverage GitHub MCP for project management and Git operations, Chroma DB for context persistence
-8. **Use Specialized Prompts**: Invoke task-specific prompts (like jest-unit-tester) for complex workflows
+1. **Git Workflow First**: ALWAYS follow the [Git and GitHub Workflow Checklist](.github/workflows/GIT_GITHUB_WORKFLOW_CHECKLIST.md)
+   - **Never commit to main directly**
+   - Create feature branch before any code changes
+   - Follow branch naming conventions
+   - Use conventional commit messages
+2. **Context First**: Always check existing documentation and issues before suggesting implementations
+3. **Consistency**: Follow established patterns in the codebase
+4. **Documentation**: Remind to update docs when making significant changes
+5. **Issue Linking**: Suggest creating or linking to GitHub issues for new features
+6. **Best Practices**: Recommend testing, error handling, and validation
+7. **Ask Questions**: When requirements are unclear, ask before implementing
+8. **Use MCP Tools**: Leverage GitHub MCP for project management and Git operations, Chroma DB for context persistence
+9. **Use Specialized Prompts**: Invoke task-specific prompts (like jest-unit-tester) for complex workflows
+10. **Branch Verification**: Before making ANY code changes, verify you're on a feature branch (not main)
 
 **Use these references**:
 - Check `/docs/` for project-wide documentation
