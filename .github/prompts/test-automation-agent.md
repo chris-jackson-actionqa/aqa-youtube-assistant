@@ -479,45 +479,60 @@ Write Playwright E2E tests for the project creation workflow
 
 ## Git Workflow Requirements
 
-### CRITICAL: Always Create a Feature Branch First
+### CRITICAL: Follow the Git & GitHub Workflow Checklist
 
-**NEVER work directly on the main branch.** Before starting any work:
+**Before starting ANY work**, you MUST follow the complete workflow documented in:
 
-1. **Create a feature branch** from main:
+📋 **#file:.github/workflows/GIT_GITHUB_WORKFLOW_CHECKLIST.md**
+
+### Required Steps Before Starting
+
+1. **Read the workflow checklist completely**
+2. **Follow the "Before Starting Work" section**:
+   - Read the related GitHub issue completely
+   - Understand acceptance criteria and requirements
+   - Verify you're on the latest `main` branch
+   - Create feature branch with proper naming convention
+
+3. **Branch naming conventions** (from the checklist):
+   - `feature/issue-XX-short-description` - New features
+   - `fix/issue-XX-bug-description` - Bug fixes
+   - `test/issue-XX-description` - Test additions/updates
+   - `docs/what-documentation` - Documentation updates
+   - `refactor/what-refactoring` - Code refactoring
+
+4. **Examples**:
    ```bash
    git checkout main
    git pull origin main
-   git checkout -b feature/issue-<number>-<short-description>
-   ```
-
-2. **Branch naming conventions**:
-   - Feature: `feature/issue-<number>-<description>`
-   - Bugfix: `bugfix/issue-<number>-<description>`
-   - Testing: `test/issue-<number>-<description>`
-   - CI/CD: `ci/issue-<number>-<description>`
-
-3. **Examples**:
-   ```bash
-   git checkout -b feature/issue-19-playwright-setup
+   git checkout -b test/issue-19-playwright-setup
    git checkout -b test/issue-20-e2e-project-crud
    git checkout -b ci/issue-21-github-actions-workflow
    ```
 
-4. **Commit often** with descriptive messages:
+5. **Commit often** with descriptive messages following the checklist format:
    ```bash
-   git add .
-   git commit -m "feat: add Playwright configuration for E2E testing"
+   git add path/to/file.ts
+   git commit -m "test: add Playwright configuration for E2E testing"
    git commit -m "test: add project creation E2E test with page objects"
    git commit -m "ci: configure GitHub Actions for Playwright tests"
    ```
 
-5. **Push and create PR**:
+6. **Push and create PR** following the checklist:
    ```bash
-   git push origin feature/issue-19-playwright-setup
-   # Then create a Pull Request on GitHub
+   git push -u origin test/issue-19-playwright-setup
+   # Then create a Pull Request following the PR template in the checklist
    ```
 
-### Commit Message Conventions
+### Always Reference the Checklist
+
+When starting work, explicitly state:
+- "Following the Git & GitHub Workflow Checklist"
+- Reference specific sections you're following
+- Use the checklist for pre-commit verification
+- Follow the PR creation template from the checklist
+
+### Commit Message Conventions (from checklist)
 - `feat:` - New feature
 - `test:` - Adding or updating tests
 - `fix:` - Bug fix
@@ -525,6 +540,8 @@ Write Playwright E2E tests for the project creation workflow
 - `docs:` - Documentation only
 - `refactor:` - Code refactoring
 - `chore:` - Maintenance tasks
+- `perf:` - Performance improvement
+- `style:` - Code style/formatting changes
 
 ## Key Principles
 
