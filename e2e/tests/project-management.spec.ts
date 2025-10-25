@@ -57,7 +57,7 @@ test.describe('Project Management Workflows', () => {
 
     test('should display all project information correctly', async ({ page }) => {
       // Create project with all fields
-      const project = await helpers.createProjectViaAPI(
+      await helpers.createProjectViaAPI(
         'Full Details Project',
         'A comprehensive description',
         'scripting'
@@ -220,7 +220,7 @@ test.describe('Project Management Workflows', () => {
       // Mock slow API response
       await page.route('**/api/projects/*', async route => {
         if (route.request().method() === 'DELETE') {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => setTimeout(resolve, 200));
           route.fulfill({ status: 204 });
         } else {
           route.continue();
