@@ -125,8 +125,8 @@ class TestDatabaseConstraints:
         with pytest.raises(IntegrityError) as exc_info:
             db_session.commit()
         
-        # Verify it's the unique constraint that failed
-        assert "uix_project_name_lower" in str(exc_info.value).lower() or "unique" in str(exc_info.value).lower()
+        # Verify it's the specific unique constraint that failed
+        assert "uix_project_name_lower" in str(exc_info.value).lower()
         
         db_session.rollback()
     
