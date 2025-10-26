@@ -246,10 +246,11 @@ export default function ProjectList({
               key={project.id}
               data-testid="project-card"
               role="listitem"
+              aria-selected={isSelected}
               className={`
                 bg-white dark:bg-gray-800 p-6 rounded-lg border-2 transition-all duration-200
                 ${isSelected 
-                  ? 'border-blue-500 dark:border-blue-400 shadow-lg' 
+                  ? 'border-blue-500 dark:border-blue-400 shadow-lg selected' 
                   : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                 }
                 ${isDeleting ? 'opacity-50 pointer-events-none' : ''}
