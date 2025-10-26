@@ -18,6 +18,7 @@ const config = {
     '!app/**/*.d.ts',
     '!app/**/layout.tsx',
     '!app/**/globals.css',
+    '!app/demo/**', // Exclude demo pages from coverage
     '!**/*.config.*',
     '!**/node_modules/**',
     '!**/.next/**',
