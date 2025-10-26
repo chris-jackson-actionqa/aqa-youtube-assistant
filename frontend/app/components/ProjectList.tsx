@@ -213,7 +213,7 @@ export default function ProjectList({
             No projects yet
           </h3>
           <p className="text-gray-600 dark:text-gray-400 max-w-md">
-            Get started by creating your first project. Projects help you organize your work and track progress.
+            Create your first project to get started. Projects help you organize your work and track progress.
           </p>
         </div>
       </div>
