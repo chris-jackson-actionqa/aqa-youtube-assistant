@@ -8,7 +8,7 @@
  * - Accessibility features
  * - Focus management and focus trap
  * 
- * Target: 98%+ code coverage
+ * Target: 100% code coverage
  * Related: Issue #13
  */
 
