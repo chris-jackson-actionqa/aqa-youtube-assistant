@@ -147,7 +147,7 @@ describe('ProjectList', () => {
 
       await waitFor(() => {
         expect(screen.getByText('No projects yet')).toBeInTheDocument();
-        expect(screen.getByText(/Get started by creating your first project/i)).toBeInTheDocument();
+        expect(screen.getByText(/Create your first project/i)).toBeInTheDocument();
       });
     });
 
