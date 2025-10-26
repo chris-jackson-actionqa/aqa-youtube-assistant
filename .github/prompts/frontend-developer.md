@@ -481,10 +481,12 @@ const handleAction = async () => {
 ### Target: 98-100% Coverage
 
 **CRITICAL RULES**:
-- ❌ **NEVER reduce coverage thresholds** - If struggling to meet thresholds, ASK for help
+- ❌ **NEVER reduce coverage thresholds without explicit permission** - Thresholds are quality standards
+- ❌ **NEVER modify jest.config.mjs to lower coverage values** - If struggling, ASK first
 - ✅ **Ask for guidance** if you can't achieve the required coverage
 - ✅ **Find creative test approaches** to cover edge cases
 - ✅ **Explain coverage gaps** and propose solutions before giving up
+- ✅ **Request permission** if you believe a threshold reduction is necessary
 
 **If you're having trouble meeting coverage thresholds**:
 ```
@@ -497,8 +499,12 @@ Options I've considered:
 1. [Approach 1]
 2. [Approach 2]
 
-What approach would you prefer, or should I explore other options?"
+I could request permission to lower the threshold, but I'd prefer to find 
+a testing solution. What approach would you prefer?"
 ```
+
+**⚠️ NEVER modify coverage thresholds in `jest.config.mjs` or any test configuration 
+without explicit approval from the project maintainer.**
 
 Every component must have comprehensive tests covering:
 

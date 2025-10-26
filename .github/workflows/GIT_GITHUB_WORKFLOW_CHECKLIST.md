@@ -131,11 +131,13 @@ Before every commit, verify:
 - [ ] No commented-out code or debug statements
 - [ ] No hardcoded values (use config/environment variables)
 - [ ] No unused imports or variables
+- [ ] **No test configuration changes** (coverage thresholds, test exclusions) without permission
 
 ### Testing
 - [ ] All new code has unit tests
 - [ ] All existing tests pass
 - [ ] Coverage meets threshold (95% backend, 98% frontend)
+- [ ] **Coverage thresholds NOT lowered** - Get permission if needed
 - [ ] Integration tests added if needed
 - [ ] Manual testing completed
 
@@ -441,6 +443,7 @@ git stash list                      # List all stashes
 - ❌ Never commit broken code
 - ❌ Never commit without testing
 - ❌ **Never use `--no-verify` or `--no-hooks` to bypass pre-commit checks**
+- ❌ **Never lower coverage thresholds without explicit permission**
 - ❌ Never push sensitive data (keys, passwords)
 - ❌ Never commit commented-out code
 - ❌ Never use `git add .` without reviewing changes
