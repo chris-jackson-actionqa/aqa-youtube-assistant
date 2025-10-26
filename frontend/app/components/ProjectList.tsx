@@ -244,6 +244,7 @@ export default function ProjectList({
           return (
             <div
               key={project.id}
+              data-testid="project-card"
               role="listitem"
               className={`
                 bg-white dark:bg-gray-800 p-6 rounded-lg border-2 transition-all duration-200
@@ -260,6 +261,7 @@ export default function ProjectList({
                   {project.name}
                 </h3>
                 <span 
+                  data-testid="status-badge"
                   className={`ml-2 px-2 py-1 text-xs font-semibold rounded-full whitespace-nowrap ${getStatusColor(project.status)}`}
                   aria-label={`Status: ${getStatusLabel(project.status)}`}
                 >
