@@ -71,13 +71,8 @@ function ProjectManagementPage() {
               role="status"
               aria-label="Current project"
             >
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-700 dark:text-gray-300">
-                  Working on:
-                </span>
-                <strong className="text-blue-700 dark:text-blue-300">
-                  {currentProject.name}
-                </strong>
+              <div className="text-sm text-gray-700 dark:text-gray-300">
+                Working on: <strong className="text-blue-700 dark:text-blue-300">{currentProject.name}</strong>
               </div>
               <button
                 onClick={clearSelection}
