@@ -1,9 +1,14 @@
 /**
- * Unit tests for Home page component
- * Tests project list, loading states, error handling, and form integration
+ * Unit tests for Home page component  
+ * Tests page layout, ProjectContext integration, and component coordination
+ * 
+ * Note: ProjectList, ProjectForm, and ProjectContext have their own comprehensive test suites.
+ * These tests focus on page-level integration and layout.
+ * 
+ * Related: Issue #15 - Integrate all project management components
  */
 
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent, within } from '@testing-library/react'
 import Home from '../page'
 import * as api from '../lib/api'
 import { Project } from '../types/project'
@@ -11,25 +16,28 @@ import { Project } from '../types/project'
 // Mock the API module
 jest.mock('../lib/api')
 
-// Mock ProjectForm component
-jest.mock('../components/ProjectForm', () => {
-  return function MockProjectForm({ 
-    onSuccess, 
-    onCancel 
-  }: { 
-    onSuccess: () => void
-    onCancel: () => void 
-  }) {
-    return (
-      <div data-testid="project-form">
-        <button onClick={onSuccess}>Submit Form</button>
-        <button onClick={onCancel}>Cancel Form</button>
-      </div>
-    )
+// Mock localStorage
+const localStorageMock = (() => {
+  let store: Record<string, string> = {}
+  return {
+    getItem: (key: string) => store[key] || null,
+    setItem: (key: string, value: string) => {
+      store[key] = value
+    },
+    removeItem: (key: string) => {
+      delete store[key]
+    },
+    clear: () => {
+      store = {}
+    },
   }
+})()
+
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
 })
 
-describe('Home Page', () => {
+describe('Home Page - Component Integration', () => {
   const mockProjects: Project[] = [
     {
       id: 1,
@@ -42,445 +50,375 @@ describe('Home Page', () => {
     {
       id: 2,
       name: 'Test Project 2',
-      description: null,
+      description: 'Test Description 2',
       status: 'in_progress',
       created_at: '2025-10-16T11:00:00Z',
       updated_at: '2025-10-16T11:00:00Z',
-    },
-    {
-      id: 3,
-      name: 'Test Project 3',
-      description: 'Test Description 3',
-      status: 'completed',
-      created_at: '2025-10-17T12:00:00Z',
-      updated_at: '2025-10-17T12:00:00Z',
-    },
-    {
-      id: 4,
-      name: 'Test Project 4',
-      description: 'Test Description 4',
-      status: 'archived',
-      created_at: '2025-10-18T13:00:00Z',
-      updated_at: '2025-10-18T13:00:00Z',
     },
   ]
 
   beforeEach(() => {
     jest.clearAllMocks()
+    localStorageMock.clear()
+    ;(api.getProjects as jest.Mock).mockResolvedValue(mockProjects)
+    ;(api.getProject as jest.Mock).mockImplementation((id: number) => {
+      const project = mockProjects.find(p => p.id === id)
+      return project ? Promise.resolve(project) : Promise.reject(new Error('Project not found'))
+    })
+    ;(api.deleteProject as jest.Mock).mockResolvedValue(undefined)
   })
 
-  describe('Initial Render', () => {
-    it('should render page title and description', async () => {
-      ;(api.checkHealth as jest.Mock).mockResolvedValue({ status: 'healthy' })
-      ;(api.getProjects as jest.Mock).mockResolvedValue([])
-
+  describe('Page Layout', () => {
+    it('should render page title and description', () => {
       render(<Home />)
 
-      expect(screen.getByText('YouTube Assistant')).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'YouTube Assistant', level: 1 })).toBeInTheDocument()
       expect(screen.getByText(/Helper for planning and making YouTube videos/)).toBeInTheDocument()
     })
 
-    it('should show loading state initially', () => {
-      ;(api.checkHealth as jest.Mock).mockImplementation(() => new Promise(() => {}))
-      ;(api.getProjects as jest.Mock).mockImplementation(() => new Promise(() => {}))
+    it('should render create project section with heading', () => {
+      render(<Home />)
 
+      expect(screen.getByRole('heading', { name: 'Create New Project', level: 2 })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Create new project' })).toBeInTheDocument()
+    })
+
+    it('should render projects section with heading', () => {
+      render(<Home />)
+
+      expect(screen.getByRole('heading', { name: 'Your Projects', level: 2 })).toBeInTheDocument()
+    })
+
+    it('should use semantic HTML structure', () => {
       const { container } = render(<Home />)
 
-      expect(screen.getByText('Loading projects...')).toBeInTheDocument()
-      // Check for spinner div by class
-      const spinner = container.querySelector('.animate-spin')
-      expect(spinner).toBeInTheDocument()
-    })
-
-    it('should show API status as checking initially', () => {
-      ;(api.checkHealth as jest.Mock).mockImplementation(() => new Promise(() => {}))
-      ;(api.getProjects as jest.Mock).mockImplementation(() => new Promise(() => {}))
-
-      render(<Home />)
-
-      expect(screen.getByText('checking...')).toBeInTheDocument()
+      expect(container.querySelector('main')).toBeInTheDocument()
+      expect(container.querySelector('header')).toBeInTheDocument()
+      expect(container.querySelectorAll('section')).toHaveLength(2) // Create + Projects sections
     })
   })
 
-  describe('API Health Check', () => {
-    it('should display healthy status when API is healthy', async () => {
-      ;(api.checkHealth as jest.Mock).mockResolvedValue({ status: 'healthy' })
-      ;(api.getProjects as jest.Mock).mockResolvedValue([])
-
+  describe('ProjectForm Integration', () => {
+    it('should show create button by default', () => {
       render(<Home />)
 
+      expect(screen.getByRole('button', { name: 'Create new project' })).toBeInTheDocument()
+    })
+
+    it('should show ProjectForm when create button is clicked', async () => {
+      render(<Home />)
+
+      const createButton = screen.getByRole('button', { name: 'Create new project' })
+      fireEvent.click(createButton)
+
       await waitFor(() => {
-        expect(screen.getByText('healthy')).toBeInTheDocument()
+        // ProjectForm should be rendered (it contains form element)
+        expect(screen.queryByRole('button', { name: 'Create new project' })).not.toBeInTheDocument()
       })
     })
 
-    it('should display disconnected status when API check fails', async () => {
-      ;(api.checkHealth as jest.Mock).mockRejectedValue(new Error('Network error'))
-      ;(api.getProjects as jest.Mock).mockRejectedValue(new Error('Network error'))
-
+    it('should hide ProjectForm when cancel is clicked', async () => {
       render(<Home />)
 
+      // Open form
+      const createButton = screen.getByRole('button', { name: 'Create new project' })
+      fireEvent.click(createButton)
+
       await waitFor(() => {
-        expect(screen.getByText('disconnected')).toBeInTheDocument()
+        expect(screen.queryByRole('button', { name: 'Create new project' })).not.toBeInTheDocument()
       })
-    })
 
-    it('should display unknown status when API returns no status', async () => {
-      ;(api.checkHealth as jest.Mock).mockResolvedValue({})
-      ;(api.getProjects as jest.Mock).mockResolvedValue([])
-
-      render(<Home />)
+      // Close form - find cancel button in the form
+      const cancelButton = screen.getByRole('button', { name: /cancel/i })
+      fireEvent.click(cancelButton)
 
       await waitFor(() => {
-        expect(screen.getByText('unknown')).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Create new project' })).toBeInTheDocument()
       })
     })
   })
 
-  describe('Project Loading', () => {
-    it('should load and display projects on mount', async () => {
-      ;(api.checkHealth as jest.Mock).mockResolvedValue({ status: 'healthy' })
-      ;(api.getProjects as jest.Mock).mockResolvedValue(mockProjects)
-
+  describe('ProjectList Integration', () => {
+    it('should render ProjectList component', async () => {
       render(<Home />)
+
+      await waitFor(() => {
+        expect(api.getProjects).toHaveBeenCalled()
+      })
 
       await waitFor(() => {
         expect(screen.getByText('Test Project 1')).toBeInTheDocument()
         expect(screen.getByText('Test Project 2')).toBeInTheDocument()
-        expect(screen.getByText('Test Project 3')).toBeInTheDocument()
-        expect(screen.getByText('Test Project 4')).toBeInTheDocument()
       })
     })
 
-    it('should display project count correctly for multiple projects', async () => {
-      ;(api.checkHealth as jest.Mock).mockResolvedValue({ status: 'healthy' })
-      ;(api.getProjects as jest.Mock).mockResolvedValue(mockProjects)
-
-      render(<Home />)
-
-      await waitFor(() => {
-        expect(screen.getByText('4 projects')).toBeInTheDocument()
+    it('should refresh ProjectList after project creation', async () => {
+      ;(api.createProject as jest.Mock).mockResolvedValue({
+        id: 3,
+        name: 'New Project',
+        description: 'New Description',
+        status: 'planned',
+        created_at: '2025-10-20T10:00:00Z',
+        updated_at: '2025-10-20T10:00:00Z',
       })
-    })
-
-    it('should display singular project count for one project', async () => {
-      ;(api.checkHealth as jest.Mock).mockResolvedValue({ status: 'healthy' })
-      ;(api.getProjects as jest.Mock).mockResolvedValue([mockProjects[0]])
-
-      render(<Home />)
-
-      await waitFor(() => {
-        expect(screen.getByText('1 project')).toBeInTheDocument()
-      })
-    })
-
-    it('should display empty state when no projects exist', async () => {
-      ;(api.checkHealth as jest.Mock).mockResolvedValue({ status: 'healthy' })
-      ;(api.getProjects as jest.Mock).mockResolvedValue([])
-
-      render(<Home />)
-
-      await waitFor(() => {
-        expect(screen.getByText(/No projects yet/)).toBeInTheDocument()
-      })
-    })
-
-    it('should display project descriptions when available', async () => {
-      ;(api.checkHealth as jest.Mock).mockResolvedValue({ status: 'healthy' })
-      ;(api.getProjects as jest.Mock).mockResolvedValue(mockProjects)
-
-      render(<Home />)
-
-      await waitFor(() => {
-        expect(screen.getByText('Test Description 1')).toBeInTheDocument()
-        expect(screen.getByText('Test Description 3')).toBeInTheDocument()
-      })
-    })
-
-    it('should not crash when project has no description', async () => {
-      ;(api.checkHealth as jest.Mock).mockResolvedValue({ status: 'healthy' })
-      ;(api.getProjects as jest.Mock).mockResolvedValue([mockProjects[1]]) // Project 2 has null description
-
-      render(<Home />)
-
-      await waitFor(() => {
-        expect(screen.getByText('Test Project 2')).toBeInTheDocument()
-      })
-      
-      // Should not render description paragraph
-      expect(screen.queryByText('Test Description 2')).not.toBeInTheDocument()
-    })
-
-    it('should format project dates correctly', async () => {
-      ;(api.checkHealth as jest.Mock).mockResolvedValue({ status: 'healthy' })
-      ;(api.getProjects as jest.Mock).mockResolvedValue([mockProjects[0]])
-
-      render(<Home />)
-
-      await waitFor(() => {
-        expect(screen.getByText(/Created: 10\/15\/2025/)).toBeInTheDocument()
-        expect(screen.getByText(/Updated: 10\/15\/2025/)).toBeInTheDocument()
-      })
-    })
-  })
-
-  describe('Error Handling', () => {
-    it('should display error message when API calls fail', async () => {
-      ;(api.checkHealth as jest.Mock).mockRejectedValue(new Error('Network error'))
-      ;(api.getProjects as jest.Mock).mockRejectedValue(new Error('Network error'))
-
-      render(<Home />)
-
-      await waitFor(() => {
-        expect(screen.getByText(/Failed to connect to backend API/)).toBeInTheDocument()
-      })
-    })
-
-    it('should display backend startup instructions on error', async () => {
-      ;(api.checkHealth as jest.Mock).mockRejectedValue(new Error('Network error'))
-      ;(api.getProjects as jest.Mock).mockRejectedValue(new Error('Network error'))
-
-      render(<Home />)
-
-      await waitFor(() => {
-        expect(screen.getByText(/cd backend && uvicorn app.main:app --reload/)).toBeInTheDocument()
-      })
-    })
-
-    it('should not show projects when there is an error', async () => {
-      ;(api.checkHealth as jest.Mock).mockRejectedValue(new Error('Network error'))
-      ;(api.getProjects as jest.Mock).mockRejectedValue(new Error('Network error'))
-
-      render(<Home />)
-
-      await waitFor(() => {
-        expect(screen.getByText(/Failed to connect to backend API/)).toBeInTheDocument()
-      })
-
-      expect(screen.queryByText('Test Project 1')).not.toBeInTheDocument()
-    })
-  })
-
-  describe('Status Badge Styling', () => {
-    it('should apply correct styles for planned status', async () => {
-      ;(api.checkHealth as jest.Mock).mockResolvedValue({ status: 'healthy' })
-      ;(api.getProjects as jest.Mock).mockResolvedValue([mockProjects[0]])
-
-      render(<Home />)
-
-      await waitFor(() => {
-        const badge = screen.getByText('PLANNED')
-        expect(badge).toHaveClass('bg-yellow-100')
-      })
-    })
-
-    it('should apply correct styles for in_progress status', async () => {
-      ;(api.checkHealth as jest.Mock).mockResolvedValue({ status: 'healthy' })
-      ;(api.getProjects as jest.Mock).mockResolvedValue([mockProjects[1]])
-
-      render(<Home />)
-
-      await waitFor(() => {
-        const badge = screen.getByText('IN PROGRESS')
-        expect(badge).toHaveClass('bg-blue-100')
-      })
-    })
-
-    it('should apply correct styles for completed status', async () => {
-      ;(api.checkHealth as jest.Mock).mockResolvedValue({ status: 'healthy' })
-      ;(api.getProjects as jest.Mock).mockResolvedValue([mockProjects[2]])
-
-      render(<Home />)
-
-      await waitFor(() => {
-        const badge = screen.getByText('COMPLETED')
-        expect(badge).toHaveClass('bg-green-100')
-      })
-    })
-
-    it('should apply correct styles for archived status', async () => {
-      ;(api.checkHealth as jest.Mock).mockResolvedValue({ status: 'healthy' })
-      ;(api.getProjects as jest.Mock).mockResolvedValue([mockProjects[3]])
-
-      render(<Home />)
-
-      await waitFor(() => {
-        const badge = screen.getByText('ARCHIVED')
-        expect(badge).toHaveClass('bg-gray-100')
-      })
-    })
-
-    it('should apply default styles for unknown status', async () => {
-      const unknownProject: Project = {
-        ...mockProjects[0],
-        status: 'unknown_status' as any,
-      }
-
-      ;(api.checkHealth as jest.Mock).mockResolvedValue({ status: 'healthy' })
-      ;(api.getProjects as jest.Mock).mockResolvedValue([unknownProject])
-
-      render(<Home />)
-
-      await waitFor(() => {
-        const badge = screen.getByText('UNKNOWN STATUS')
-        expect(badge).toHaveClass('bg-gray-100')
-      })
-    })
-  })
-
-  describe('Project Form', () => {
-    it('should show Create New Project button initially', async () => {
-      ;(api.checkHealth as jest.Mock).mockResolvedValue({ status: 'healthy' })
-      ;(api.getProjects as jest.Mock).mockResolvedValue([])
-
-      render(<Home />)
-
-      await waitFor(() => {
-        expect(screen.getByText('+ Create New Project')).toBeInTheDocument()
-      })
-    })
-
-    it('should display form when Create New Project button is clicked', async () => {
-      ;(api.checkHealth as jest.Mock).mockResolvedValue({ status: 'healthy' })
-      ;(api.getProjects as jest.Mock).mockResolvedValue([])
-
-      render(<Home />)
-
-      await waitFor(() => {
-        expect(screen.getByText('+ Create New Project')).toBeInTheDocument()
-      })
-
-      fireEvent.click(screen.getByText('+ Create New Project'))
-
-      expect(screen.getByTestId('project-form')).toBeInTheDocument()
-      expect(screen.queryByText('+ Create New Project')).not.toBeInTheDocument()
-    })
-
-    it('should hide form and refresh projects when form is submitted successfully', async () => {
-      ;(api.checkHealth as jest.Mock).mockResolvedValue({ status: 'healthy' })
-      ;(api.getProjects as jest.Mock)
-        .mockResolvedValueOnce([]) // Initial load
-        .mockResolvedValueOnce(mockProjects) // After form submit
 
       render(<Home />)
 
       // Wait for initial load
       await waitFor(() => {
-        expect(screen.getByText('+ Create New Project')).toBeInTheDocument()
+        expect(screen.getByText('Test Project 1')).toBeInTheDocument()
       })
 
-      // Show form
-      fireEvent.click(screen.getByText('+ Create New Project'))
-      expect(screen.getByTestId('project-form')).toBeInTheDocument()
+      // Open form
+      const createButton = screen.getByRole('button', { name: 'Create new project' })
+      fireEvent.click(createButton)
 
-      // Submit form
-      fireEvent.click(screen.getByText('Submit Form'))
-
-      // Form should hide and projects should refresh
+      // Fill and submit form
       await waitFor(() => {
-        expect(screen.queryByTestId('project-form')).not.toBeInTheDocument()
-        expect(screen.getByText('+ Create New Project')).toBeInTheDocument()
+        expect(screen.getByLabelText(/project name/i)).toBeInTheDocument()
       })
 
-      // Projects should be reloaded
+      const nameInput = screen.getByLabelText(/project name/i)
+      const descriptionInput = screen.getByLabelText(/description/i)
+      const submitButton = screen.getByRole('button', { name: /create project/i })
+
+      fireEvent.change(nameInput, { target: { value: 'New Project' } })
+      fireEvent.change(descriptionInput, { target: { value: 'New Description' } })
+
+      // Mock second call to getProjects to return updated list
+      ;(api.getProjects as jest.Mock).mockResolvedValueOnce([
+        ...mockProjects,
+        {
+          id: 3,
+          name: 'New Project',
+          description: 'New Description',
+          status: 'planned',
+          created_at: '2025-10-20T10:00:00Z',
+          updated_at: '2025-10-20T10:00:00Z',
+        },
+      ])
+
+      fireEvent.click(submitButton)
+
+      // Form should close after 1500ms delay
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Create new project' })).toBeInTheDocument()
+      }, { timeout: 2000 })
+
+      // List should refresh after form closes
+      await waitFor(() => {
+        expect(api.getProjects).toHaveBeenCalledTimes(2)
+      })
+    })
+  })
+
+  describe('ProjectContext Integration', () => {
+    it('should not show current project indicator when no project selected', () => {
+      render(<Home />)
+
+      expect(screen.queryByText('Working on:')).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Clear project selection' })).not.toBeInTheDocument()
+    })
+
+    it('should show current project indicator when project is selected', async () => {
+      // Simulate project already selected in localStorage
+      localStorageMock.setItem('currentProjectId', '1')
+
+      render(<Home />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Working on:')).toBeInTheDocument()
+        // Use more specific selector - get the indicator div's strong element
+        const indicator = screen.getByRole('status', { name: 'Current project' })
+        expect(indicator).toHaveTextContent('Test Project 1')
+        expect(screen.getByRole('button', { name: 'Clear project selection' })).toBeInTheDocument()
+      })
+    })
+
+    it('should hide current project indicator when clear button is clicked', async () => {
+      localStorageMock.setItem('currentProjectId', '1')
+
+      render(<Home />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Working on:')).toBeInTheDocument()
+      })
+
+      const clearButton = screen.getByRole('button', { name: 'Clear project selection' })
+      fireEvent.click(clearButton)
+
+      await waitFor(() => {
+        expect(screen.queryByText('Working on:')).not.toBeInTheDocument()
+      })
+    })
+
+    it('should show selected project name in header', async () => {
+      localStorageMock.setItem('currentProjectId', '2')
+
+      render(<Home />)
+
+      await waitFor(() => {
+        const header = screen.getByRole('banner')
+        expect(within(header).getByText('Test Project 2')).toBeInTheDocument()
+      })
+    })
+
+    it('should persist selection after project is selected', async () => {
+      render(<Home />)
+
+      // Wait for projects to load
+      await waitFor(() => {
+        expect(screen.getByText('Test Project 1')).toBeInTheDocument()
+      })
+
+      // Click select button on first project
+      const selectButtons = screen.getAllByRole('button', { name: /select project test project 1/i })
+      fireEvent.click(selectButtons[0])
+
+      // Wait for getProject API call to complete and indicator to show
+      await waitFor(async () => {
+        expect(api.getProject).toHaveBeenCalledWith(1)
+        expect(screen.getByText('Working on:')).toBeInTheDocument()
+      }, { timeout: 3000 })
+      
+      // Verify the indicator shows the correct project
+      const indicator = screen.getByRole('status', { name: 'Current project' })
+      expect(indicator).toHaveTextContent('Test Project 1')
+    })
+  })
+
+  describe('Project Deletion Flow', () => {
+    it('should refresh list after project is deleted', async () => {
+      render(<Home />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Project 1')).toBeInTheDocument()
+        expect(screen.getByText('Test Project 2')).toBeInTheDocument()
+      })
+
+      // Mock updated project list after deletion
+      ;(api.getProjects as jest.Mock).mockResolvedValueOnce([mockProjects[1]])
+
+      // Delete first project
+      const deleteButtons = screen.getAllByRole('button', { name: /delete project/i })
+      fireEvent.click(deleteButtons[0])
+
+      await waitFor(() => {
+        expect(api.deleteProject).toHaveBeenCalledWith(1)
+      })
+
       await waitFor(() => {
         expect(api.getProjects).toHaveBeenCalledTimes(2)
       })
     })
 
-    it('should hide form when cancel button is clicked', async () => {
-      ;(api.checkHealth as jest.Mock).mockResolvedValue({ status: 'healthy' })
-      ;(api.getProjects as jest.Mock).mockResolvedValue([])
+    it('should clear selection if deleted project was selected', async () => {
+      localStorageMock.setItem('currentProjectId', '1')
 
       render(<Home />)
 
       await waitFor(() => {
-        expect(screen.getByText('+ Create New Project')).toBeInTheDocument()
+        expect(screen.getByText('Working on:')).toBeInTheDocument()
       })
 
-      // Show form
-      fireEvent.click(screen.getByText('+ Create New Project'))
-      expect(screen.getByTestId('project-form')).toBeInTheDocument()
+      // Mock updated list after deletion  
+      ;(api.getProjects as jest.Mock).mockResolvedValueOnce([mockProjects[1]])
 
-      // Cancel form
-      fireEvent.click(screen.getByText('Cancel Form'))
+      // Delete the selected project
+      const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 1/i })
+      fireEvent.click(deleteButtons[0])
 
-      // Form should hide
       await waitFor(() => {
-        expect(screen.queryByTestId('project-form')).not.toBeInTheDocument()
-        expect(screen.getByText('+ Create New Project')).toBeInTheDocument()
+        expect(api.deleteProject).toHaveBeenCalledWith(1)
+      })
+
+      await waitFor(() => {
+        expect(screen.queryByText('Working on:')).not.toBeInTheDocument()
       })
     })
 
-    it('should not reload projects when cancel button is clicked', async () => {
-      ;(api.checkHealth as jest.Mock).mockResolvedValue({ status: 'healthy' })
-      ;(api.getProjects as jest.Mock).mockResolvedValue([])
+    it('should not clear selection if different project was deleted', async () => {
+      localStorageMock.setItem('currentProjectId', '1')
 
       render(<Home />)
 
       await waitFor(() => {
-        expect(screen.getByText('+ Create New Project')).toBeInTheDocument()
+        expect(screen.getByText('Working on:')).toBeInTheDocument()
       })
 
-      // Clear mock call count from initial load
-      jest.clearAllMocks()
+      // Mock updated list after deletion
+      ;(api.getProjects as jest.Mock).mockResolvedValueOnce([mockProjects[0]])
 
-      // Show and cancel form
-      fireEvent.click(screen.getByText('+ Create New Project'))
-      fireEvent.click(screen.getByText('Cancel Form'))
+      // Delete the non-selected project  
+      const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 2/i })
+      fireEvent.click(deleteButtons[0])
 
-      // Projects should NOT be reloaded
-      expect(api.getProjects).not.toHaveBeenCalled()
+      await waitFor(() => {
+        expect(api.deleteProject).toHaveBeenCalledWith(2)
+      })
+
+      // Selection should remain
+      await waitFor(() => {
+        expect(screen.getByText('Working on:')).toBeInTheDocument()
+        expect(within(screen.getByRole('banner')).getByText('Test Project 1')).toBeInTheDocument()
+      })
     })
   })
 
-  describe('Component Integration', () => {
-    it('should call checkHealth and getProjects on mount', async () => {
-      ;(api.checkHealth as jest.Mock).mockResolvedValue({ status: 'healthy' })
-      ;(api.getProjects as jest.Mock).mockResolvedValue([])
+  describe('Accessibility', () => {
+    it('should have accessible header section with proper ARIA labels', async () => {
+      localStorageMock.setItem('currentProjectId', '1')
 
       render(<Home />)
 
       await waitFor(() => {
-        expect(api.checkHealth).toHaveBeenCalledTimes(1)
-        expect(api.getProjects).toHaveBeenCalledTimes(1)
+        const currentProjectStatus = screen.getByRole('status', { name: 'Current project' })
+        expect(currentProjectStatus).toBeInTheDocument()
       })
     })
 
-    it('should render all projects with unique keys', async () => {
-      ;(api.checkHealth as jest.Mock).mockResolvedValue({ status: 'healthy' })
-      ;(api.getProjects as jest.Mock).mockResolvedValue(mockProjects)
+    it('should have accessible create button', () => {
+      render(<Home />)
 
+      const createButton = screen.getByRole('button', { name: 'Create new project' })
+      expect(createButton).toHaveAccessibleName()
+    })
+
+    it('should have accessible clear selection button', async () => {
+      localStorageMock.setItem('currentProjectId', '1')
+
+      render(<Home />)
+
+      await waitFor(() => {
+        const clearButton = screen.getByRole('button', { name: 'Clear project selection' })
+        expect(clearButton).toHaveAccessibleName()
+      })
+    })
+
+    it('should have proper heading hierarchy', () => {
       const { container } = render(<Home />)
 
-      await waitFor(() => {
-        // Check that each project card is rendered
-        const projectCards = container.querySelectorAll('[class*="p-6 bg-white"]')
-        expect(projectCards.length).toBe(4)
-      })
+      const h1 = container.querySelector('h1')
+      const h2s = container.querySelectorAll('h2')
+
+      expect(h1).toBeInTheDocument()
+      expect(h2s.length).toBeGreaterThanOrEqual(2)
+    })
+  })
+
+  describe('Responsive Design', () => {
+    it('should apply responsive container classes', () => {
+      const { container} = render(<Home />)
+
+      const main = container.querySelector('main')
+      expect(main).toHaveClass('max-w-6xl', 'mx-auto')
     })
 
-    it('should handle rapid form toggle clicks', async () => {
-      ;(api.checkHealth as jest.Mock).mockResolvedValue({ status: 'healthy' })
-      ;(api.getProjects as jest.Mock).mockResolvedValue([])
+    it('should apply responsive padding classes', () => {
+      const { container } = render(<Home />)
 
-      render(<Home />)
-
-      await waitFor(() => {
-        expect(screen.getByText('+ Create New Project')).toBeInTheDocument()
-      })
-
-      // Rapidly toggle form
-      fireEvent.click(screen.getByText('+ Create New Project'))
-      expect(screen.getByTestId('project-form')).toBeInTheDocument()
-
-      fireEvent.click(screen.getByText('Cancel Form'))
-      await waitFor(() => {
-        expect(screen.getByText('+ Create New Project')).toBeInTheDocument()
-      })
-
-      fireEvent.click(screen.getByText('+ Create New Project'))
-      expect(screen.getByTestId('project-form')).toBeInTheDocument()
+      const wrapper = container.querySelector('[class*="min-h-screen"]')
+      expect(wrapper).toHaveClass('p-8', 'sm:p-20')
     })
   })
 })
