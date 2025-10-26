@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ProjectProvider } from "./contexts/ProjectContext";
 
 export const metadata: Metadata = {
   title: "YouTube Assistant",
@@ -14,7 +15,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        {children}
+        <ProjectProvider>
+          {children}
+        </ProjectProvider>
       </body>
     </html>
   );
