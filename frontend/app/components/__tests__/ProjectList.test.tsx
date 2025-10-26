@@ -521,7 +521,22 @@ describe('ProjectList', () => {
       render(<ProjectList />);
 
       await waitFor(() => {
-        const badge = screen.getByText('unknown');
+        const badge = screen.getByText('Unknown Status');
+        expect(badge).toHaveClass('bg-blue-100');
+        expect(badge).toHaveClass('text-blue-800');
+      });
+    });
+
+    it('displays "Unknown Status" label for unrecognized status', async () => {
+      const project: Project = { ...mockProjects[0], status: 'custom_status' };
+      mockedApi.getProjects.mockResolvedValueOnce([project]);
+
+      render(<ProjectList />);
+
+      await waitFor(() => {
+        const badge = screen.getByText('Unknown Status');
+        expect(badge).toBeInTheDocument();
+        // Should use planned color as fallback
         expect(badge).toHaveClass('bg-blue-100');
       });
     });

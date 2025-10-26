@@ -111,7 +111,7 @@ export default function ProjectList({
       completed: 'Completed',
       archived: 'Archived',
     };
-    return labels[status as keyof typeof labels] || status;
+    return labels[status as keyof typeof labels] || 'Unknown Status';
   };
 
   const formatRelativeTime = (dateString: string) => {
