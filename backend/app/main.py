@@ -101,15 +101,15 @@ async def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
 @app.get("/api/projects", response_model=List[ProjectResponse])
 async def get_projects(db: Session = Depends(get_db)):
     """
-    Get list of all video projects.
+    Get list of all video projects, ordered by creation date (newest first).
     
     Args:
         db: Database session
         
     Returns:
-        List[ProjectResponse]: List of all projects
+        List[ProjectResponse]: List of all projects, sorted by created_at DESC
     """
-    projects = db.query(Project).all()
+    projects = db.query(Project).order_by(Project.created_at.desc()).all()
     return projects
 
 

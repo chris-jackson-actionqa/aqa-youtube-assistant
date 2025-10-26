@@ -28,8 +28,7 @@ test.describe('Project Creation Workflow', () => {
 
   test.describe('Happy Paths', () => {
     
-    // TODO: Unskip when project creation UI is fully implemented (#12, #15, #37)
-    test.skip('should create a new project with name and description', async ({ page }) => {
+    test('should create a new project with name and description', async ({ page }) => {
       // Arrange
       const projectName = generateUniqueProjectName('My First Video');
       const projectDescription = 'A tutorial about TypeScript';
@@ -48,8 +47,7 @@ test.describe('Project Creation Workflow', () => {
       await expect(page.getByRole('button', { name: /create new project/i })).toBeVisible();
     });
 
-    // TODO: Unskip when project creation UI is fully implemented (#12, #15, #37)
-    test.skip('should create project with only name (no description)', async ({ page }) => {
+    test('should create project with only name (no description)', async ({ page }) => {
       // Arrange
       const projectName = generateUniqueProjectName('Minimal Project');
       
@@ -63,8 +61,7 @@ test.describe('Project Creation Workflow', () => {
       await helpers.verifyProjectExists(projectName);
     });
 
-    // TODO: Unskip when empty state UI is implemented (#12, #15)
-    test.skip('should show empty state and transition to project list after first creation', async ({ page }) => {
+    test('should show empty state and transition to project list after first creation', async ({ page }) => {
       // Arrange - verify empty state
       await expect(page.getByText(/create your first project/i)).toBeVisible();
       await expect(page.getByText('0 projects')).toBeVisible();
@@ -78,8 +75,7 @@ test.describe('Project Creation Workflow', () => {
       await helpers.verifyProjectExists(projectName);
     });
 
-    // TODO: Unskip when project creation UI is fully implemented (#12, #15, #37)
-    test.skip('should allow creating multiple projects sequentially', async ({ page }) => {
+    test('should allow creating multiple projects sequentially', async ({ page }) => {
       // Arrange
       const project1 = generateUniqueProjectName('Project 1');
       const project2 = generateUniqueProjectName('Project 2');

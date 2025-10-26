@@ -26,8 +26,7 @@ test.describe('Project Management Workflows', () => {
 
   test.describe('Listing Projects', () => {
     
-    // TODO: Enable when issue #15 is complete (ProjectList component integration with data-testid)
-    test.skip('should display all existing projects', async ({ page }) => {
+    test('should display all existing projects', async ({ page }) => {
       // Setup: Create multiple projects via API
       await helpers.createProjectViaAPI('Project Alpha');
       await helpers.createProjectViaAPI('Project Beta');
@@ -44,8 +43,7 @@ test.describe('Project Management Workflows', () => {
       await expect(projectCards).toHaveCount(3);
     });
 
-    // TODO: Enable when issue #15 is complete (ProjectList component integration with empty state)
-    test.skip('should show empty state when no projects exist', async ({ page }) => {
+    test('should show empty state when no projects exist', async ({ page }) => {
       await page.goto('/');
       
       // Assert: Empty state visible
@@ -57,8 +55,7 @@ test.describe('Project Management Workflows', () => {
       await expect(projectCards).toHaveCount(0);
     });
 
-    // TODO: Enable when issue #15 is complete (ProjectList component integration with data-testid)
-    test.skip('should display all project information correctly', async ({ page }) => {
+    test('should display all project information correctly', async ({ page }) => {
       // Create project with all fields
       await helpers.createProjectViaAPI(
         'Full Details Project',
@@ -86,8 +83,7 @@ test.describe('Project Management Workflows', () => {
 
   test.describe('Project Selection', () => {
     
-    // TODO: Enable when issue #15 is complete (ProjectList component integration with selection feature)
-    test.skip('should select project and show in header', async ({ page }) => {
+    test('should select project and show in header', async ({ page }) => {
       await helpers.createProjectViaAPI('Selected Project');
       await page.goto('/');
       
@@ -138,8 +134,7 @@ test.describe('Project Management Workflows', () => {
       await expect(selectedCard).toHaveClass(/selected|active/);
     });
 
-    // TODO: Enable when issue #15 is complete (ProjectList component integration with selection feature)
-    test.skip('should switch between multiple project selections', async ({ page }) => {
+    test('should switch between multiple project selections', async ({ page }) => {
       await helpers.createProjectViaAPI('Project 1');
       await helpers.createProjectViaAPI('Project 2');
       await helpers.createProjectViaAPI('Project 3');
@@ -162,8 +157,7 @@ test.describe('Project Management Workflows', () => {
 
   test.describe('Project Deletion', () => {
     
-    // TODO: Enable when issue #15 is complete (ProjectDeleteConfirmation modal integration)
-    test.skip('should delete project after confirmation', async ({ page }) => {
+    test('should delete project after confirmation', async ({ page }) => {
       await helpers.createProjectViaAPI('Project to Delete');
       await page.goto('/');
       
@@ -186,8 +180,7 @@ test.describe('Project Management Workflows', () => {
       await expect(page.locator('[data-testid="project-card"]').filter({ hasText: 'Project to Delete' })).not.toBeVisible();
     });
 
-    // TODO: Enable when issue #15 is complete (ProjectDeleteConfirmation modal integration)
-    test.skip('should cancel project deletion', async ({ page }) => {
+    test('should cancel project deletion', async ({ page }) => {
       await helpers.createProjectViaAPI('Keep This Project');
       await page.goto('/');
       

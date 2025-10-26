@@ -41,6 +41,25 @@ export class ProjectHelpers {
   }
 
   /**
+   * Reload the page and wait for projects to load
+   * Useful after creating projects via API
+   */
+  async reloadAndWaitForProjects() {
+    await this.page.goto('/');
+    await this.page.waitForLoadState('networkidle');
+    
+    // Wait for either projects to load or empty state to appear
+    try {
+      await Promise.race([
+        this.page.locator('[data-testid="project-card"]').first().waitFor({ state: 'visible', timeout: 3000 }),
+        this.page.locator('text=/No projects yet|Get started/').waitFor({ state: 'visible', timeout: 3000 }),
+      ]);
+    } catch {
+      // If neither appears, that's ok - page might be loading
+    }
+  }
+
+  /**
    * Create a new project via the UI
    */
   async createProjectViaUI(name: string, description?: string) {
@@ -137,8 +156,26 @@ export class ProjectHelpers {
       const projects = await this.getAllProjectsViaAPI();
       const context = this.request || this.page.request;
       
+      // Delete all projects
       for (const project of projects) {
         await context.delete(`${this.baseURL}/api/projects/${project.id}`);
+      }
+      
+      // Poll until database is actually empty (up to 2s)
+      const maxWaitMs = 2000;
+      const pollInterval = 50;
+      let waited = 0;
+      let remainingProjects: Project[] = [];
+      
+      do {
+        remainingProjects = await this.getAllProjectsViaAPI();
+        if (remainingProjects.length === 0) break;
+        await this.page.waitForTimeout(pollInterval);
+        waited += pollInterval;
+      } while (waited < maxWaitMs);
+      
+      if (remainingProjects.length > 0) {
+        console.warn(`Warning: ${remainingProjects.length} projects still exist after cleanup`);
       }
     } catch (error) {
       console.warn('Failed to clear database:', error);
@@ -228,7 +265,20 @@ export class ProjectHelpers {
  */
 export async function setupTest(page: Page): Promise<ProjectHelpers> {
   const helpers = new ProjectHelpers(page);
+  
+  // Clear database first for test isolation
   await helpers.clearDatabase();
+  
+  // Wait for the UI to reflect the cleared database (no project cards present)
+  try {
+    await page.waitForSelector('[data-testid="project-card"]', { 
+      state: 'detached',
+      timeout: 2000 
+    });
+  } catch {
+    // If no project cards exist to begin with, this will timeout - that's OK
+  }
+  
   return helpers;
 }
 
