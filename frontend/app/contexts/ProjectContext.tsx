@@ -108,13 +108,14 @@ export function ProjectProvider({ children }: ProjectProviderProps) {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to refresh project';
       setError(errorMessage);
-      // Clear project if it no longer exists
-      clearSelection();
+      // Clear project if it no longer exists, but preserve error
+      setCurrentProject(null);
+      saveToStorage(null);
       throw err;
     } finally {
       setIsLoading(false);
     }
-  }, [currentProject, saveToStorage, clearSelection]);
+  }, [currentProject, saveToStorage]);
 
   /**
    * Update the current project state without API call
