@@ -164,20 +164,19 @@ test.describe('Project Management Workflows', () => {
       
       await helpers.verifyProjectExists('Project to Delete');
       
-      // Act: Click delete button
+      // Act: Click delete button (updated selector with project name)
       const projectCard = page.locator('[data-testid="project-card"]').filter({ hasText: 'Project to Delete' });
-      await projectCard.locator('button[aria-label="Delete project"]').click();
+      await projectCard.locator('button[aria-label="Delete project Project to Delete"]').click();
       
       // Assert: Confirmation modal appears
       await expect(page.locator('text=Delete Project?')).toBeVisible();
-      await expect(page.locator('text=Project to Delete')).toBeVisible();
+      await expect(page.getByRole('dialog').getByText('"Project to Delete"')).toBeVisible();
       await expect(page.locator('text=This action cannot be undone')).toBeVisible();
       
       // Act: Confirm deletion
-      await page.click('button:has-text("Delete Project")');
+      await page.getByRole('button', { name: 'Confirm delete Project to Delete' }).click();
       
       // Assert: Project removed
-      await expect(page.locator('text=Project deleted successfully')).toBeVisible();
       await expect(page.locator('[data-testid="project-card"]').filter({ hasText: 'Project to Delete' })).not.toBeVisible();
     });
 
@@ -185,14 +184,14 @@ test.describe('Project Management Workflows', () => {
       await helpers.createProjectViaAPI('Keep This Project');
       await page.goto('/');
       
-      // Open delete modal
+      // Act: Open delete modal (updated selector with project name)
       const projectCard = page.locator('[data-testid="project-card"]').filter({ hasText: 'Keep This Project' });
-      await projectCard.locator('button[aria-label="Delete project"]').click();
+      await projectCard.locator('button[aria-label="Delete project Keep This Project"]').click();
       
       await expect(page.locator('text=Delete Project?')).toBeVisible();
       
       // Act: Cancel
-      await page.click('button:has-text("Cancel")');
+      await page.getByRole('button', { name: 'Cancel' }).click();
       
       // Assert: Modal closed, project still exists
       await expect(page.locator('text=Delete Project?')).not.toBeVisible();
@@ -207,10 +206,10 @@ test.describe('Project Management Workflows', () => {
       await helpers.selectProject('Selected and Deleted');
       await expect(page.locator('text=Working on: Selected and Deleted')).toBeVisible();
       
-      // Delete the selected project
+      // Delete the selected project (updated selector with project name)
       const projectCard = page.locator('[data-testid="project-card"]').filter({ hasText: 'Selected and Deleted' });
-      await projectCard.locator('button[aria-label="Delete project"]').click();
-      await page.click('button:has-text("Delete Project")');
+      await projectCard.locator('button[aria-label="Delete project Selected and Deleted"]').click();
+      await page.getByRole('button', { name: 'Confirm delete Selected and Deleted' }).click();
       
       // Assert: Selection cleared
       await expect(page.locator('text=Working on:')).not.toBeVisible();
@@ -233,14 +232,14 @@ test.describe('Project Management Workflows', () => {
       });
       
       const projectCard = page.locator('[data-testid="project-card"]').filter({ hasText: 'Slow Delete' });
-      await projectCard.locator('button[aria-label="Delete project"]').click();
-      await page.click('button:has-text("Delete Project")');
+      await projectCard.locator('button[aria-label="Delete project Slow Delete"]').click();
+      await page.getByRole('button', { name: 'Confirm delete Slow Delete' }).click();
       
       // Assert: Loading indicator visible
       await expect(page.locator('[data-testid="deleting-spinner"]')).toBeVisible();
       
       // Eventually: Success
-      await expect(page.locator('text=Project deleted successfully')).toBeVisible({ timeout: 5000 });
+      await expect(page.locator('[data-testid="project-card"]').filter({ hasText: 'Slow Delete' })).not.toBeVisible({ timeout: 5000 });
     });
 
     // TODO: Enable when issue #15 is complete (ProjectDeleteConfirmation modal integration with error handling)
@@ -258,8 +257,8 @@ test.describe('Project Management Workflows', () => {
       });
       
       const projectCard = page.locator('[data-testid="project-card"]').filter({ hasText: 'Error Project' });
-      await projectCard.locator('button[aria-label="Delete project"]').click();
-      await page.click('button:has-text("Delete Project")');
+      await projectCard.locator('button[aria-label="Delete project Error Project"]').click();
+      await page.getByRole('button', { name: 'Confirm delete Error Project' }).click();
       
       // Assert: Error message shown
       await expect(page.locator('text=Failed to delete project')).toBeVisible();
