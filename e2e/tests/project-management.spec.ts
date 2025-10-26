@@ -60,7 +60,7 @@ test.describe('Project Management Workflows', () => {
       await helpers.createProjectViaAPI(
         'Full Details Project',
         'A comprehensive description',
-        'scripting'
+        'in_progress'
       );
       
       await page.goto('/');
@@ -73,11 +73,12 @@ test.describe('Project Management Workflows', () => {
       // Assert: Description visible (or truncated)
       await expect(projectCard.locator('text=A comprehensive description')).toBeVisible();
       
-      // Assert: Status badge visible
-      await expect(projectCard.locator('[data-testid="status-badge"]').filter({ hasText: 'scripting' })).toBeVisible();
+      // Assert: Status badge visible with correct label (displayed as "In Progress")
+      await expect(projectCard.locator('[data-testid="status-badge"]').filter({ hasText: 'In Progress' })).toBeVisible();
       
-      // Assert: Dates visible
-      await expect(projectCard.locator('text=/Created|Updated/')).toBeVisible();
+      // Assert: Dates visible (both Created and Updated)
+      await expect(projectCard.locator('text=Created:')).toBeVisible();
+      await expect(projectCard.locator('text=Updated:')).toBeVisible();
     });
   });
 
