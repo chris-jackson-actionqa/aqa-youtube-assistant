@@ -58,12 +58,13 @@ export default function ProjectDeleteConfirmation({
    * Manages loading state, error handling, and calls the parent's onConfirm
    */
   const handleDelete = async () => {
-    // project is guaranteed to exist here since component returns null when project is null
+    if (!project) return;
+    
     setIsDeleting(true);
     setError(null);
     
     try {
-      await onConfirm(project!.id);
+      await onConfirm(project.id);
       // Parent handles post-delete actions (like closing modal)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete project';
