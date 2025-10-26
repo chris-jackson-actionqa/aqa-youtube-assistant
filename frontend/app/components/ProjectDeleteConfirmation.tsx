@@ -56,15 +56,15 @@ export default function ProjectDeleteConfirmation({
   /**
    * Handle the delete confirmation
    * Manages loading state, error handling, and calls the parent's onConfirm
+   * Note: project is guaranteed to exist when this is called since modal doesn't render without it
    */
   const handleDelete = async () => {
-    if (!project) return;
-    
     setIsDeleting(true);
     setError(null);
     
     try {
-      await onConfirm(project.id);
+      // Non-null assertion is safe here because modal doesn't render when project is null
+      await onConfirm(project!.id);
       // Parent handles post-delete actions (like closing modal)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete project';
@@ -224,6 +224,7 @@ export default function ProjectDeleteConfirmation({
             type="button"
             onClick={handleDelete}
             disabled={isDeleting}
+            aria-label={project ? `Confirm delete ${project.name}` : 'Confirm delete'}
             className="px-4 py-2 text-sm font-medium text-white bg-red-600 dark:bg-red-700 border border-transparent rounded-md hover:bg-red-700 dark:hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
           >
             {isDeleting && (

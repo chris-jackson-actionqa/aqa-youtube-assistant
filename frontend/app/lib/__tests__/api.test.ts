@@ -274,12 +274,10 @@ describe('API Client', () => {
   })
 
   describe('deleteProject', () => {
-    it('should successfully delete a project', async () => {
-      const mockResponse = { message: 'Project deleted successfully' }
-
+    it('should successfully delete a project with 204 response', async () => {
       ;(global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
-        json: async () => mockResponse,
+        status: 204,
       })
 
       const result = await deleteProject(1)
@@ -293,6 +291,20 @@ describe('API Client', () => {
           },
         }
       )
+      expect(result).toEqual({})
+    })
+
+    it('should successfully delete a project with JSON response', async () => {
+      const mockResponse = { message: 'Project deleted successfully' }
+
+      ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => mockResponse,
+      })
+
+      const result = await deleteProject(1)
+
       expect(result).toEqual(mockResponse)
     })
 
