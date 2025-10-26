@@ -299,6 +299,7 @@ export default function ProjectList({
                     e.stopPropagation();
                     handleDelete(project.id);
                   }}
+                  onKeyDown={(e) => e.stopPropagation()}
                   disabled={isDeleting}
                   className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg
                            transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
