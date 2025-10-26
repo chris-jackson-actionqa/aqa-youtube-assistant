@@ -110,6 +110,15 @@ test.describe('YouTube Assistant - Basic E2E Tests', () => {
 
 test.describe('API Integration Tests', () => {
   
+  test.beforeEach(async ({ request }) => {
+    // Clear database before each API test for isolation
+    const baseURL = 'http://localhost:8000';
+    const projects = await request.get(`${baseURL}/api/projects`).then(r => r.json());
+    for (const project of projects) {
+      await request.delete(`${baseURL}/api/projects/${project.id}`);
+    }
+  });
+
   test('can perform CRUD operations via API', async ({ request }) => {
     const baseURL = 'http://localhost:8000';
     
