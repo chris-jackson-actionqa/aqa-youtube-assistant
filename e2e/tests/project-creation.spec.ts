@@ -64,7 +64,7 @@ test.describe('Project Creation Workflow', () => {
     test('should show empty state and transition to project list after first creation', async ({ page }) => {
       // Arrange - verify empty state
       await expect(page.getByText(/create your first project/i)).toBeVisible();
-      await expect(page.getByText('0 projects')).toBeVisible();
+      await expect(page.getByText('No projects yet')).toBeVisible();
       
       // Act - create first project
       const projectName = generateUniqueProjectName('First Project');
