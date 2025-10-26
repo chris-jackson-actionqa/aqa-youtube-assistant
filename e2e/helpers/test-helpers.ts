@@ -161,11 +161,19 @@ export class ProjectHelpers {
         await context.delete(`${this.baseURL}/api/projects/${project.id}`);
       }
       
-      // Wait a bit to ensure database operations complete
-      await this.page.waitForTimeout(100);
+      // Poll until database is actually empty (up to 2s)
+      const maxWaitMs = 2000;
+      const pollInterval = 50;
+      let waited = 0;
+      let remainingProjects: Project[] = [];
       
-      // Verify database is actually empty
-      const remainingProjects = await this.getAllProjectsViaAPI();
+      do {
+        remainingProjects = await this.getAllProjectsViaAPI();
+        if (remainingProjects.length === 0) break;
+        await this.page.waitForTimeout(pollInterval);
+        waited += pollInterval;
+      } while (waited < maxWaitMs);
+      
       if (remainingProjects.length > 0) {
         console.warn(`Warning: ${remainingProjects.length} projects still exist after cleanup`);
       }
@@ -261,8 +269,15 @@ export async function setupTest(page: Page): Promise<ProjectHelpers> {
   // Clear database first for test isolation
   await helpers.clearDatabase();
   
-  // Wait for any pending operations to complete
-  await page.waitForTimeout(50);
+  // Wait for the UI to reflect the cleared database (no project cards present)
+  try {
+    await page.waitForSelector('[data-testid="project-card"]', { 
+      state: 'detached',
+      timeout: 2000 
+    });
+  } catch {
+    // If no project cards exist to begin with, this will timeout - that's OK
+  }
   
   return helpers;
 }
