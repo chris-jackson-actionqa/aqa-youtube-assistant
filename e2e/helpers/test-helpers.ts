@@ -41,6 +41,25 @@ export class ProjectHelpers {
   }
 
   /**
+   * Reload the page and wait for projects to load
+   * Useful after creating projects via API
+   */
+  async reloadAndWaitForProjects() {
+    await this.page.goto('/');
+    await this.page.waitForLoadState('networkidle');
+    
+    // Wait for either projects to load or empty state to appear
+    try {
+      await Promise.race([
+        this.page.locator('[data-testid="project-card"]').first().waitFor({ state: 'visible', timeout: 3000 }),
+        this.page.locator('text=/No projects yet|Get started/').waitFor({ state: 'visible', timeout: 3000 }),
+      ]);
+    } catch {
+      // If neither appears, that's ok - page might be loading
+    }
+  }
+
+  /**
    * Create a new project via the UI
    */
   async createProjectViaUI(name: string, description?: string) {
@@ -137,8 +156,18 @@ export class ProjectHelpers {
       const projects = await this.getAllProjectsViaAPI();
       const context = this.request || this.page.request;
       
+      // Delete all projects
       for (const project of projects) {
         await context.delete(`${this.baseURL}/api/projects/${project.id}`);
+      }
+      
+      // Wait a bit to ensure database operations complete
+      await this.page.waitForTimeout(100);
+      
+      // Verify database is actually empty
+      const remainingProjects = await this.getAllProjectsViaAPI();
+      if (remainingProjects.length > 0) {
+        console.warn(`Warning: ${remainingProjects.length} projects still exist after cleanup`);
       }
     } catch (error) {
       console.warn('Failed to clear database:', error);
@@ -228,7 +257,13 @@ export class ProjectHelpers {
  */
 export async function setupTest(page: Page): Promise<ProjectHelpers> {
   const helpers = new ProjectHelpers(page);
+  
+  // Clear database first for test isolation
   await helpers.clearDatabase();
+  
+  // Wait for any pending operations to complete
+  await page.waitForTimeout(50);
+  
   return helpers;
 }
 
