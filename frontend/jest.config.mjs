@@ -19,6 +19,7 @@ const config = {
     '!app/**/layout.tsx',
     '!app/**/globals.css',
     '!app/demo/**', // Exclude demo pages from coverage
+    '!app/hooks/useProject.ts', // Exclude re-export file from coverage
     '!**/*.config.*',
     '!**/node_modules/**',
     '!**/.next/**',

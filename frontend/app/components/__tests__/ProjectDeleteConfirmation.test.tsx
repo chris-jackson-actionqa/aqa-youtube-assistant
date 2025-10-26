@@ -124,7 +124,7 @@ describe('ProjectDeleteConfirmation', () => {
       );
 
       expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /delete project/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /confirm delete test project/i })).toBeInTheDocument();
     });
 
     it('should prevent body scroll when modal is open', () => {
@@ -274,7 +274,7 @@ describe('ProjectDeleteConfirmation', () => {
         />
       );
 
-      const deleteButton = screen.getByRole('button', { name: /delete project/i });
+      const deleteButton = screen.getByRole('button', { name: /confirm delete test project/i });
       fireEvent.click(deleteButton);
 
       await waitFor(() => {
@@ -299,7 +299,7 @@ describe('ProjectDeleteConfirmation', () => {
         />
       );
 
-      const deleteButton = screen.getByRole('button', { name: /delete project/i });
+      const deleteButton = screen.getByRole('button', { name: /confirm delete test project/i });
       fireEvent.click(deleteButton);
 
       // Should show loading state
@@ -334,7 +334,7 @@ describe('ProjectDeleteConfirmation', () => {
         />
       );
 
-      const deleteButton = screen.getByRole('button', { name: /delete project/i });
+      const deleteButton = screen.getByRole('button', { name: /confirm delete test project/i });
       const cancelButton = screen.getByRole('button', { name: /cancel/i });
       
       fireEvent.click(deleteButton);
@@ -363,7 +363,7 @@ describe('ProjectDeleteConfirmation', () => {
         />
       );
 
-      const deleteButton = screen.getByRole('button', { name: /delete project/i });
+      const deleteButton = screen.getByRole('button', { name: /confirm delete test project/i });
       fireEvent.click(deleteButton);
 
       await waitFor(() => {
@@ -389,7 +389,7 @@ describe('ProjectDeleteConfirmation', () => {
         />
       );
 
-      const deleteButton = screen.getByRole('button', { name: /delete project/i });
+      const deleteButton = screen.getByRole('button', { name: /confirm delete test project/i });
       fireEvent.click(deleteButton);
 
       await waitFor(() => {
@@ -409,7 +409,7 @@ describe('ProjectDeleteConfirmation', () => {
         />
       );
 
-      const deleteButton = screen.getByRole('button', { name: /delete project/i });
+      const deleteButton = screen.getByRole('button', { name: /confirm delete test project/i });
       fireEvent.click(deleteButton);
 
       await waitFor(() => {
@@ -429,7 +429,7 @@ describe('ProjectDeleteConfirmation', () => {
         />
       );
 
-      const deleteButton = screen.getByRole('button', { name: /delete project/i });
+      const deleteButton = screen.getByRole('button', { name: /confirm delete test project/i });
       fireEvent.click(deleteButton);
 
       await waitFor(() => {
@@ -452,7 +452,7 @@ describe('ProjectDeleteConfirmation', () => {
         />
       );
 
-      const deleteButton = screen.getByRole('button', { name: /delete project/i });
+      const deleteButton = screen.getByRole('button', { name: /confirm delete test project/i });
       const cancelButton = screen.getByRole('button', { name: /cancel/i });
       
       fireEvent.click(deleteButton);
@@ -477,7 +477,7 @@ describe('ProjectDeleteConfirmation', () => {
         />
       );
 
-      const deleteButton = screen.getByRole('button', { name: /delete project/i });
+      const deleteButton = screen.getByRole('button', { name: /confirm delete test project/i });
       fireEvent.click(deleteButton);
 
       await waitFor(() => {
@@ -508,7 +508,7 @@ describe('ProjectDeleteConfirmation', () => {
         />
       );
 
-      const deleteButton = screen.getByRole('button', { name: /delete project/i });
+      const deleteButton = screen.getByRole('button', { name: /confirm delete test project/i });
       
       // First attempt - fails
       fireEvent.click(deleteButton);
@@ -537,7 +537,7 @@ describe('ProjectDeleteConfirmation', () => {
         />
       );
 
-      const deleteButton = screen.getByRole('button', { name: /delete project/i });
+      const deleteButton = screen.getByRole('button', { name: /confirm delete test project/i });
       fireEvent.click(deleteButton);
 
       await waitFor(() => {
@@ -610,7 +610,7 @@ describe('ProjectDeleteConfirmation', () => {
         />
       );
 
-      const deleteButton = screen.getByRole('button', { name: /delete project/i });
+      const deleteButton = screen.getByRole('button', { name: /confirm delete test project/i });
       fireEvent.click(deleteButton);
 
       await waitFor(() => {
@@ -665,7 +665,7 @@ describe('ProjectDeleteConfirmation', () => {
       );
 
       const cancelButton = screen.getByRole('button', { name: /cancel/i });
-      const deleteButton = screen.getByRole('button', { name: /delete project/i });
+      const deleteButton = screen.getByRole('button', { name: /confirm delete test project/i });
 
       // Focus should start on cancel button
       await waitFor(() => {
@@ -694,7 +694,7 @@ describe('ProjectDeleteConfirmation', () => {
       );
 
       const cancelButton = screen.getByRole('button', { name: /cancel/i });
-      const deleteButton = screen.getByRole('button', { name: /delete project/i });
+      const deleteButton = screen.getByRole('button', { name: /confirm delete test project/i });
 
       // Focus should start on cancel button
       await waitFor(() => {
@@ -726,7 +726,7 @@ describe('ProjectDeleteConfirmation', () => {
         />
       );
 
-      const deleteButton = screen.getByRole('button', { name: /delete project/i });
+      const deleteButton = screen.getByRole('button', { name: /confirm delete test project/i });
       fireEvent.click(deleteButton);
 
       await waitFor(() => {
@@ -758,7 +758,7 @@ describe('ProjectDeleteConfirmation', () => {
         />
       );
 
-      const deleteButton = screen.getByRole('button', { name: /delete project/i });
+      const deleteButton = screen.getByRole('button', { name: /confirm delete test project/i });
       fireEvent.click(deleteButton);
 
       await waitFor(() => {
@@ -815,7 +815,7 @@ describe('ProjectDeleteConfirmation', () => {
         />
       );
 
-      const deleteButton = screen.getByRole('button', { name: /delete project/i });
+      const deleteButton = screen.getByRole('button', { name: /confirm delete test project/i });
       
       // Click multiple times rapidly
       fireEvent.click(deleteButton);
@@ -859,7 +859,7 @@ describe('ProjectDeleteConfirmation', () => {
 
       expect(screen.getByText(/Another Project/)).toBeInTheDocument();
 
-      const deleteButton = screen.getByRole('button', { name: /delete project/i });
+      const deleteButton = screen.getByRole('button', { name: /confirm delete another project/i });
       fireEvent.click(deleteButton);
 
       await waitFor(() => {
@@ -905,7 +905,7 @@ describe('ProjectDeleteConfirmation', () => {
       );
 
       // Click delete to disable all buttons
-      const deleteButton = screen.getByRole('button', { name: /delete project/i });
+      const deleteButton = screen.getByRole('button', { name: /confirm delete test project/i });
       fireEvent.click(deleteButton);
 
       await waitFor(() => {
@@ -933,7 +933,7 @@ describe('ProjectDeleteConfirmation', () => {
       );
 
       // Get the delete button while project exists
-      const deleteButton = screen.getByRole('button', { name: /delete project/i });
+      const deleteButton = screen.getByRole('button', { name: /confirm delete test project/i });
 
       // Set project to null before clicking
       rerender(
@@ -948,6 +948,20 @@ describe('ProjectDeleteConfirmation', () => {
       // Modal should not render when project is null
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
       expect(mockOnConfirm).not.toHaveBeenCalled();
+    });
+
+    it('should handle null project in aria-label gracefully', () => {
+      render(
+        <ProjectDeleteConfirmation
+          project={null}
+          isOpen={true}
+          onConfirm={mockOnConfirm}
+          onCancel={mockOnCancel}
+        />
+      );
+
+      // Should not render dialog when project is null
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
   });
 });

@@ -299,9 +299,17 @@ describe('Home Page - Component Integration', () => {
       // Mock updated project list after deletion
       ;(api.getProjects as jest.Mock).mockResolvedValueOnce([mockProjects[1]])
 
-      // Delete first project
-      const deleteButtons = screen.getAllByRole('button', { name: /delete project/i })
+      // Delete first project - click delete button to open modal
+      const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 1/i })
       fireEvent.click(deleteButtons[0])
+
+      // Wait for modal and click confirm
+      await waitFor(() => {
+        expect(screen.getByText('Delete Project?')).toBeInTheDocument()
+      })
+
+      const confirmButton = screen.getByRole('button', { name: /confirm delete test project 1/i })
+      fireEvent.click(confirmButton)
 
       await waitFor(() => {
         expect(api.deleteProject).toHaveBeenCalledWith(1)
@@ -324,9 +332,17 @@ describe('Home Page - Component Integration', () => {
       // Mock updated list after deletion  
       ;(api.getProjects as jest.Mock).mockResolvedValueOnce([mockProjects[1]])
 
-      // Delete the selected project
+      // Delete the selected project - click delete button to open modal
       const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 1/i })
       fireEvent.click(deleteButtons[0])
+
+      // Wait for modal and click confirm
+      await waitFor(() => {
+        expect(screen.getByText('Delete Project?')).toBeInTheDocument()
+      })
+
+      const confirmButton = screen.getByRole('button', { name: /confirm delete test project 1/i })
+      fireEvent.click(confirmButton)
 
       await waitFor(() => {
         expect(api.deleteProject).toHaveBeenCalledWith(1)
@@ -349,9 +365,17 @@ describe('Home Page - Component Integration', () => {
       // Mock updated list after deletion
       ;(api.getProjects as jest.Mock).mockResolvedValueOnce([mockProjects[0]])
 
-      // Delete the non-selected project  
+      // Delete the non-selected project - click delete button to open modal
       const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 2/i })
       fireEvent.click(deleteButtons[0])
+
+      // Wait for modal and click confirm
+      await waitFor(() => {
+        expect(screen.getByText('Delete Project?')).toBeInTheDocument()
+      })
+
+      const confirmButton = screen.getByRole('button', { name: /confirm delete test project 2/i })
+      fireEvent.click(confirmButton)
 
       await waitFor(() => {
         expect(api.deleteProject).toHaveBeenCalledWith(2)

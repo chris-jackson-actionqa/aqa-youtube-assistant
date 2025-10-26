@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Project } from '../types/project';
 import { getProjects, deleteProject, ApiError } from '../lib/api';
+import ProjectDeleteConfirmation from './ProjectDeleteConfirmation';
 
 interface ProjectListProps {
   onProjectSelect?: (project: Project) => void;
@@ -36,6 +37,8 @@ export default function ProjectList({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
 
   const fetchProjects = async () => {
     setIsLoading(true);
@@ -70,15 +73,38 @@ export default function ProjectList({
       if (onProjectDelete) {
         onProjectDelete(id);
       }
+      
+      // Close modal after successful deletion
+      setDeleteModalOpen(false);
+      setProjectToDelete(null);
     } catch (err) {
+      // Store error in component state for display outside modal
       if (err instanceof ApiError) {
         setError(err.message);
       } else {
         setError('Failed to delete project. Please try again.');
       }
+      // Re-throw so modal can also display the error
+      throw err;
     } finally {
       setDeletingId(null);
     }
+  };
+
+  const openDeleteModal = (project: Project) => {
+    setProjectToDelete(project);
+    setDeleteModalOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    // Don't close modal while deletion is in progress
+    if (deletingId !== null) {
+      return;
+    }
+    
+    setDeleteModalOpen(false);
+    setProjectToDelete(null);
+    setError(null);
   };
 
   const handleSelect = (project: Project) => {
@@ -297,7 +323,7 @@ export default function ProjectList({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleDelete(project.id);
+                    openDeleteModal(project);
                   }}
                   onKeyDown={(e) => e.stopPropagation()}
                   disabled={isDeleting}
@@ -305,7 +331,6 @@ export default function ProjectList({
                            transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
                            disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label={`Delete project ${project.name}`}
-                  title="Delete project"
                 >
                   <svg 
                     className="w-5 h-5" 
@@ -327,6 +352,16 @@ export default function ProjectList({
           );
         })}
       </div>
+      
+      {/* Delete Confirmation Modal */}
+      <ProjectDeleteConfirmation
+        project={projectToDelete}
+        isOpen={deleteModalOpen}
+        onConfirm={async (projectId: number) => {
+          await handleDelete(projectId);
+        }}
+        onCancel={closeDeleteModal}
+      />
     </div>
   );
 }

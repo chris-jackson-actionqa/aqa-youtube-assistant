@@ -341,8 +341,17 @@ describe('ProjectList', () => {
         expect(screen.getByText('Test Project 1')).toBeInTheDocument();
       });
 
+      // Click delete button to open modal
       const deleteButton = screen.getAllByRole('button', { name: /delete project/i })[0];
       fireEvent.click(deleteButton);
+
+      // Wait for modal and confirm deletion
+      await waitFor(() => {
+        expect(screen.getByText('Delete Project?')).toBeInTheDocument();
+      });
+
+      const confirmButton = screen.getByRole('button', { name: /confirm delete test project 1/i });
+      fireEvent.click(confirmButton);
 
       await waitFor(() => {
         expect(mockedApi.deleteProject).toHaveBeenCalledWith(1);
@@ -358,8 +367,17 @@ describe('ProjectList', () => {
         expect(screen.getByText('Test Project 1')).toBeInTheDocument();
       });
 
+      // Click delete button to open modal
       const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 1/i });
       fireEvent.click(deleteButtons[0]);
+
+      // Wait for modal and confirm deletion
+      await waitFor(() => {
+        expect(screen.getByText('Delete Project?')).toBeInTheDocument();
+      });
+
+      const confirmButton = screen.getByRole('button', { name: /confirm delete test project 1/i });
+      fireEvent.click(confirmButton);
 
       await waitFor(() => {
         expect(screen.queryByText('Test Project 1')).not.toBeInTheDocument();
@@ -376,8 +394,17 @@ describe('ProjectList', () => {
         expect(screen.getByText('Test Project 1')).toBeInTheDocument();
       });
 
+      // Click delete button to open modal
       const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 1/i });
       fireEvent.click(deleteButtons[0]);
+
+      // Wait for modal and confirm deletion
+      await waitFor(() => {
+        expect(screen.getByText('Delete Project?')).toBeInTheDocument();
+      });
+
+      const confirmButton = screen.getByRole('button', { name: /confirm delete test project 1/i });
+      fireEvent.click(confirmButton);
 
       await waitFor(() => {
         expect(onProjectDelete).toHaveBeenCalledWith(1);
@@ -396,11 +423,22 @@ describe('ProjectList', () => {
         expect(screen.getByText('Test Project 1')).toBeInTheDocument();
       });
 
+      // Click delete button to open modal
       const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 1/i });
       fireEvent.click(deleteButtons[0]);
 
+      // Wait for modal to appear and confirm deletion
       await waitFor(() => {
-        expect(screen.getByText(errorMessage)).toBeInTheDocument();
+        expect(screen.getByText('Delete Project?')).toBeInTheDocument();
+      });
+
+      const confirmButton = screen.getByRole('button', { name: /confirm delete test project 1/i });
+      fireEvent.click(confirmButton);
+
+      // Check for error message (may appear in modal and/or main component)
+      await waitFor(() => {
+        const errorMessages = screen.getAllByText(errorMessage);
+        expect(errorMessages.length).toBeGreaterThan(0);
       });
     });
 
@@ -413,11 +451,22 @@ describe('ProjectList', () => {
         expect(screen.getByText('Test Project 1')).toBeInTheDocument();
       });
 
+      // Click delete button to open modal
       const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 1/i });
       fireEvent.click(deleteButtons[0]);
 
+      // Wait for modal to appear and confirm deletion
       await waitFor(() => {
-        expect(screen.getByText('Failed to delete project. Please try again.')).toBeInTheDocument();
+        expect(screen.getByText('Delete Project?')).toBeInTheDocument();
+      });
+
+      const confirmButton = screen.getByRole('button', { name: /confirm delete test project 1/i });
+      fireEvent.click(confirmButton);
+
+      // Check for generic error message (may appear in modal and/or main component)
+      await waitFor(() => {
+        const errorMessages = screen.getAllByText('Failed to delete project. Please try again.');
+        expect(errorMessages.length).toBeGreaterThan(0);
       });
     });
 
@@ -432,9 +481,19 @@ describe('ProjectList', () => {
         expect(screen.getByText('Test Project 1')).toBeInTheDocument();
       });
 
+      // Click delete button to open modal
       const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 1/i });
       fireEvent.click(deleteButtons[0]);
 
+      // Wait for modal to appear and confirm deletion
+      await waitFor(() => {
+        expect(screen.getByText('Delete Project?')).toBeInTheDocument();
+      });
+
+      const confirmButton = screen.getByRole('button', { name: /confirm delete test project 1/i });
+      fireEvent.click(confirmButton);
+
+      // Check that the project card is disabled during deletion
       await waitFor(() => {
         const projectCard = screen.getByText('Test Project 1').closest('div[role="listitem"]');
         expect(projectCard).toHaveClass('opacity-50');
@@ -451,9 +510,19 @@ describe('ProjectList', () => {
         expect(screen.getByText('Test Project 1')).toBeInTheDocument();
       });
 
+      // Click delete button to open modal
       const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 1/i });
       fireEvent.click(deleteButtons[0]);
 
+      // Wait for modal to appear and confirm deletion
+      await waitFor(() => {
+        expect(screen.getByText('Delete Project?')).toBeInTheDocument();
+      });
+
+      const confirmButton = screen.getByRole('button', { name: /confirm delete test project 1/i });
+      fireEvent.click(confirmButton);
+
+      // Check that project 1 is removed but others remain
       await waitFor(() => {
         expect(screen.queryByText('Test Project 1')).not.toBeInTheDocument();
         expect(screen.getByText('Test Project 2')).toBeInTheDocument();
@@ -816,8 +885,17 @@ describe('ProjectList', () => {
       const projectCard = screen.getByText('Test Project 1').closest('div[role="listitem"]');
       fireEvent.click(projectCard!);
 
+      // Click delete button to open modal
       const deleteButtons = screen.getAllByRole('button', { name: /delete project/i });
       fireEvent.click(deleteButtons[0]);
+
+      // Wait for modal to appear and confirm deletion
+      await waitFor(() => {
+        expect(screen.getByText('Delete Project?')).toBeInTheDocument();
+      });
+
+      const confirmButton = screen.getByRole('button', { name: /confirm delete test project 1/i });
+      fireEvent.click(confirmButton);
 
       // Should not crash
       await waitFor(() => {
@@ -847,13 +925,200 @@ describe('ProjectList', () => {
         expect(screen.getByText('Test Project 1')).toBeInTheDocument();
       });
 
+      // Click delete button to open modal
+      const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 1/i });
+      fireEvent.click(deleteButtons[0]);
+
+      // Wait for modal to appear and confirm deletion
+      await waitFor(() => {
+        expect(screen.getByText('Delete Project?')).toBeInTheDocument();
+      });
+
+      const confirmButton = screen.getByRole('button', { name: /confirm delete test project 1/i });
+      fireEvent.click(confirmButton);
+
+      // Check for error message (may appear in modal and/or main component)
+      await waitFor(() => {
+        const errorMessages = screen.getAllByText('Cannot delete');
+        expect(errorMessages.length).toBeGreaterThan(0);
+        // Project should still be visible
+        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
+      });
+    });
+
+    it('should close modal when cancel button is clicked', async () => {
+      mockedApi.getProjects.mockResolvedValue(mockProjects);
+
+      render(<ProjectList />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
+      });
+
+      // Click delete button to open modal
+      const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 1/i });
+      fireEvent.click(deleteButtons[0]);
+
+      // Wait for modal to appear
+      await waitFor(() => {
+        expect(screen.getByText('Delete Project?')).toBeInTheDocument();
+      });
+
+      // Click cancel button
+      const cancelButton = screen.getByRole('button', { name: /cancel/i });
+      fireEvent.click(cancelButton);
+
+      // Modal should close
+      await waitFor(() => {
+        expect(screen.queryByText('Delete Project?')).not.toBeInTheDocument();
+      });
+
+      // Project should still be visible
+      expect(screen.getByText('Test Project 1')).toBeInTheDocument();
+      expect(mockedApi.deleteProject).not.toHaveBeenCalled();
+    });
+
+    it('should handle keyboard events on delete button', async () => {
+      mockedApi.getProjects.mockResolvedValue(mockProjects);
+
+      render(<ProjectList />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
+      });
+
+      // Find delete button
+      const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 1/i });
+      
+      // Simulate keydown event
+      fireEvent.keyDown(deleteButtons[0], { key: 'Enter' });
+
+      // Event should be stopped (no modal opens from keydown)
+      expect(screen.queryByText('Delete Project?')).not.toBeInTheDocument();
+    });
+
+    it('should render project with empty description', async () => {
+      const projectWithNoDesc: Project = {
+        ...mockProjects[0],
+        description: null,
+      };
+      mockedApi.getProjects.mockResolvedValue([projectWithNoDesc]);
+
+      render(<ProjectList />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
+      });
+
+      // Should render without error even with null description
+      expect(screen.queryByText('This is a test project description')).not.toBeInTheDocument();
+    });
+
+    it('should truncate very long descriptions', async () => {
+      const longDesc = 'A'.repeat(200); // 200 characters
+      const projectWithLongDesc: Project = {
+        ...mockProjects[0],
+        description: longDesc,
+      };
+      mockedApi.getProjects.mockResolvedValue([projectWithLongDesc]);
+
+      render(<ProjectList />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
+      });
+
+      // Description should be truncated (max 150 chars + '...')
+      const descElement = screen.getByText(/A+\.\.\./);
+      expect(descElement.textContent?.length).toBeLessThan(longDesc.length);
+    });
+
+    it('should not allow closing modal during deletion', async () => {
+      let resolveDelete: () => void;
+      const deletePromise = new Promise<void>((resolve) => {
+        resolveDelete = resolve;
+      });
+
+      mockedApi.getProjects.mockResolvedValue(mockProjects);
+      mockedApi.deleteProject.mockReturnValue(deletePromise as any);
+
+      render(<ProjectList />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
+      });
+
+      // Open modal
       const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 1/i });
       fireEvent.click(deleteButtons[0]);
 
       await waitFor(() => {
-        expect(screen.getByText('Cannot delete')).toBeInTheDocument();
-        // Project should still be visible
+        expect(screen.getByText('Delete Project?')).toBeInTheDocument();
+      });
+
+      // Start deletion
+      const confirmButton = screen.getByRole('button', { name: /confirm delete test project 1/i });
+      fireEvent.click(confirmButton);
+
+      // Try to close modal (should not work during deletion)
+      await waitFor(() => {
+        expect(confirmButton).toBeDisabled();
+      });
+
+      // Modal should still be open despite attempts to close
+      expect(screen.getByText('Delete Project?')).toBeInTheDocument();
+
+      // Resolve deletion
+      resolveDelete!();
+
+      await waitFor(() => {
+        expect(screen.queryByText('Delete Project?')).not.toBeInTheDocument();
+      });
+    });
+
+    it('should not close modal when cancel is clicked during deletion', async () => {
+      let resolveDelete: () => void;
+      const deletePromise = new Promise<void>((resolve) => {
+        resolveDelete = resolve;
+      });
+
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
+      mockedApi.deleteProject.mockReturnValueOnce(deletePromise as any);
+
+      render(<ProjectList />);
+
+      await waitFor(() => {
         expect(screen.getByText('Test Project 1')).toBeInTheDocument();
+      });
+
+      // Open modal
+      const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 1/i });
+      fireEvent.click(deleteButtons[0]);
+
+      await waitFor(() => {
+        expect(screen.getByText('Delete Project?')).toBeInTheDocument();
+      });
+
+      // Start deletion
+      const confirmButton = screen.getByRole('button', { name: /confirm delete test project 1/i });
+      fireEvent.click(confirmButton);
+
+      await waitFor(() => {
+        expect(confirmButton).toBeDisabled();
+      });
+
+      // Try to click cancel button during deletion (should not close)
+      const cancelButton = screen.getByRole('button', { name: /cancel/i });
+      fireEvent.click(cancelButton);
+
+      // Modal should still be open
+      expect(screen.getByText('Delete Project?')).toBeInTheDocument();
+
+      // Resolve deletion
+      resolveDelete!();
+
+      await waitFor(() => {
+        expect(screen.queryByText('Delete Project?')).not.toBeInTheDocument();
       });
     });
   });
