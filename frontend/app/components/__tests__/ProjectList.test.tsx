@@ -249,7 +249,7 @@ describe('ProjectList', () => {
   });
 
   describe('Project Selection', () => {
-    it('calls onProjectSelect when select button is clicked', async () => {
+    it('calls onProjectSelect when card is clicked', async () => {
       const onProjectSelect = jest.fn();
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList onProjectSelect={onProjectSelect} />);
@@ -258,8 +258,8 @@ describe('ProjectList', () => {
         expect(screen.getByText('Test Project 1')).toBeInTheDocument();
       });
 
-      const selectButton = screen.getAllByRole('button', { name: /select project/i })[0];
-      fireEvent.click(selectButton);
+      const projectCard = screen.getByText('Test Project 1').closest('div[role="listitem"]');
+      fireEvent.click(projectCard!);
 
       expect(onProjectSelect).toHaveBeenCalledWith(mockProjects[0]);
     });
@@ -271,16 +271,17 @@ describe('ProjectList', () => {
       await waitFor(() => {
         const selectedCard = screen.getByText('Test Project 1').closest('div[role="listitem"]');
         expect(selectedCard).toHaveClass('border-blue-500');
+        expect(selectedCard).toHaveClass('selected');
       });
     });
 
-    it('shows "Selected" text for selected project', async () => {
+    it('shows aria-selected for selected project', async () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList selectedProjectId={1} />);
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /select project test project 1/i }))
-          .toHaveTextContent('Selected');
+        const selectedCard = screen.getByText('Test Project 1').closest('div[role="listitem"]');
+        expect(selectedCard).toHaveAttribute('aria-selected', 'true');
       });
     });
 
@@ -293,8 +294,8 @@ describe('ProjectList', () => {
         expect(screen.getByText('Test Project 1')).toBeInTheDocument();
       });
 
-      const selectButton = screen.getAllByRole('button', { name: /select project/i })[0];
-      fireEvent.keyDown(selectButton, { key: 'Enter' });
+      const projectCard = screen.getByText('Test Project 1').closest('div[role="listitem"]');
+      fireEvent.keyDown(projectCard!, { key: 'Enter' });
 
       expect(onProjectSelect).toHaveBeenCalledWith(mockProjects[0]);
     });
@@ -308,8 +309,8 @@ describe('ProjectList', () => {
         expect(screen.getByText('Test Project 1')).toBeInTheDocument();
       });
 
-      const selectButton = screen.getAllByRole('button', { name: /select project/i })[0];
-      fireEvent.keyDown(selectButton, { key: ' ' });
+      const projectCard = screen.getByText('Test Project 1').closest('div[role="listitem"]');
+      fireEvent.keyDown(projectCard!, { key: ' ' });
 
       expect(onProjectSelect).toHaveBeenCalledWith(mockProjects[0]);
     });
@@ -323,8 +324,8 @@ describe('ProjectList', () => {
         expect(screen.getByText('Test Project 1')).toBeInTheDocument();
       });
 
-      const selectButton = screen.getAllByRole('button', { name: /select project/i })[0];
-      fireEvent.keyDown(selectButton, { key: 'a' });
+      const projectCard = screen.getByText('Test Project 1').closest('div[role="listitem"]');
+      fireEvent.keyDown(projectCard!, { key: 'a' });
 
       expect(onProjectSelect).not.toHaveBeenCalled();
     });
@@ -730,8 +731,9 @@ describe('ProjectList', () => {
       render(<ProjectList />);
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Select project Test Project 1' })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Delete project Test Project 1' })).toBeInTheDocument();
+        const projectCard = screen.getByText('Test Project 1').closest('div[role="listitem"]');
+        expect(projectCard).toHaveAttribute('aria-selected');
       });
     });
 
@@ -811,8 +813,8 @@ describe('ProjectList', () => {
         expect(screen.getByText('Test Project 1')).toBeInTheDocument();
       });
 
-      const selectButton = screen.getAllByRole('button', { name: /select project/i })[0];
-      fireEvent.click(selectButton);
+      const projectCard = screen.getByText('Test Project 1').closest('div[role="listitem"]');
+      fireEvent.click(projectCard!);
 
       const deleteButtons = screen.getAllByRole('button', { name: /delete project/i });
       fireEvent.click(deleteButtons[0]);

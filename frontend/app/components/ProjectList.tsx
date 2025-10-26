@@ -246,10 +246,14 @@ export default function ProjectList({
               key={project.id}
               data-testid="project-card"
               role="listitem"
+              aria-selected={isSelected}
+              onClick={() => handleSelect(project)}
+              onKeyDown={(e) => handleKeyDown(e, project)}
+              tabIndex={0}
               className={`
-                bg-white dark:bg-gray-800 p-6 rounded-lg border-2 transition-all duration-200
+                bg-white dark:bg-gray-800 p-6 rounded-lg border-2 transition-all duration-200 cursor-pointer
                 ${isSelected 
-                  ? 'border-blue-500 dark:border-blue-400 shadow-lg' 
+                  ? 'border-blue-500 dark:border-blue-400 shadow-lg selected' 
                   : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                 }
                 ${isDeleting ? 'opacity-50 pointer-events-none' : ''}
@@ -291,19 +295,11 @@ export default function ProjectList({
               {/* Actions */}
               <div className="flex gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <button
-                  onClick={() => handleSelect(project)}
-                  onKeyDown={(e) => handleKeyDown(e, project)}
-                  disabled={isDeleting}
-                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg
-                           transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-                           disabled:opacity-50 disabled:cursor-not-allowed"
-                  aria-label={`Select project ${project.name}`}
-                >
-                  {isSelected ? 'Selected' : 'Select'}
-                </button>
-                
-                <button
-                  onClick={() => handleDelete(project.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(project.id);
+                  }}
+                  onKeyDown={(e) => e.stopPropagation()}
                   disabled={isDeleting}
                   className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg
                            transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2

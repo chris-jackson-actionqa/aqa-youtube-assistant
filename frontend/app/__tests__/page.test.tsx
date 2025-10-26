@@ -271,9 +271,9 @@ describe('Home Page - Component Integration', () => {
         expect(screen.getByText('Test Project 1')).toBeInTheDocument()
       })
 
-      // Click select button on first project
-      const selectButtons = screen.getAllByRole('button', { name: /select project test project 1/i })
-      fireEvent.click(selectButtons[0])
+      // Click on first project card to select it
+      const projectCard = screen.getByText('Test Project 1').closest('div[role="listitem"]')
+      fireEvent.click(projectCard!)
 
       // Wait for getProject API call to complete and indicator to show
       await waitFor(async () => {
