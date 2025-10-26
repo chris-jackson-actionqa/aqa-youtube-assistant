@@ -46,6 +46,11 @@ async function apiFetch<T>(
       );
     }
 
+    // Handle 204 No Content responses (e.g., DELETE operations)
+    if (response.status === 204) {
+      return {} as T;
+    }
+
     return await response.json();
   } catch (error) {
     console.log('API fetch error:', error);
