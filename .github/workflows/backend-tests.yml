@@ -35,11 +35,11 @@ jobs:
 
       - name: Run unit tests
         working-directory: backend
-        run: pytest unit_tests/ -v -p no:cov
+        run: pytest unit_tests/ -v
 
       - name: Run integration tests
         working-directory: backend
-        run: pytest integration_tests/ -v -p no:cov
+        run: pytest integration_tests/ -v
 
       - name: Check coverage threshold (95%)
         working-directory: backend
