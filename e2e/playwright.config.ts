@@ -82,12 +82,14 @@ export default defineConfig({
   ],
 
   /* Run your local dev servers before starting the tests */
-  webServer: [
+  webServer: process.env.CI ? undefined : [
+    // In CI, servers are started by GitHub Actions workflow
+    // Locally, we start dev servers automatically
     {
       command: 'cd ../backend && python -m uvicorn app.main:app --port 8000',
       port: 8000,
       timeout: 120 * 1000,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: true,
       stdout: 'pipe',
       stderr: 'pipe',
     },
@@ -95,7 +97,7 @@ export default defineConfig({
       command: 'cd ../frontend && npm run dev',
       port: 3000,
       timeout: 120 * 1000,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: true,
       stdout: 'pipe',
       stderr: 'pipe',
     },
