@@ -373,6 +373,34 @@ describe('ProjectDeleteConfirmation', () => {
 
       resolveDelete!();
     });
+
+    it('should display loading spinner with correct test ID', async () => {
+      let resolveDelete: () => void;
+      const deletePromise = new Promise<void>((resolve) => {
+        resolveDelete = resolve;
+      });
+      mockOnConfirm.mockReturnValue(deletePromise);
+
+      render(
+        <ProjectDeleteConfirmation
+          project={mockProject}
+          isOpen={true}
+          onConfirm={mockOnConfirm}
+          onCancel={mockOnCancel}
+        />
+      );
+
+      const deleteButton = screen.getByRole('button', { name: /confirm delete test project/i });
+      fireEvent.click(deleteButton);
+
+      await waitFor(() => {
+        const spinner = screen.getByTestId('deleting-spinner');
+        expect(spinner).toBeInTheDocument();
+        expect(spinner).toHaveClass('animate-spin');
+      });
+
+      resolveDelete!();
+    });
   });
 
   describe('Error Handling', () => {
