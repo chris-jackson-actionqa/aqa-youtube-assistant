@@ -55,14 +55,22 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
       }
     } catch (err) {
       if (err instanceof ApiError) {
-        // Handle specific error cases
+        // Handle specific error cases with user-friendly messages
         if (err.status === 400 && err.details && typeof err.details === 'object' && 'detail' in err.details) {
+          // Show specific validation errors
           setError(String(err.details.detail));
+        } else if (err.status >= 500) {
+          // Server errors - show generic user-friendly message
+          setError('Failed to create project. Please try again.');
+        } else if (err.status === 0) {
+          // Network error
+          setError('Failed to create project. Please check your connection and try again.');
         } else {
+          // Other API errors - show the API message
           setError(err.message);
         }
       } else {
-        setError('An unexpected error occurred. Please try again.');
+        setError('Failed to create project. Please try again.');
       }
     } finally {
       setIsSubmitting(false);
@@ -83,7 +91,10 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
       <h2 className="text-2xl font-bold mb-6">Create New Project</h2>
       
       {error && (
-        <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
+        <div 
+          role="alert" 
+          className="mb-4 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg"
+        >
           <p className="text-red-600 dark:text-red-400 text-sm font-medium">
             {error}
           </p>
