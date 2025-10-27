@@ -5,8 +5,8 @@ This document describes the CI/CD setup for running Playwright E2E tests in GitH
 ## Overview
 
 The E2E test workflow (`.github/workflows/e2e-tests.yml`) automatically runs on:
-- Push to `main` or `develop` branches
-- Pull requests to `main` or `develop` branches  
+- Push to `main` branch
+- Pull requests targeting `main` branch  
 - Manual trigger via `workflow_dispatch`
 
 ## Test Environment

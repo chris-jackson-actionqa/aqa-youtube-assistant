@@ -74,6 +74,11 @@ jobs:
       - name: Start frontend server
         working-directory: frontend
         run: |
+          # Ensure build output directory exists
+          if [ ! -d .next ]; then
+            echo "Build output directory .next not found! Frontend build may have failed."
+            exit 1
+          fi
           # Start production server in background
           npm run start &
           # Save PID for later cleanup
@@ -83,13 +88,17 @@ jobs:
           echo "Frontend server started successfully"
       
       # E2E Test Setup
-      - name: Install Playwright Browsers
-        working-directory: e2e
-        run: npx playwright install --with-deps ${{ matrix.browser }}
-      
       - name: Install E2E test dependencies
         working-directory: e2e
         run: npm ci
+      
+      - name: Install Playwright system dependencies
+        working-directory: e2e
+        run: npx playwright install-deps
+      
+      - name: Install Playwright Browsers
+        working-directory: e2e
+        run: npx playwright install ${{ matrix.browser }}
       
       # Run E2E Tests
       - name: Run Playwright tests
