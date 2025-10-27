@@ -272,7 +272,7 @@ describe('Home Page - Component Integration', () => {
       })
 
       // Click on first project card to select it
-      const projectCard = screen.getByText('Test Project 1').closest('div[role="listitem"]')
+      const projectCard = screen.getByText('Test Project 1').closest('div[role="button"]')
       fireEvent.click(projectCard!)
 
       // Wait for getProject API call to complete and indicator to show

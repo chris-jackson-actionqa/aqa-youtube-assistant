@@ -259,10 +259,12 @@ test.describe('Project Management Workflows', () => {
 
   test.describe('Keyboard Navigation', () => {
     
-    // TODO: Enable when issue #15 is complete (ProjectList component integration with keyboard navigation)
     test('should support keyboard navigation through projects', async ({ page }) => {
       await helpers.createProjectViaAPI('Keyboard Project');
       await page.goto('/');
+      
+      // Wait for project to be visible
+      await expect(page.locator('text=Keyboard Project')).toBeVisible();
       
       // Tab to first project
       await page.keyboard.press('Tab');

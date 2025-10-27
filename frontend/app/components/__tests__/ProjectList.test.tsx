@@ -189,7 +189,7 @@ describe('ProjectList', () => {
       render(<ProjectList />);
 
       await waitFor(() => {
-        const projectCard = screen.getByText('Test Project 3').closest('div[role="listitem"]') as HTMLElement;
+        const projectCard = screen.getByText('Test Project 3').closest('div[role="button"]') as HTMLElement;
         expect(projectCard).toBeInTheDocument();
         const descriptions = within(projectCard).queryByText(/description/i);
         expect(descriptions).not.toBeInTheDocument();
@@ -258,7 +258,7 @@ describe('ProjectList', () => {
         expect(screen.getByText('Test Project 1')).toBeInTheDocument();
       });
 
-      const projectCard = screen.getByText('Test Project 1').closest('div[role="listitem"]');
+      const projectCard = screen.getByText('Test Project 1').closest('div[role="button"]');
       fireEvent.click(projectCard!);
 
       expect(onProjectSelect).toHaveBeenCalledWith(mockProjects[0]);
@@ -269,7 +269,7 @@ describe('ProjectList', () => {
       render(<ProjectList selectedProjectId={1} />);
 
       await waitFor(() => {
-        const selectedCard = screen.getByText('Test Project 1').closest('div[role="listitem"]');
+        const selectedCard = screen.getByText('Test Project 1').closest('div[role="button"]');
         expect(selectedCard).toHaveClass('border-blue-500');
         expect(selectedCard).toHaveClass('selected');
       });
@@ -280,7 +280,7 @@ describe('ProjectList', () => {
       render(<ProjectList selectedProjectId={1} />);
 
       await waitFor(() => {
-        const selectedCard = screen.getByText('Test Project 1').closest('div[role="listitem"]');
+        const selectedCard = screen.getByText('Test Project 1').closest('div[role="button"]');
         expect(selectedCard).toHaveAttribute('aria-selected', 'true');
       });
     });
@@ -294,7 +294,7 @@ describe('ProjectList', () => {
         expect(screen.getByText('Test Project 1')).toBeInTheDocument();
       });
 
-      const projectCard = screen.getByText('Test Project 1').closest('div[role="listitem"]');
+      const projectCard = screen.getByText('Test Project 1').closest('div[role="button"]');
       fireEvent.keyDown(projectCard!, { key: 'Enter' });
 
       expect(onProjectSelect).toHaveBeenCalledWith(mockProjects[0]);
@@ -309,7 +309,7 @@ describe('ProjectList', () => {
         expect(screen.getByText('Test Project 1')).toBeInTheDocument();
       });
 
-      const projectCard = screen.getByText('Test Project 1').closest('div[role="listitem"]');
+      const projectCard = screen.getByText('Test Project 1').closest('div[role="button"]');
       fireEvent.keyDown(projectCard!, { key: ' ' });
 
       expect(onProjectSelect).toHaveBeenCalledWith(mockProjects[0]);
@@ -324,7 +324,7 @@ describe('ProjectList', () => {
         expect(screen.getByText('Test Project 1')).toBeInTheDocument();
       });
 
-      const projectCard = screen.getByText('Test Project 1').closest('div[role="listitem"]');
+      const projectCard = screen.getByText('Test Project 1').closest('div[role="button"]');
       fireEvent.keyDown(projectCard!, { key: 'a' });
 
       expect(onProjectSelect).not.toHaveBeenCalled();
@@ -495,7 +495,7 @@ describe('ProjectList', () => {
 
       // Check that the project card is disabled during deletion
       await waitFor(() => {
-        const projectCard = screen.getByText('Test Project 1').closest('div[role="listitem"]');
+        const projectCard = screen.getByText('Test Project 1').closest('div[role="button"]');
         expect(projectCard).toHaveClass('opacity-50');
         expect(projectCard).toHaveClass('pointer-events-none');
       });
@@ -801,8 +801,54 @@ describe('ProjectList', () => {
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: 'Delete project Test Project 1' })).toBeInTheDocument();
-        const projectCard = screen.getByText('Test Project 1').closest('div[role="listitem"]');
+        const projectCard = screen.getByText('Test Project 1').closest('div[role="button"]');
         expect(projectCard).toHaveAttribute('aria-selected');
+      });
+    });
+
+    it('has role="button" on project cards', async () => {
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
+      render(<ProjectList />);
+
+      await waitFor(() => {
+        const projectCards = screen.getAllByRole('button', { name: /select project/i });
+        expect(projectCards.length).toBe(3);
+      });
+    });
+
+    it('has descriptive aria-label on project cards', async () => {
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
+      render(<ProjectList />);
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Select project Test Project 1' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Select project Test Project 2' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Select project Test Project 3' })).toBeInTheDocument();
+      });
+    });
+
+    it('has keyboard focus styles on project cards', async () => {
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
+      render(<ProjectList />);
+
+      await waitFor(() => {
+        const projectCard = screen.getByText('Test Project 1').closest('div[role="button"]');
+        expect(projectCard).toHaveClass('focus:outline-none');
+        expect(projectCard).toHaveClass('focus:ring-2');
+        expect(projectCard).toHaveClass('focus:ring-blue-500');
+        expect(projectCard).toHaveClass('focus:ring-offset-2');
+      });
+    });
+
+    it('has tabIndex={0} for keyboard navigation', async () => {
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
+      render(<ProjectList />);
+
+      await waitFor(() => {
+        const projectCards = screen.getAllByRole('button', { name: /select project/i });
+        projectCards.forEach(card => {
+          expect(card).toHaveAttribute('tabIndex', '0');
+        });
       });
     });
 
@@ -833,8 +879,8 @@ describe('ProjectList', () => {
 
       await waitFor(() => {
         expect(screen.getByRole('list', { name: 'Projects' })).toBeInTheDocument();
-        const listItems = screen.getAllByRole('listitem');
-        expect(listItems).toHaveLength(3);
+        const buttons = screen.getAllByRole('button', { name: /select project/i });
+        expect(buttons).toHaveLength(3);
       });
     });
 
@@ -882,7 +928,7 @@ describe('ProjectList', () => {
         expect(screen.getByText('Test Project 1')).toBeInTheDocument();
       });
 
-      const projectCard = screen.getByText('Test Project 1').closest('div[role="listitem"]');
+      const projectCard = screen.getByText('Test Project 1').closest('div[role="button"]');
       fireEvent.click(projectCard!);
 
       // Click delete button to open modal
