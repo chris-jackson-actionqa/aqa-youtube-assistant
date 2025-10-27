@@ -1,0 +1,178 @@
+name: E2E Tests (Playwright)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  # Environment variables for CI
+  CI: true
+  NODE_ENV: test
+  PYTHONUNBUFFERED: 1
+
+jobs:
+  e2e-tests:
+    name: Run Playwright E2E Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium]  # Can add firefox, webkit later
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # Backend Setup
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
+      
+      - name: Install backend dependencies
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Start backend server
+        working-directory: backend
+        run: |
+          # Use in-memory SQLite for CI testing (faster, isolated)
+          export DATABASE_URL="sqlite:///:memory:"
+          # Start server in background
+          python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+          # Save PID for later cleanup
+          echo $! > backend.pid
+          # Wait for backend to be ready
+          timeout 30 bash -c 'until curl -s http://localhost:8000/api/health > /dev/null; do sleep 1; done'
+          echo "Backend server started successfully"
+      
+      # Frontend Setup
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+      
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+          # Skip linting during build since tests are run separately
+          SKIP_ENV_VALIDATION: 1
+      
+      - name: Start frontend server
+        working-directory: frontend
+        run: |
+          # Ensure build output directory exists
+          if [ ! -d .next ]; then
+            echo "Build output directory .next not found! Frontend build may have failed."
+            exit 1
+          fi
+          # Start production server in background
+          npm run start &
+          # Save PID for later cleanup
+          echo $! > frontend.pid
+          # Wait for frontend to be ready
+          timeout 60 bash -c 'until curl -s http://localhost:3000 > /dev/null; do sleep 1; done'
+          echo "Frontend server started successfully"
+      
+      # E2E Test Setup
+      - name: Install E2E test dependencies
+        working-directory: e2e
+        run: npm ci
+      
+      - name: Install Playwright system dependencies
+        working-directory: e2e
+        run: npx playwright install-deps
+      
+      - name: Install Playwright Browsers
+        working-directory: e2e
+        run: npx playwright install ${{ matrix.browser }}
+      
+      # Run E2E Tests
+      - name: Run Playwright tests
+        working-directory: e2e
+        run: npx playwright test --project=${{ matrix.browser }}
+        env:
+          CI: true
+      
+      # Artifacts and Cleanup
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ matrix.browser }}
+          path: e2e/playwright-report/
+          retention-days: 30
+      
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.browser }}
+          path: e2e/test-results/
+          retention-days: 7
+      
+      - name: Upload Screenshots
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: screenshots-${{ matrix.browser }}
+          path: e2e/test-results/**/*.png
+          retention-days: 7
+      
+      - name: Upload Videos
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: videos-${{ matrix.browser }}
+          path: e2e/test-results/**/*.webm
+          retention-days: 7
+      
+      - name: Cleanup servers
+        if: always()
+        run: |
+          # Kill backend server
+          if [ -f backend/backend.pid ]; then
+            kill $(cat backend/backend.pid) || true
+          fi
+          # Kill frontend server
+          if [ -f frontend/frontend.pid ]; then
+            kill $(cat frontend/frontend.pid) || true
+          fi
+          # Ensure all Node and Python processes are stopped
+          pkill -f "uvicorn app.main:app" || true
+          pkill -f "next start" || true
+
+  # Summary job that depends on all test jobs
+  e2e-test-summary:
+    name: E2E Test Summary
+    runs-on: ubuntu-latest
+    needs: [e2e-tests]
+    if: always()
+    
+    steps:
+      - name: Check test results
+        run: |
+          if [[ "${{ needs.e2e-tests.result }}" == "success" ]]; then
+            echo "✅ All E2E tests passed!"
+            exit 0
+          else
+            echo "❌ E2E tests failed!"
+            exit 1
+          fi
