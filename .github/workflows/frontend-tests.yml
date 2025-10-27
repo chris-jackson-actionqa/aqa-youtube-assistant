@@ -36,13 +36,6 @@ jobs:
         working-directory: frontend
         run: npm run test:coverage
 
-      - name: Check coverage threshold (98%)
-        working-directory: frontend
-        run: |
-          # Jest coverage configured in jest.config.mjs with 98% thresholds
-          # This step will fail if coverage is below threshold
-          npm run test:coverage -- --coverage
-
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4
