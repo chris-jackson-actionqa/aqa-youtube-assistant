@@ -271,13 +271,15 @@ export default function ProjectList({
             <div
               key={project.id}
               data-testid="project-card"
-              role="listitem"
-              aria-selected={isSelected}
+              role="button"
+              aria-label={`Select project ${project.name}`}
+              aria-pressed={isSelected}
               onClick={() => handleSelect(project)}
               onKeyDown={(e) => handleKeyDown(e, project)}
               tabIndex={0}
               className={`
                 bg-white dark:bg-gray-800 p-6 rounded-lg border-2 transition-all duration-200 cursor-pointer
+                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
                 ${isSelected 
                   ? 'border-blue-500 dark:border-blue-400 shadow-lg selected' 
                   : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
