@@ -339,6 +339,117 @@ describe('ProjectForm', () => {
   })
 
   describe('Error Handling', () => {
+    it('should display user-friendly error message for 500 server errors', async () => {
+      const user = userEvent.setup()
+      
+      // Create a proper ApiError instance for 500 error
+      const apiError = Object.create(api.ApiError.prototype)
+      apiError.message = 'Internal Server Error'
+      apiError.status = 500
+      apiError.details = { detail: 'Internal Server Error' }
+      apiError.name = 'ApiError'
+      
+      ;(api.createProject as jest.Mock).mockRejectedValue(apiError)
+      
+      render(<ProjectForm />)
+      
+      await user.type(screen.getByLabelText(/project name/i), 'Test Project')
+      await user.click(screen.getByRole('button', { name: /create project/i }))
+      
+      await waitFor(() => {
+        expect(screen.getByRole('alert')).toBeInTheDocument()
+        expect(screen.getByText('Failed to create project. Please try again.')).toBeInTheDocument()
+      })
+    })
+
+    it('should display user-friendly error message for network errors', async () => {
+      const user = userEvent.setup()
+      
+      // Create a proper ApiError instance for network error (status 0)
+      const apiError = Object.create(api.ApiError.prototype)
+      apiError.message = 'Failed to connect to the API'
+      apiError.status = 0
+      apiError.name = 'ApiError'
+      
+      ;(api.createProject as jest.Mock).mockRejectedValue(apiError)
+      
+      render(<ProjectForm />)
+      
+      await user.type(screen.getByLabelText(/project name/i), 'Test Project')
+      await user.click(screen.getByRole('button', { name: /create project/i }))
+      
+      await waitFor(() => {
+        expect(screen.getByRole('alert')).toBeInTheDocument()
+        expect(screen.getByText('Failed to create project. Please check your connection and try again.')).toBeInTheDocument()
+      })
+    })
+
+    it('should keep form open after API error for retry', async () => {
+      const user = userEvent.setup()
+      
+      const apiError = Object.create(api.ApiError.prototype)
+      apiError.message = 'Internal Server Error'
+      apiError.status = 500
+      apiError.name = 'ApiError'
+      
+      ;(api.createProject as jest.Mock).mockRejectedValue(apiError)
+      
+      render(<ProjectForm />)
+      
+      await user.type(screen.getByLabelText(/project name/i), 'Test Project')
+      await user.click(screen.getByRole('button', { name: /create project/i }))
+      
+      await waitFor(() => {
+        expect(screen.getByText('Failed to create project. Please try again.')).toBeInTheDocument()
+      })
+      
+      // Form should remain open with values intact
+      expect(screen.getByLabelText(/project name/i)).toHaveValue('Test Project')
+      expect(screen.getByRole('button', { name: /create project/i })).toBeInTheDocument()
+    })
+
+    it('should clear error message on successful retry', async () => {
+      const user = userEvent.setup()
+      
+      const apiError = Object.create(api.ApiError.prototype)
+      apiError.message = 'Internal Server Error'
+      apiError.status = 500
+      apiError.name = 'ApiError'
+      
+      const mockProject = {
+        id: 1,
+        name: 'Test Project',
+        description: null,
+        status: 'planned',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+      
+      // First call fails, second succeeds
+      ;(api.createProject as jest.Mock)
+        .mockRejectedValueOnce(apiError)
+        .mockResolvedValueOnce(mockProject)
+      
+      render(<ProjectForm />)
+      
+      await user.type(screen.getByLabelText(/project name/i), 'Test Project')
+      await user.click(screen.getByRole('button', { name: /create project/i }))
+      
+      // First attempt shows error
+      await waitFor(() => {
+        expect(screen.getByText('Failed to create project. Please try again.')).toBeInTheDocument()
+      })
+      
+      // Retry
+      await user.click(screen.getByRole('button', { name: /create project/i }))
+      
+      // Error should clear and success message should show
+      await waitFor(() => {
+        expect(screen.queryByText('Failed to create project. Please try again.')).not.toBeInTheDocument()
+        expect(screen.getByText(/created successfully/i)).toBeInTheDocument()
+      })
+    })
+
     it('should display error message on API failure with object details', async () => {
       const user = userEvent.setup()
       
@@ -416,7 +527,29 @@ describe('ProjectForm', () => {
       await user.click(screen.getByRole('button', { name: /create project/i }))
       
       await waitFor(() => {
-        expect(screen.getByText(/unexpected error occurred/i)).toBeInTheDocument()
+        expect(screen.getByText('Failed to create project. Please try again.')).toBeInTheDocument()
+      })
+    })
+
+    it('should have proper ARIA role for error messages', async () => {
+      const user = userEvent.setup()
+      
+      const apiError = Object.create(api.ApiError.prototype)
+      apiError.message = 'Internal Server Error'
+      apiError.status = 500
+      apiError.name = 'ApiError'
+      
+      ;(api.createProject as jest.Mock).mockRejectedValue(apiError)
+      
+      render(<ProjectForm />)
+      
+      await user.type(screen.getByLabelText(/project name/i), 'Test Project')
+      await user.click(screen.getByRole('button', { name: /create project/i }))
+      
+      await waitFor(() => {
+        const alertElement = screen.getByRole('alert')
+        expect(alertElement).toBeInTheDocument()
+        expect(alertElement).toHaveTextContent('Failed to create project. Please try again.')
       })
     })
   })
