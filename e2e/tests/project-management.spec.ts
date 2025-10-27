@@ -99,8 +99,9 @@ test.describe('Project Management Workflows', () => {
       await expect(page.locator('text=Working on: Selected Project')).toBeVisible();
     });
 
-    // TODO: Enable when issue #15 is complete (ProjectList component integration with selection feature)
-    test.skip('should clear project selection', async ({ page }) => {
+    // Phase 2: Clear selection test
+    // ✅ PASSING - Clear selection button already implemented in issue #53
+    test('should clear project selection', async ({ page }) => {
       await helpers.createProjectViaAPI('Temp Project');
       await page.goto('/');
       
@@ -118,8 +119,9 @@ test.describe('Project Management Workflows', () => {
       await expect(selectedCards).toHaveCount(0);
     });
 
-    // TODO: Enable when issue #15 is complete (ProjectList component integration with selection persistence)
-    test.skip('should persist project selection across page reload', async ({ page }) => {
+    // Phase 2: Selection persistence test
+    // ✅ PASSING - localStorage persistence already implemented in issue #53
+    test('should persist project selection across page reload', async ({ page }) => {
       await helpers.createProjectViaAPI('Persistent Project');
       await page.goto('/');
       
@@ -198,8 +200,9 @@ test.describe('Project Management Workflows', () => {
       await helpers.verifyProjectExists('Keep This Project');
     });
 
-    // TODO: Enable when issue #15 is complete (ProjectDeleteConfirmation modal integration with selection)
-    test.skip('should clear selection when deleting selected project', async ({ page }) => {
+    // Phase 2: Clear selection on delete test
+    // ✅ PASSING - Clear on delete already implemented in issue #53 and #54
+    test('should clear selection when deleting selected project', async ({ page }) => {
       await helpers.createProjectViaAPI('Selected and Deleted');
       await page.goto('/');
       
@@ -216,8 +219,10 @@ test.describe('Project Management Workflows', () => {
       await expect(page.locator('[data-testid="project-card"]').filter({ hasText: 'Selected and Deleted' })).not.toBeVisible();
     });
 
-    // TODO: Enable when issue #15 is complete (ProjectDeleteConfirmation modal integration with loading state)
-    test.skip('should show loading state during deletion', async ({ page }) => {
+    // Phase 2: Loading state during deletion test
+    // TODO: Implement loading indicator during delete operation
+    // Blocked by: Issue #69 - Add Loading State to Project Deletion Modal
+    test('should show loading state during deletion', async ({ page }) => {
       await helpers.createProjectViaAPI('Slow Delete');
       await page.goto('/');
       
@@ -242,8 +247,10 @@ test.describe('Project Management Workflows', () => {
       await expect(page.locator('[data-testid="project-card"]').filter({ hasText: 'Slow Delete' })).not.toBeVisible({ timeout: 5000 });
     });
 
-    // TODO: Enable when issue #15 is complete (ProjectDeleteConfirmation modal integration with error handling)
-    test.skip('should handle delete API errors gracefully', async ({ page }) => {
+    // Phase 2: Error handling during deletion test
+    // TODO: Implement error message display when delete fails
+    // Blocked by: Issue #70 - Implement Error Messages for Project Deletion API Failures
+    test('should handle delete API errors gracefully', async ({ page }) => {
       await helpers.createProjectViaAPI('Error Project');
       await page.goto('/');
       

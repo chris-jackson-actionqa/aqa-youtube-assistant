@@ -213,8 +213,9 @@ test.describe('Project Creation Workflow', () => {
       await expect(page.getByText(cancelledName)).not.toBeVisible();
     });
 
-    // TODO: Unskip when loading state UI is implemented (#37)
-    test.skip('should show loading state during project creation', async ({ page }) => {
+    // Phase 2: Loading state test
+    // ✅ PASSING - Loading state already implemented
+    test('should show loading state during project creation', async ({ page }) => {
       // Arrange
       const projectName = generateUniqueProjectName('Loading Test');
       
@@ -242,8 +243,10 @@ test.describe('Project Creation Workflow', () => {
 
   test.describe('Error Handling', () => {
     
-    // TODO: Unskip when API error handling UI is implemented (#38)
-    test.skip('should handle API errors gracefully during creation', async ({ page }) => {
+    // Phase 2: Error handling test
+    // TODO: Implement error handling UI - display error messages for API failures
+    // Blocked by: Issue #68 - Implement Error Messages for Project Creation API Failures
+    test('should handle API errors gracefully during creation', async ({ page }) => {
       // Arrange - mock API failure
       await page.route('**/api/projects', route => {
         if (route.request().method() === 'POST') {
