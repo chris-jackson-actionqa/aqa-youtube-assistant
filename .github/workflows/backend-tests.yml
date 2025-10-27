@@ -33,13 +33,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run unit tests with coverage
+      - name: Run unit tests
         working-directory: backend
-        run: pytest unit_tests/ -v --cov=app --cov-report=term-missing --cov-report=html
+        run: pytest unit_tests/ -v -p no:cov
 
       - name: Run integration tests
         working-directory: backend
-        run: pytest integration_tests/ -v
+        run: pytest integration_tests/ -v -p no:cov
 
       - name: Check coverage threshold (95%)
         working-directory: backend
