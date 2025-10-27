@@ -242,7 +242,7 @@ test.describe('Project Management Workflows', () => {
     });
 
     // TODO: Enable when issue #15 is complete (ProjectDeleteConfirmation modal integration)
-    test.skip('should handle deleting already-deleted project', async ({ page }) => {
+    test('should handle deleting already-deleted project', async ({ page }) => {
       const project = await helpers.createProjectViaAPI('Vanishing Project');
       await page.goto('/');
       
@@ -260,7 +260,7 @@ test.describe('Project Management Workflows', () => {
   test.describe('Keyboard Navigation', () => {
     
     // TODO: Enable when issue #15 is complete (ProjectList component integration with keyboard navigation)
-    test.skip('should support keyboard navigation through projects', async ({ page }) => {
+    test('should support keyboard navigation through projects', async ({ page }) => {
       await helpers.createProjectViaAPI('Keyboard Project');
       await page.goto('/');
       

@@ -128,14 +128,14 @@ test.describe('Project Creation Workflow', () => {
     });
 
     // TODO: Unskip when project creation UI handles very long names properly (#39)
-    test.skip('should handle very long project names', async ({ page }) => {
+    test('should handle very long project names', async ({ page }) => {
       // Arrange - create a long name (255 characters)
       const longName = generateUniqueProjectName('A'.repeat(200));
       
       // Act
       await page.getByRole('button', { name: /create new project/i }).click();
       await page.getByLabel(/project name/i).waitFor({ state: 'visible' });
-      await expect(page.getByLabel(/project name/i)).toHaveValue(longName);
+      await page.getByLabel(/project name/i).fill(longName);
       await page.getByRole('button', { name: /create project/i }).click();
       
       // Assert - verify it's created (checking first 50 chars for visibility)
@@ -143,7 +143,7 @@ test.describe('Project Creation Workflow', () => {
     });
 
     // TODO: Unskip when project creation UI handles special characters (#39)
-    test.skip('should handle special characters in project name', async ({ page }) => {
+    test('should handle special characters in project name', async ({ page }) => {
       // Arrange
       const specialName = generateUniqueProjectName('Project #1: "TypeScript"');
       
@@ -158,7 +158,7 @@ test.describe('Project Creation Workflow', () => {
   test.describe('Duplicate Detection', () => {
     
     // TODO: Unskip when duplicate detection UI error messages are implemented (#38)
-    test.skip('should show error when creating project with duplicate name', async ({ page }) => {
+    test('should show error when creating project with duplicate name', async ({ page }) => {
       // Arrange - create first project
       const projectName = generateUniqueProjectName('Duplicate Test');
       await helpers.createProjectViaUI(projectName);
@@ -178,7 +178,7 @@ test.describe('Project Creation Workflow', () => {
     });
 
     // TODO: Unskip when case-insensitive duplicate detection is implemented (#38)
-    test.skip('should detect duplicate names case-insensitively', async ({ page }) => {
+    test('should detect duplicate names case-insensitively', async ({ page }) => {
       // Arrange - create project with original case
       const originalName = generateUniqueProjectName('Test Project');
       await helpers.createProjectViaUI(originalName);
@@ -244,7 +244,7 @@ test.describe('Project Creation Workflow', () => {
   test.describe('Edge Cases', () => {
     
     // TODO: Unskip when project creation UI is fully implemented (#12, #15, #39)
-    test.skip('should handle rapid form submissions', async ({ page }) => {
+    test('should handle rapid form submissions', async ({ page }) => {
       // Arrange
       const projectName = generateUniqueProjectName('Rapid Submit Test');
       
@@ -285,7 +285,7 @@ test.describe('Project Creation Workflow', () => {
     });
 
     // TODO: Unskip when project creation UI handles emoji (#39)
-    test.skip('should handle projects with emoji in name', async ({ page }) => {
+    test('should handle projects with emoji in name', async ({ page }) => {
       // Arrange
       const emojiName = generateUniqueProjectName('🎬 Video Project 🎥');
       
