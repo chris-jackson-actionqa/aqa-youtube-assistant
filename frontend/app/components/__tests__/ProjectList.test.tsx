@@ -275,13 +275,13 @@ describe('ProjectList', () => {
       });
     });
 
-    it('shows aria-selected for selected project', async () => {
+    it('shows aria-pressed for selected project', async () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList selectedProjectId={1} />);
 
       await waitFor(() => {
         const selectedCard = screen.getByText('Test Project 1').closest('div[role="button"]');
-        expect(selectedCard).toHaveAttribute('aria-selected', 'true');
+        expect(selectedCard).toHaveAttribute('aria-pressed', 'true');
       });
     });
 
@@ -802,7 +802,7 @@ describe('ProjectList', () => {
       await waitFor(() => {
         expect(screen.getByRole('button', { name: 'Delete project Test Project 1' })).toBeInTheDocument();
         const projectCard = screen.getByText('Test Project 1').closest('div[role="button"]');
-        expect(projectCard).toHaveAttribute('aria-selected');
+        expect(projectCard).toHaveAttribute('aria-pressed');
       });
     });
 
@@ -847,7 +847,7 @@ describe('ProjectList', () => {
       await waitFor(() => {
         const projectCards = screen.getAllByRole('button', { name: /select project/i });
         projectCards.forEach(card => {
-          expect(card).toHaveAttribute('tabIndex', '0');
+          expect(card).toHaveAttribute('tabindex', '0');
         });
       });
     });

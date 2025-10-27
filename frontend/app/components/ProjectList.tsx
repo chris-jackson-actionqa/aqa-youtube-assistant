@@ -273,7 +273,7 @@ export default function ProjectList({
               data-testid="project-card"
               role="button"
               aria-label={`Select project ${project.name}`}
-              aria-selected={isSelected}
+              aria-pressed={isSelected}
               onClick={() => handleSelect(project)}
               onKeyDown={(e) => handleKeyDown(e, project)}
               tabIndex={0}
