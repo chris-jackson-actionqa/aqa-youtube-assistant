@@ -1,5 +1,10 @@
 # aqa-youtube-assistant
 
+[![CI - All Tests](https://github.com/chris-jackson-actionqa/aqa-youtube-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/chris-jackson-actionqa/aqa-youtube-assistant/actions/workflows/ci.yml)
+[![Backend Tests](https://github.com/chris-jackson-actionqa/aqa-youtube-assistant/actions/workflows/backend-tests.yml/badge.svg)](https://github.com/chris-jackson-actionqa/aqa-youtube-assistant/actions/workflows/backend-tests.yml)
+[![Frontend Tests](https://github.com/chris-jackson-actionqa/aqa-youtube-assistant/actions/workflows/frontend-tests.yml/badge.svg)](https://github.com/chris-jackson-actionqa/aqa-youtube-assistant/actions/workflows/frontend-tests.yml)
+[![E2E Tests](https://github.com/chris-jackson-actionqa/aqa-youtube-assistant/actions/workflows/e2e-tests.yml/badge.svg)](https://github.com/chris-jackson-actionqa/aqa-youtube-assistant/actions/workflows/e2e-tests.yml)
+
 Helper for planning and making YouTube videos for the ActionaQA channel.
 
 This application consists of a **Next.js frontend** and a **FastAPI backend**.

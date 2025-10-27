@@ -9,36 +9,103 @@ Use this prompt to guide the AI through the complete pull request process from b
 Please help me complete the pull request workflow for my current branch:
 
 1. **Push the current branch** to the remote repository if not already pushed
-   - Check current branch name
-   - Push to origin
+   - Check current branch name with `git branch --show-current`
+   - Push to origin with `git push -u origin <branch-name>`
 
 2. **Create a pull request** using the GitHub MCP server
-   - Use the current branch as the head branch
-   - Target branch: `main`
+   - Use `mcp_github_github_create_pull_request` tool
+   - Set head branch to current branch
+   - Set base branch to `main`
    - Generate an appropriate title based on the changes
-   - Include a description summarizing the changes made
+   - Include a comprehensive description summarizing the changes made
 
-3. **Request Copilot code review** on the pull request
+3. **Check workflow status using GitHub CLI** (MCP server doesn't support workflow checks)
+   - Use `gh pr checks <PR_NUMBER>` to view all status checks
+   - Use `gh pr checks <PR_NUMBER> --watch` to monitor in real-time
+   - Wait for all checks to complete successfully
+   - If any fail, use `gh run view <RUN_ID> --log-failed` to debug
+
+4. **Request Copilot code review** using the GitHub MCP server
+   - Use `mcp_github_github_request_copilot_review` tool
    - Wait for the review to complete
-   - Show me the review comments
+   - Show review comments
 
-4. **Address review comments**
-   - Help me understand and implement any requested changes
+5. **Address review comments** if needed
+   - Help understand and implement any requested changes
    - Make necessary code modifications
-   - Commit and push the changes
-   - Respond to review comments as appropriate
+   - Commit and push the changes with `git commit` and `git push`
+   - Respond to review comments using GitHub MCP server tools
+   - Re-check workflow status with `gh pr checks <PR_NUMBER>`
 
-5. **Merge the pull request** once all comments are addressed
+6. **Verify all checks passed before merging** (use GitHub CLI)
+   - Run `gh pr checks <PR_NUMBER>` to confirm all checks are green ✓
+   - Verify workflow runs completed successfully:
+     - ✓ Backend tests (95% coverage)
+     - ✓ Frontend tests (98% coverage)
+     - ✓ E2E tests
+   - Confirm code review is approved
+   - Ensure no failing tests or linting issues
+
+7. **Merge the pull request** using the GitHub MCP server
+   - Use `mcp_github_github_merge_pull_request` tool
    - Confirm that all checks have passed
-   - Merge using the appropriate merge strategy (squash, merge commit, or rebase)
+   - Choose merge strategy (squash, merge commit, or rebase)
 
-6. **Wait for merge to complete**
+8. **Wait for merge to complete**
    - Verify the PR was successfully merged to main
 
-7. **Clean up local repository**
+9. **Clean up local repository** using Git commands
    - `git checkout main`
    - `git pull origin main`
-   - Delete the feature branch locally and remotely
+   - Delete local branch: `git branch -d <branch-name>`
+   - Delete remote branch: `git push origin --delete <branch-name>`
+
+---
+
+## GitHub CLI Commands for Workflow Checks
+
+**Note**: The GitHub MCP server doesn't provide workflow/action status checking, so use GitHub CLI for this:
+
+### Check PR Workflow Status
+```bash
+# View all status checks (CI/CD, tests, etc.)
+gh pr checks <PR_NUMBER>
+
+# Watch checks in real-time (auto-updates)
+gh pr checks <PR_NUMBER> --watch
+```
+
+### Debug Failed Workflows
+```bash
+# List recent workflow runs for the branch
+gh run list --branch <BRANCH_NAME>
+
+# View detailed results of a specific run
+gh run view <RUN_ID>
+
+# Watch a workflow run in real-time
+gh run watch <RUN_ID>
+
+# View logs for a failed run
+gh run view <RUN_ID> --log-failed
+```
+
+### Quick Status Check
+```bash
+# One-command status check for current branch
+gh pr checks $(gh pr list --head $(git branch --show-current) --json number --jq '.[0].number')
+```
+
+---
+
+## GitHub MCP Server Tools Used
+
+This workflow uses the following GitHub MCP server tools:
+- `mcp_github_github_create_pull_request` - Create PR
+- `mcp_github_github_request_copilot_review` - Request Copilot review  
+- `mcp_github_github_merge_pull_request` - Merge PR
+- `mcp_github_github_add_issue_comment` - Respond to review comments (if needed)
+- `mcp_github_github_update_pull_request` - Update PR details (if needed)
 
 ---
 
@@ -50,9 +117,12 @@ Copy and paste this prompt when you're ready to create a PR:
 I'm ready to create a pull request. Please follow the pull request workflow:
 - Push my current branch
 - Create a PR to main
+- Check PR status and wait for all workflow checks to complete
+- Verify all CI/CD checks pass (backend tests, frontend tests, E2E tests)
 - Request and wait for Copilot code review
 - Help me address any review comments
-- Merge the PR when approved
+- Re-check all status checks after any changes
+- Merge the PR only when all checks are green and approved
 - Switch to main, pull latest changes, and clean up the feature branch
 ```
 
@@ -61,6 +131,13 @@ I'm ready to create a pull request. Please follow the pull request workflow:
 ## Notes
 
 - Ensure all local changes are committed before starting this workflow
+- **CRITICAL**: Always check that all CI/CD workflows pass before merging
+  - Backend tests must pass (95% coverage)
+  - Frontend tests must pass (98% coverage)
+  - E2E tests must pass
+  - All linting and formatting checks must pass
+- Use `gh pr checks --watch` to monitor checks in real-time
 - The AI will pause at review comments to let you review and approve changes
 - You can customize the merge strategy when merging
 - Feature branch will be deleted both locally and remotely after successful merge
+- If any check fails, investigate logs using `gh run view <RUN_ID> --log-failed`
