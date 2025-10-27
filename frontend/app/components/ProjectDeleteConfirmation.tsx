@@ -69,6 +69,7 @@ export default function ProjectDeleteConfirmation({
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete project';
       setError(errorMessage);
+    } finally {
       setIsDeleting(false);
     }
   };
@@ -229,6 +230,7 @@ export default function ProjectDeleteConfirmation({
           >
             {isDeleting && (
               <svg
+                data-testid="deleting-spinner"
                 className="animate-spin h-4 w-4"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
