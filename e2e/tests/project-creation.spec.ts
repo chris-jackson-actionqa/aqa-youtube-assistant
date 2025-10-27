@@ -241,21 +241,6 @@ test.describe('Project Creation Workflow', () => {
     });
   });
 
-  test.describe('Error Handling', () => {
-    
-    // Note: Error handling is comprehensively tested in unit tests (ProjectForm.test.tsx)
-    // E2E tests focus on real backend integration rather than mocked error scenarios
-    test.skip('should handle API errors gracefully during creation', async ({ page }) => {
-      // This scenario is better tested in unit tests where we can reliably mock API failures
-      // without interfering with real backend state
-    });
-
-    test.skip('should handle network timeout during creation', async ({ page }) => {
-      // This scenario is better tested in unit tests where we can control timing
-      // without adding artificial delays to E2E tests
-    });
-  });
-
   test.describe('Edge Cases', () => {
     
     // TODO: Unskip when project creation UI is fully implemented (#12, #15, #39)
