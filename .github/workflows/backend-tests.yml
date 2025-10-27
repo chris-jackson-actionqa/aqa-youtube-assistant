@@ -43,7 +43,7 @@ jobs:
 
       - name: Check coverage threshold (95%)
         working-directory: backend
-        run: pytest unit_tests/ integration_tests/ --cov=app --cov-report=term --cov-fail-under=95
+        run: pytest unit_tests/ integration_tests/ --cov=app --cov-report=term --cov-fail-under=95 --ignore=htmlcov
 
       - name: Upload coverage report
         if: always()
