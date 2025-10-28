@@ -6,7 +6,7 @@ Related: Issue #27 - Database constraints
 Related: Issue #30 - Case-insensitive UNIQUE constraint
 """
 from sqlalchemy import Column, Integer, String, Text, DateTime, Index, func
-from datetime import datetime
+from datetime import datetime, UTC
 from .database import Base
 
 
@@ -34,8 +34,8 @@ class Project(Base):
     name = Column(String(255), nullable=False, index=True)
     description = Column(Text)
     status = Column(String(50), default="planned")
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
+    updated_at = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
     
     # Case-insensitive unique constraint using functional index
     # This works across SQLite (dev) and PostgreSQL (future production)
