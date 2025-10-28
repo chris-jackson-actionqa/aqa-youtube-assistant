@@ -2,8 +2,9 @@
 Pydantic schemas for request/response validation.
 Related: ADR-001 for project-based organization
 Related: Issue #27 - Validation enhancements
+Related: Issue #59 - Pydantic V2 ConfigDict migration
 """
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from datetime import datetime
 from typing import Optional
 
@@ -135,10 +136,16 @@ class ProjectUpdate(BaseModel):
 
 
 class ProjectResponse(ProjectBase):
-    """Schema for project response"""
+    """
+    Schema for project response.
+    
+    Configuration:
+    - from_attributes: Enables compatibility with SQLAlchemy ORM models
+    
+    Related: Issue #59 - Migrated from class Config to ConfigDict
+    """
+    model_config = ConfigDict(from_attributes=True)
+    
     id: int
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True  # Enables compatibility with SQLAlchemy models
