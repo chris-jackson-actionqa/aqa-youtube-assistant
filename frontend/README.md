@@ -37,6 +37,7 @@ npm run lint:fix
 ```
 
 **Configuration files:**
+
 - `eslint.config.mjs` - ESLint configuration
 - Extends: `next/core-web-vitals`, `next/typescript`, `prettier`
 
@@ -53,10 +54,12 @@ npm run format:check
 ```
 
 **Configuration files:**
+
 - `.prettierrc` - Prettier configuration
 - `.prettierignore` - Files to exclude from formatting
 
 **Prettier settings:**
+
 - **Semi-colons**: Required (`;`)
 - **Quotes**: Double quotes (`"`)
 - **Trailing commas**: ES5 style
@@ -73,6 +76,7 @@ Before each commit, the following checks run automatically via `.githooks/pre-co
 3. **Unit tests with coverage** - All tests must pass with 98%+ coverage
 
 **If checks fail:**
+
 - Format code: `npm run format`
 - Fix linting: `npm run lint:fix`
 - Fix tests: Ensure all tests pass and meet coverage thresholds
