@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { ProjectProvider, useProject } from './contexts/ProjectContext';
-import ProjectForm from './components/ProjectForm';
-import ProjectList from './components/ProjectList';
-import { Project } from './types/project';
+import { useState } from "react";
+import { ProjectProvider, useProject } from "./contexts/ProjectContext";
+import ProjectForm from "./components/ProjectForm";
+import ProjectList from "./components/ProjectList";
+import { Project } from "./types/project";
 
 /**
  * ProjectManagementPage - Main project management interface
- * 
+ *
  * Integrates all project management components:
  * - ProjectForm for creating new projects
  * - ProjectList for viewing and selecting projects
  * - Current project indicator in header
- * 
+ *
  * Related: Issue #15 - Integrate all project management components
  */
 function ProjectManagementPage() {
@@ -27,7 +27,7 @@ function ProjectManagementPage() {
    */
   const handleProjectCreated = () => {
     setShowCreateForm(false);
-    setRefreshTrigger(prev => prev + 1);
+    setRefreshTrigger((prev) => prev + 1);
   };
 
   /**
@@ -47,9 +47,9 @@ function ProjectManagementPage() {
     if (currentProject?.id === projectId) {
       clearSelection();
     }
-    
+
     // Refresh the list
-    setRefreshTrigger(prev => prev + 1);
+    setRefreshTrigger((prev) => prev + 1);
   };
 
   return (
@@ -61,18 +61,22 @@ function ProjectManagementPage() {
             YouTube Assistant
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-400 mb-4">
-            Helper for planning and making YouTube videos for the ActionaQA channel
+            Helper for planning and making YouTube videos for the ActionaQA
+            channel
           </p>
-          
+
           {/* Current project indicator */}
           {currentProject && (
-            <div 
+            <div
               className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800 flex items-center justify-between"
               role="status"
               aria-label="Current project"
             >
               <div className="text-sm text-gray-700 dark:text-gray-300">
-                Working on: <strong className="text-blue-700 dark:text-blue-300">{currentProject.name}</strong>
+                Working on:{" "}
+                <strong className="text-blue-700 dark:text-blue-300">
+                  {currentProject.name}
+                </strong>
               </div>
               <button
                 onClick={clearSelection}
@@ -129,9 +133,9 @@ function ProjectManagementPage() {
 
 /**
  * Home - Main application page wrapper
- * 
+ *
  * Wraps the application in ProjectProvider to enable global project state
- * 
+ *
  * Related: Issue #15
  */
 export default function Home() {

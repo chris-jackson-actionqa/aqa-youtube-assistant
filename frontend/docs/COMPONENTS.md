@@ -13,10 +13,12 @@ This document describes the frontend components for the YouTube Assistant projec
 A form component for creating new projects. Uses controlled inputs with React state management.
 
 **Props**:
+
 - `onSuccess?: () => void` - Callback function called after successful project creation
 - `onCancel?: () => void` - Callback function for cancel button (if provided, cancel button is shown)
 
 **Features**:
+
 - **Title Field** (required): Max 255 characters
 - **Description Field** (optional): Multi-line text area
 - **Status Field**: Dropdown with predefined statuses (planned, in_progress, completed, archived)
@@ -27,14 +29,15 @@ A form component for creating new projects. Uses controlled inputs with React st
 - **Auto-reset**: Clears form after successful submission
 
 **Usage**:
+
 ```tsx
-<ProjectForm 
+<ProjectForm
   onSuccess={() => {
-    console.log('Project created!');
+    console.log("Project created!");
     // Refresh project list, close modal, etc.
   }}
   onCancel={() => {
-    console.log('Form cancelled');
+    console.log("Form cancelled");
   }}
 />
 ```
@@ -51,6 +54,7 @@ The backend validates for duplicate titles (case-insensitive). If a duplicate ti
 Centralized API client with error handling and TypeScript types.
 
 **Functions**:
+
 - `createProject(data: ProjectCreate): Promise<Project>` - Create a new project
 - `getProjects(): Promise<Project[]>` - Get all projects
 - `getProject(id: number): Promise<Project>` - Get a single project
@@ -60,12 +64,14 @@ Centralized API client with error handling and TypeScript types.
 
 **Error Handling**:
 All API functions throw `ApiError` with:
+
 - `message`: Human-readable error message
 - `status`: HTTP status code (0 for network errors)
 - `details`: Raw error response from API
 
 **Configuration**:
 API base URL can be configured via environment variable:
+
 ```bash
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
@@ -98,12 +104,13 @@ interface ProjectUpdate {
   status?: string;
 }
 
-type ProjectStatus = 'planned' | 'in_progress' | 'completed' | 'archived';
+type ProjectStatus = "planned" | "in_progress" | "completed" | "archived";
 ```
 
 ## Styling
 
 All components use **Tailwind CSS** for styling with:
+
 - Responsive design patterns
 - Dark mode support (via `dark:` prefixes)
 - Consistent color scheme

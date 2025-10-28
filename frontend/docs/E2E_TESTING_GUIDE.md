@@ -25,6 +25,7 @@ Our E2E testing approach is guided by these core principles:
 **Scenario**: New user creates their first project
 
 **Steps**:
+
 1. Navigate to homepage
 2. Click "Create New Project" button
 3. Fill in project name and description
@@ -34,6 +35,7 @@ Our E2E testing approach is guided by these core principles:
 7. Verify form is closed/reset
 
 **Edge Cases**:
+
 - Empty project name (should show validation error)
 - Whitespace-only name (should fail validation)
 - Duplicate project name (should show error)
@@ -42,6 +44,7 @@ Our E2E testing approach is guided by these core principles:
 - Extremely long description
 
 **Success Criteria**:
+
 - Project is created in database
 - Project appears in UI immediately
 - Form is reset and ready for next entry
@@ -58,6 +61,7 @@ Our E2E testing approach is guided by these core principles:
 **Scenario**: User browses and selects a project to work on
 
 **Steps**:
+
 1. Navigate to homepage with existing projects
 2. Verify projects are displayed correctly
 3. Click on a project card
@@ -66,12 +70,14 @@ Our E2E testing approach is guided by these core principles:
 6. Verify selection persists on page reload
 
 **Edge Cases**:
+
 - No projects (empty state with helpful message)
 - Many projects (scrolling/performance)
 - Project with no description
 - Project with long name (truncation)
 
 **Success Criteria**:
+
 - All projects load and display
 - Selection state is clear and visible
 - Selection persists across page reloads
@@ -88,6 +94,7 @@ Our E2E testing approach is guided by these core principles:
 **Scenario**: User updates existing project details
 
 **Steps**:
+
 1. Select a project from the list
 2. Click edit button
 3. Update name and/or description
@@ -96,11 +103,13 @@ Our E2E testing approach is guided by these core principles:
 6. Verify changes persist after reload
 
 **Alternative Flows**:
+
 - Update to duplicate name (should show error)
 - Clear description (should be allowed)
 - Cancel edit (no changes saved)
 
 **Success Criteria**:
+
 - Changes saved to database
 - UI updates immediately
 - Validation prevents invalid updates
@@ -117,6 +126,7 @@ Our E2E testing approach is guided by these core principles:
 **Scenario**: User deletes a project
 
 **Steps**:
+
 1. Navigate to project list
 2. Click delete button on a project
 3. Verify confirmation modal appears
@@ -126,11 +136,13 @@ Our E2E testing approach is guided by these core principles:
 7. Verify success message shown
 
 **Alternative Flows**:
+
 - Cancel deletion (project remains)
 - Delete selected project (selection cleared)
 - Delete last project (show empty state)
 
 **Success Criteria**:
+
 - Confirmation required before deletion
 - Project removed from database
 - UI updates immediately
@@ -145,6 +157,7 @@ Our E2E testing approach is guided by these core principles:
 **Estimated Time**: Variable
 
 **Scenarios**:
+
 - **API returns 500 error** - Display friendly error message with retry option
 - **Network timeout** - Show timeout message, allow retry
 - **Invalid form input** - Clear validation messages inline
@@ -152,6 +165,7 @@ Our E2E testing approach is guided by these core principles:
 - **Database constraint violation** - User-friendly error explanation
 
 **Expected Behavior**:
+
 - Clear, non-technical error messages
 - Ability to retry failed operations
 - No data loss during errors
@@ -166,6 +180,7 @@ Our E2E testing approach is guided by these core principles:
 **Frequency**: As needed
 
 **Scenarios**:
+
 - Project selection persists across page reload
 - Form data preserved on accidental navigation
 - Recently created projects appear immediately
@@ -197,16 +212,19 @@ e2e/
 ### Naming Conventions
 
 **Test Files**: `{feature}-{action}.spec.ts`
+
 - `project-creation.spec.ts`
 - `project-management.spec.ts`
 - `error-handling.spec.ts`
 
 **Test Cases**: `should {expected behavior} when {condition}`
+
 - ✅ `should create project when valid name provided`
 - ✅ `should show error when creating duplicate project`
 - ✅ `should display empty state when no projects exist`
 
 **Test IDs**: `data-testid="{component}-{element}"`
+
 - `data-testid="project-card"`
 - `data-testid="delete-button"`
 - `data-testid="confirmation-modal"`
@@ -223,11 +241,12 @@ e2e/
 test.beforeEach(async ({ page }) => {
   // Clear database before EVERY test
   await setupTest(page);
-  await page.goto('/');
+  await page.goto("/");
 });
 ```
 
 **Why**:
+
 - Tests can run in any order
 - Parallel execution is possible
 - No hidden dependencies
@@ -236,6 +255,7 @@ test.beforeEach(async ({ page }) => {
 ### 2. Reliable Selectors 🎯
 
 **Preference Order**:
+
 1. **ARIA roles** - `getByRole('button', { name: 'Create' })`
 2. **Labels** - `getByLabel('Project Name')`
 3. **Text content** - `getByText('No projects yet')`
@@ -243,6 +263,7 @@ test.beforeEach(async ({ page }) => {
 5. **Avoid**: CSS classes, IDs that may change
 
 **Why**:
+
 - Role-based selectors mirror user behavior
 - More resilient to UI changes
 - Better accessibility testing
@@ -253,13 +274,14 @@ test.beforeEach(async ({ page }) => {
 
 ```typescript
 // ✅ GOOD - Wait for specific element
-await page.getByText('Project created').waitFor({ state: 'visible' });
+await page.getByText("Project created").waitFor({ state: "visible" });
 
 // ❌ BAD - Arbitrary timeout
 await page.waitForTimeout(1000);
 ```
 
 **Common wait patterns**:
+
 - `waitFor({ state: 'visible' })` - Element appears
 - `waitForLoadState('networkidle')` - Network requests complete
 - `waitForResponse()` - Specific API call completes
@@ -270,18 +292,19 @@ await page.waitForTimeout(1000);
 
 ```typescript
 // ✅ GOOD - One clear assertion
-test('should create project', async ({ page }) => {
-  await helpers.createProjectViaUI('Test Project');
-  await helpers.verifyProjectExists('Test Project');
+test("should create project", async ({ page }) => {
+  await helpers.createProjectViaUI("Test Project");
+  await helpers.verifyProjectExists("Test Project");
 });
 
 // ❌ BAD - Too many unrelated assertions
-test('should do everything', async ({ page }) => {
+test("should do everything", async ({ page }) => {
   // ... tests 5 different things
 });
 ```
 
 **Why**:
+
 - Clear test failures
 - Easy to understand what broke
 - Faster debugging
@@ -291,15 +314,16 @@ test('should do everything', async ({ page }) => {
 **Use fixtures for consistency**:
 
 ```typescript
-import { testProjects, generateUniqueProjectName } from '../fixtures/test-data';
+import { testProjects, generateUniqueProjectName } from "../fixtures/test-data";
 
-test('should create project', async ({ page }) => {
-  const projectName = generateUniqueProjectName('Test');
+test("should create project", async ({ page }) => {
+  const projectName = generateUniqueProjectName("Test");
   await helpers.createProjectViaUI(projectName, testProjects.valid.description);
 });
 ```
 
 **Why**:
+
 - Consistent test data
 - Avoid hardcoded values
 - Easy to update globally
@@ -310,20 +334,21 @@ test('should create project', async ({ page }) => {
 **Fast test setup with API**:
 
 ```typescript
-test('should delete project', async ({ page }) => {
+test("should delete project", async ({ page }) => {
   // ARRANGE - Fast setup via API
-  const project = await helpers.createProjectViaAPI('Test Project');
-  
+  const project = await helpers.createProjectViaAPI("Test Project");
+
   // ACT - Test UI interaction
-  await page.goto('/');
-  await helpers.deleteProjectViaUI('Test Project');
-  
+  await page.goto("/");
+  await helpers.deleteProjectViaUI("Test Project");
+
   // ASSERT - Verify result
-  await helpers.verifyProjectNotExists('Test Project');
+  await helpers.verifyProjectNotExists("Test Project");
 });
 ```
 
 **Why**:
+
 - Faster test execution
 - Focus tests on what matters
 - Reduce flakiness
@@ -335,24 +360,24 @@ test('should delete project', async ({ page }) => {
 ### Test Template
 
 ```typescript
-import { test, expect } from '@playwright/test';
-import { setupTest } from '../helpers/test-helpers';
+import { test, expect } from "@playwright/test";
+import { setupTest } from "../helpers/test-helpers";
 
-test.describe('Feature Name', () => {
+test.describe("Feature Name", () => {
   test.beforeEach(async ({ page }) => {
     await setupTest(page);
-    await page.goto('/');
+    await page.goto("/");
   });
 
-  test('should do something when condition', async ({ page }) => {
+  test("should do something when condition", async ({ page }) => {
     // ARRANGE - Set up test data
     const helpers = new ProjectHelpers(page);
-    
+
     // ACT - Perform user actions
-    await helpers.createProjectViaUI('Test Project');
-    
+    await helpers.createProjectViaUI("Test Project");
+
     // ASSERT - Verify expected outcome
-    await helpers.verifyProjectExists('Test Project');
+    await helpers.verifyProjectExists("Test Project");
   });
 });
 ```
@@ -360,32 +385,37 @@ test.describe('Feature Name', () => {
 ### Common Patterns
 
 #### Creating a Project
+
 ```typescript
-await helpers.createProjectViaUI('Test Project', 'Description');
+await helpers.createProjectViaUI("Test Project", "Description");
 ```
 
 #### Deleting a Project
+
 ```typescript
-await helpers.deleteProjectViaUI('Test Project');
+await helpers.deleteProjectViaUI("Test Project");
 ```
 
 #### Verifying Element Visible
+
 ```typescript
 await expect(page.locator('[data-testid="project-card"]')).toBeVisible();
 ```
 
 #### Waiting for API Response
+
 ```typescript
-await page.waitForResponse(response => 
-  response.url().includes('/api/projects') && 
-  response.status() === 200
+await page.waitForResponse(
+  (response) =>
+    response.url().includes("/api/projects") && response.status() === 200
 );
 ```
 
 #### Testing Form Validation
+
 ```typescript
 // Try to submit empty form
-await page.getByRole('button', { name: /create/i }).click();
+await page.getByRole("button", { name: /create/i }).click();
 
 // Assert validation error shown
 await expect(page.getByText(/name is required/i)).toBeVisible();
@@ -423,6 +453,7 @@ npm run test:e2e:report
 ### CI/CD
 
 Tests run automatically on:
+
 - ✅ Every pull request
 - ✅ Merges to main branch
 - ✅ Manual trigger via GitHub Actions
@@ -440,6 +471,7 @@ npm run test:e2e:report
 ```
 
 Opens HTML report with:
+
 - Test execution timeline
 - Screenshots on failure
 - Error messages and stack traces
@@ -449,6 +481,7 @@ Opens HTML report with:
 **Location**: `e2e/test-results/`
 
 Screenshots captured automatically on:
+
 - Test failure
 - First retry
 - Manual `page.screenshot()` calls
@@ -458,6 +491,7 @@ Screenshots captured automatically on:
 **Location**: `e2e/test-results/**/*.webm`
 
 Videos recorded when:
+
 - Test fails
 - Trace is retained
 
@@ -468,6 +502,7 @@ npm run test:e2e:debug
 ```
 
 Features:
+
 - Step through test execution
 - Inspect element selectors
 - Try commands in console
@@ -480,6 +515,7 @@ npx playwright show-trace test-results/trace.zip
 ```
 
 Shows:
+
 - Full timeline of test execution
 - Network requests
 - Console logs
@@ -525,14 +561,15 @@ These are valuable but lower priority:
 
 ## Performance Targets
 
-| Metric | Target | Why |
-|--------|--------|-----|
-| Full suite | < 5 minutes | Fast feedback loop |
-| Single test | < 30 seconds | Quick iteration |
-| CI pipeline | < 10 minutes | Including setup |
-| Test startup | < 30 seconds | Server boot time |
+| Metric       | Target       | Why                |
+| ------------ | ------------ | ------------------ |
+| Full suite   | < 5 minutes  | Fast feedback loop |
+| Single test  | < 30 seconds | Quick iteration    |
+| CI pipeline  | < 10 minutes | Including setup    |
+| Test startup | < 30 seconds | Server boot time   |
 
 **Optimization Strategies**:
+
 - Use API for test data setup
 - Run critical tests first
 - Parallel execution where possible
@@ -556,6 +593,7 @@ Update E2E tests when:
 ### Test Health Indicators
 
 **Healthy test suite**:
+
 - ✅ All tests passing consistently
 - ✅ Tests complete in under 5 minutes
 - ✅ No flaky tests (pass rate > 99%)
@@ -563,6 +601,7 @@ Update E2E tests when:
 - ✅ Easy to add new tests
 
 **Warning signs**:
+
 - ⚠️ Random failures
 - ⚠️ Slow execution
 - ⚠️ Unclear error messages
@@ -579,6 +618,7 @@ Update E2E tests when:
 **Symptoms**: Tests exceed 30 second timeout
 
 **Solutions**:
+
 - Increase timeout in `playwright.config.ts`
 - Check if servers are starting properly
 - Look for missing `await` keywords
@@ -593,6 +633,7 @@ test.setTimeout(60000); // Increase for specific test
 **Symptoms**: Tests fail due to existing data
 
 **Solutions**:
+
 - Verify `clearDatabase()` helper works
 - Check API endpoints are accessible
 - Ensure database file has write permissions
@@ -603,6 +644,7 @@ test.setTimeout(60000); // Increase for specific test
 **Symptoms**: `Element not found` errors
 
 **Solutions**:
+
 - Add `data-testid` attributes to components
 - Use Playwright Inspector: `npm run test:e2e:debug`
 - Check element is actually in the DOM
@@ -610,7 +652,7 @@ test.setTimeout(60000); // Increase for specific test
 
 ```typescript
 // Add explicit wait
-await page.getByRole('button').waitFor({ state: 'visible' });
+await page.getByRole("button").waitFor({ state: "visible" });
 ```
 
 #### Flaky Tests 🎲
@@ -618,6 +660,7 @@ await page.getByRole('button').waitFor({ state: 'visible' });
 **Symptoms**: Tests pass/fail randomly
 
 **Solutions**:
+
 - Add explicit waits for API responses
 - Use `waitForLoadState('networkidle')`
 - Check for race conditions
@@ -625,7 +668,7 @@ await page.getByRole('button').waitFor({ state: 'visible' });
 
 ```typescript
 // ✅ GOOD
-await page.waitForResponse(r => r.url().includes('/api/projects'));
+await page.waitForResponse((r) => r.url().includes("/api/projects"));
 
 // ❌ BAD
 await page.waitForTimeout(1000);
@@ -636,6 +679,7 @@ await page.waitForTimeout(1000);
 **Symptoms**: Connection refused errors
 
 **Solutions**:
+
 - Check ports 3000 and 8000 are available
 - Ensure dependencies installed (backend & frontend)
 - Verify Python environment activated
@@ -646,17 +690,20 @@ await page.waitForTimeout(1000);
 ## Future Enhancements
 
 ### Phase 1 (Near Term)
+
 - 📋 Visual regression testing (screenshot comparison)
 - 📋 Accessibility testing (axe-core integration)
 - 📋 Performance metrics collection
 
 ### Phase 2 (Medium Term)
+
 - 🔮 Cross-browser testing (Firefox, Safari, Edge)
 - 🔮 Mobile device testing
 - 🔮 API mocking for edge cases
 - 🔮 Load testing scenarios
 
 ### Phase 3 (Long Term)
+
 - 🔮 Parallel test execution optimization
 - 🔮 Test data seeding strategies
 - 🔮 Continuous performance monitoring

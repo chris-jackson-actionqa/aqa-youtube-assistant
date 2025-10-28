@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { Project } from '../types/project';
+import { useState, useEffect, useRef } from "react";
+import { Project } from "../types/project";
 
 /**
  * Props for the ProjectDeleteConfirmation modal component
- * 
+ *
  * Related: Issue #13 - Delete confirmation modal
  */
 interface ProjectDeleteConfirmationProps {
@@ -21,14 +21,14 @@ interface ProjectDeleteConfirmationProps {
 
 /**
  * ProjectDeleteConfirmation Modal Component
- * 
+ *
  * A reusable confirmation modal for safely deleting projects with:
  * - Clear warning messaging
  * - Loading states during deletion
  * - Error handling with retry capability
  * - Full keyboard and accessibility support
  * - Focus trap and ESC key handling
- * 
+ *
  * @example
  * ```tsx
  * <ProjectDeleteConfirmation
@@ -38,14 +38,14 @@ interface ProjectDeleteConfirmationProps {
  *   onCancel={() => setIsDeleteModalOpen(false)}
  * />
  * ```
- * 
+ *
  * Related: Issue #13
  */
 export default function ProjectDeleteConfirmation({
   project,
   isOpen,
   onConfirm,
-  onCancel
+  onCancel,
 }: ProjectDeleteConfirmationProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,13 +61,14 @@ export default function ProjectDeleteConfirmation({
   const handleDelete = async () => {
     setIsDeleting(true);
     setError(null);
-    
+
     try {
       // Non-null assertion is safe here because modal doesn't render when project is null
       await onConfirm(project!.id);
       // Parent handles post-delete actions (like closing modal)
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to delete project';
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to delete project";
       setError(errorMessage);
     } finally {
       setIsDeleting(false);
@@ -79,20 +80,20 @@ export default function ProjectDeleteConfirmation({
    */
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen && !isDeleting) {
+      if (e.key === "Escape" && isOpen && !isDeleting) {
         onCancel();
       }
     };
 
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
+      document.addEventListener("keydown", handleEscape);
       // Prevent body scroll when modal is open
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     }
 
     return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "unset";
     };
   }, [isOpen, isDeleting, onCancel]);
 
@@ -112,15 +113,17 @@ export default function ProjectDeleteConfirmation({
    * Focus trap - keep focus within modal
    */
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Tab') {
+    if (e.key === "Tab") {
       const focusableElements = modalRef.current?.querySelectorAll(
-        'button:not(:disabled)'
+        "button:not(:disabled)"
       );
-      
+
       if (!focusableElements || focusableElements.length === 0) return;
 
       const firstElement = focusableElements[0] as HTMLElement;
-      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+      const lastElement = focusableElements[
+        focusableElements.length - 1
+      ] as HTMLElement;
 
       if (e.shiftKey && document.activeElement === firstElement) {
         e.preventDefault();
@@ -191,11 +194,12 @@ export default function ProjectDeleteConfirmation({
         {/* Modal Description */}
         <div id="modal-description" className="mb-6">
           <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
-            Are you sure you want to delete{' '}
-            <span className="font-semibold">"{project.name}"</span>?
+            Are you sure you want to delete{" "}
+            <span className="font-semibold">&ldquo;{project.name}&rdquo;</span>?
           </p>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            This action cannot be undone. All project data will be permanently deleted.
+            This action cannot be undone. All project data will be permanently
+            deleted.
           </p>
         </div>
 
@@ -252,7 +256,7 @@ export default function ProjectDeleteConfirmation({
                 />
               </svg>
             )}
-            {isDeleting ? 'Deleting...' : 'Delete Project'}
+            {isDeleting ? "Deleting..." : "Delete Project"}
           </button>
         </div>
       </div>

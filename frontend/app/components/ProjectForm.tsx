@@ -1,8 +1,12 @@
-'use client';
+"use client";
 
-import { useState, FormEvent } from 'react';
-import { ProjectCreate, PROJECT_STATUSES, ProjectStatus } from '../types/project';
-import { createProject, ApiError } from '../lib/api';
+import { useState, FormEvent } from "react";
+import {
+  ProjectCreate,
+  PROJECT_STATUSES,
+  ProjectStatus,
+} from "../types/project";
+import { createProject, ApiError } from "../lib/api";
 
 interface ProjectFormProps {
   onSuccess?: () => void;
@@ -10,9 +14,9 @@ interface ProjectFormProps {
 }
 
 export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [status, setStatus] = useState<ProjectStatus>('planned');
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [status, setStatus] = useState<ProjectStatus>("planned");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -26,7 +30,7 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
     // Trim and validate name
     const trimmedName = name.trim();
     if (!trimmedName) {
-      setError('Project name cannot be empty or contain only whitespace');
+      setError("Project name cannot be empty or contain only whitespace");
       setIsSubmitting(false);
       return;
     }
@@ -39,14 +43,14 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
       };
 
       const newProject = await createProject(projectData);
-      
+
       setSuccessMessage(`Project "${newProject.name}" created successfully!`);
-      
+
       // Reset form
-      setName('');
-      setDescription('');
-      setStatus('planned');
-      
+      setName("");
+      setDescription("");
+      setStatus("planned");
+
       // Call success callback if provided
       if (onSuccess) {
         setTimeout(() => {
@@ -56,21 +60,28 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
     } catch (err) {
       if (err instanceof ApiError) {
         // Handle specific error cases with user-friendly messages
-        if (err.status === 400 && err.details && typeof err.details === 'object' && 'detail' in err.details) {
+        if (
+          err.status === 400 &&
+          err.details &&
+          typeof err.details === "object" &&
+          "detail" in err.details
+        ) {
           // Show specific validation errors
           setError(String(err.details.detail));
         } else if (err.status >= 500) {
           // Server errors - show generic user-friendly message
-          setError('Failed to create project. Please try again.');
+          setError("Failed to create project. Please try again.");
         } else if (err.status === 0) {
           // Network error
-          setError('Failed to create project. Please check your connection and try again.');
+          setError(
+            "Failed to create project. Please check your connection and try again."
+          );
         } else {
           // Other API errors - show the API message
           setError(err.message);
         }
       } else {
-        setError('Failed to create project. Please try again.');
+        setError("Failed to create project. Please try again.");
       }
     } finally {
       setIsSubmitting(false);
@@ -78,9 +89,9 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
   };
 
   const handleCancel = () => {
-    setName('');
-    setDescription('');
-    setStatus('planned');
+    setName("");
+    setDescription("");
+    setStatus("planned");
     setError(null);
     setSuccessMessage(null);
     onCancel?.();
@@ -89,10 +100,10 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
       <h2 className="text-2xl font-bold mb-6">Create New Project</h2>
-      
+
       {error && (
-        <div 
-          role="alert" 
+        <div
+          role="alert"
           className="mb-4 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg"
         >
           <p className="text-red-600 dark:text-red-400 text-sm font-medium">
@@ -136,7 +147,10 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
 
         {/* Description Field */}
         <div>
-          <label htmlFor="description" className="block text-sm font-medium mb-2">
+          <label
+            htmlFor="description"
+            className="block text-sm font-medium mb-2"
+          >
             Description
           </label>
           <textarea
@@ -188,9 +202,9 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
                      disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed
                      transition-colors duration-200"
           >
-            {isSubmitting ? 'Creating...' : 'Create Project'}
+            {isSubmitting ? "Creating..." : "Create Project"}
           </button>
-          
+
           {onCancel && (
             <button
               type="button"
