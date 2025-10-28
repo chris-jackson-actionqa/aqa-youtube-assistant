@@ -5,19 +5,22 @@ Related: ADR-001 for project-based organization
 Related: Issue #27 - Database constraints
 Related: Issue #30 - Case-insensitive UNIQUE constraint
 """
-from sqlalchemy import Column, Integer, String, Text, DateTime, Index, func
-from datetime import datetime, UTC
+
+from datetime import UTC, datetime
+
+from sqlalchemy import Column, DateTime, Index, Integer, String, Text, func
+
 from .database import Base
 
 
 class Project(Base):
     """
     Project database model.
-    
+
     Represents a YouTube video project with unique name constraint.
-    The name field has a case-insensitive unique constraint enforced at the database level
-    using a functional index on LOWER(name).
-    
+    The name field has a case-insensitive unique constraint enforced at
+    the database level using a functional index on LOWER(name).
+
     Attributes:
         id: Primary key
         name: Project name (unique, case-insensitive)
@@ -25,9 +28,10 @@ class Project(Base):
         status: Project status (planned, in_progress, completed, archived)
         created_at: Timestamp of creation
         updated_at: Timestamp of last update
-        
+
     Related: Issue #27, Issue #30, Decision #4
     """
+
     __tablename__ = "projects"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -35,10 +39,10 @@ class Project(Base):
     description = Column(Text)
     status = Column(String(50), default="planned")
     created_at = Column(DateTime, default=lambda: datetime.now(UTC))
-    updated_at = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
-    
+    updated_at = Column(
+        DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+    )
+
     # Case-insensitive unique constraint using functional index
     # This works across SQLite (dev) and PostgreSQL (future production)
-    __table_args__ = (
-        Index('uix_project_name_lower', func.lower(name), unique=True),
-    )
+    __table_args__ = (Index("uix_project_name_lower", func.lower(name), unique=True),)
