@@ -172,7 +172,8 @@ test.describe('Project Management Workflows', () => {
       
       // Assert: Confirmation modal appears
       await expect(page.locator('text=Delete Project?')).toBeVisible();
-      await expect(page.getByRole('dialog').getByText('"Project to Delete"')).toBeVisible();
+      // Check for HTML entities instead of literal quotes
+      await expect(page.getByRole('dialog').getByText(/Project to Delete/)).toBeVisible();
       await expect(page.locator('text=This action cannot be undone')).toBeVisible();
       
       // Act: Confirm deletion

@@ -3,9 +3,9 @@
  * Base URL: http://localhost:8000
  */
 
-import { Project, ProjectCreate, ProjectUpdate } from '../types/project';
+import { Project, ProjectCreate, ProjectUpdate } from "../types/project";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 /**
  * Custom error class for API errors
@@ -17,7 +17,7 @@ export class ApiError extends Error {
     public details?: unknown
   ) {
     super(message);
-    this.name = 'ApiError';
+    this.name = "ApiError";
   }
 }
 
@@ -31,7 +31,7 @@ async function apiFetch<T>(
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       ...options,
@@ -53,13 +53,13 @@ async function apiFetch<T>(
 
     return await response.json();
   } catch (error) {
-    console.log('API fetch error:', error);
+    console.log("API fetch error:", error);
     if (error instanceof ApiError) {
       throw error;
     }
     // Network or parsing errors
     throw new ApiError(
-      'Failed to connect to the API. Make sure the backend server is running.',
+      "Failed to connect to the API. Make sure the backend server is running.",
       0,
       error
     );
@@ -70,8 +70,8 @@ async function apiFetch<T>(
  * Create a new project
  */
 export async function createProject(data: ProjectCreate): Promise<Project> {
-  return apiFetch<Project>('/api/projects', {
-    method: 'POST',
+  return apiFetch<Project>("/api/projects", {
+    method: "POST",
     body: JSON.stringify(data),
   });
 }
@@ -80,7 +80,7 @@ export async function createProject(data: ProjectCreate): Promise<Project> {
  * Get all projects
  */
 export async function getProjects(): Promise<Project[]> {
-  return apiFetch<Project[]>('/api/projects');
+  return apiFetch<Project[]>("/api/projects");
 }
 
 /**
@@ -98,7 +98,7 @@ export async function updateProject(
   data: ProjectUpdate
 ): Promise<Project> {
   return apiFetch<Project>(`/api/projects/${id}`, {
-    method: 'PUT',
+    method: "PUT",
     body: JSON.stringify(data),
   });
 }
@@ -108,7 +108,7 @@ export async function updateProject(
  */
 export async function deleteProject(id: number): Promise<{ message: string }> {
   return apiFetch<{ message: string }>(`/api/projects/${id}`, {
-    method: 'DELETE',
+    method: "DELETE",
   });
 }
 
@@ -116,5 +116,5 @@ export async function deleteProject(id: number): Promise<{ message: string }> {
  * Check API health
  */
 export async function checkHealth(): Promise<{ status: string }> {
-  return apiFetch<{ status: string }>('/api/health');
+  return apiFetch<{ status: string }>("/api/health");
 }

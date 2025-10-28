@@ -71,16 +71,45 @@ fi
 echo "✅ Backend tests passed!"
 echo ""
 
-# Run frontend tests
-echo "⚛️  Running frontend tests..."
+# Run frontend checks
+echo "⚛️  Running frontend checks..."
 cd frontend
 
 # Check if node_modules exists (frontend dependencies installed)
 if [ ! -d "node_modules" ]; then
-    echo "⚠️  Frontend dependencies not installed. Skipping frontend tests."
+    echo "⚠️  Frontend dependencies not installed. Skipping frontend checks."
     echo "Run 'cd frontend && npm install' to enable frontend testing."
 else
+    # Run Prettier format check
+    echo "  → Checking code formatting with Prettier..."
+    npm run format:check --silent
+    PRETTIER_EXIT_CODE=$?
+    
+    if [ $PRETTIER_EXIT_CODE -ne 0 ]; then
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "❌ Code formatting check failed! Commit aborted."
+        echo "Run 'cd frontend && npm run format' to fix formatting issues."
+        cd ..
+        exit 1
+    fi
+    echo "  ✓ Code formatting passed"
+
+    # Run ESLint
+    echo "  → Linting with ESLint..."
+    npm run lint --silent
+    ESLINT_EXIT_CODE=$?
+    
+    if [ $ESLINT_EXIT_CODE -ne 0 ]; then
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "❌ ESLint check failed! Commit aborted."
+        echo "Run 'cd frontend && npm run lint:fix' to fix linting issues."
+        cd ..
+        exit 1
+    fi
+    echo "  ✓ ESLint passed"
+
     # Run Jest with coverage
+    echo "  → Running unit tests..."
     npm run test:coverage --silent
 
     # Capture the exit code
@@ -97,7 +126,7 @@ else
         exit 1
     fi
 
-    echo "✅ Frontend tests passed!"
+    echo "✅ Frontend checks passed!"
 fi
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
