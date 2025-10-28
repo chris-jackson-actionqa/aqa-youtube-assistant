@@ -97,11 +97,6 @@ export default function ProjectList({
   };
 
   const closeDeleteModal = () => {
-    // Don't close modal while deletion is in progress
-    if (deletingId !== null) {
-      return;
-    }
-    
     setDeleteModalOpen(false);
     setProjectToDelete(null);
     setError(null);
@@ -140,33 +135,13 @@ export default function ProjectList({
     return labels[status as keyof typeof labels] || 'Unknown Status';
   };
 
-  const formatRelativeTime = (dateString: string) => {
+  const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    const now = new Date();
-    const diffInMs = now.getTime() - date.getTime();
-    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-    
-    if (diffInDays === 0) {
-      const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
-      if (diffInHours === 0) {
-        const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-        if (diffInMinutes === 0) return 'just now';
-        return `${diffInMinutes} minute${diffInMinutes === 1 ? '' : 's'} ago`;
-      }
-      return `${diffInHours} hour${diffInHours === 1 ? '' : 's'} ago`;
-    }
-    if (diffInDays === 1) return 'yesterday';
-    if (diffInDays < 7) return `${diffInDays} days ago`;
-    if (diffInDays < 30) {
-      const weeks = Math.floor(diffInDays / 7);
-      return `${weeks} week${weeks === 1 ? '' : 's'} ago`;
-    }
-    if (diffInDays < 365) {
-      const months = Math.floor(diffInDays / 30);
-      return `${months} month${months === 1 ? '' : 's'} ago`;
-    }
-    const years = Math.floor(diffInDays / 365);
-    return `${years} year${years === 1 ? '' : 's'} ago`;
+    return date.toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric'
+    });
   };
 
   const truncateText = (text: string | null, maxLength: number) => {
@@ -312,11 +287,11 @@ export default function ProjectList({
               <div className="space-y-1 mb-4 text-xs text-gray-500 dark:text-gray-400">
                 <p>
                   <span className="font-medium">Created:</span>{' '}
-                  <time dateTime={project.created_at}>{formatRelativeTime(project.created_at)}</time>
+                  <time dateTime={project.created_at}>{formatDate(project.created_at)}</time>
                 </p>
                 <p>
                   <span className="font-medium">Updated:</span>{' '}
-                  <time dateTime={project.updated_at}>{formatRelativeTime(project.updated_at)}</time>
+                  <time dateTime={project.updated_at}>{formatDate(project.updated_at)}</time>
                 </p>
               </div>
 

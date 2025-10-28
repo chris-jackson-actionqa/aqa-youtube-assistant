@@ -207,13 +207,20 @@ describe('ProjectList', () => {
       });
     });
 
-    it('displays relative time for created and updated dates', async () => {
+    it('displays formatted dates for created and updated', async () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
       await waitFor(() => {
-        expect(screen.getByText(/2 days ago/i)).toBeInTheDocument();
-        expect(screen.getByText(/yesterday/i)).toBeInTheDocument();
+        // Check that dates are displayed in MM/DD/YYYY format
+        // mockProjects have specific dates, check that at least some formatted dates are present
+        const timeElements = screen.getAllByRole('time');
+        expect(timeElements.length).toBeGreaterThan(0);
+        
+        // Verify the format matches MM/DD/YYYY pattern
+        timeElements.forEach(element => {
+          expect(element.textContent).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
+        });
       });
     });
 
@@ -612,184 +619,100 @@ describe('ProjectList', () => {
     });
   });
 
-  describe('Relative Time Formatting', () => {
-    it('formats time as "just now" for very recent dates', async () => {
+  describe('Date Formatting', () => {
+    it('formats dates in MM/DD/YYYY format', async () => {
+      const testDate = new Date('2025-10-26T12:00:00.000Z');
       const project: Project = {
         ...mockProjects[0],
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        created_at: testDate.toISOString(),
+        updated_at: testDate.toISOString(),
       };
       mockedApi.getProjects.mockResolvedValueOnce([project]);
 
       render(<ProjectList />);
 
+      const expectedDate = testDate.toLocaleDateString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric'
+      });
+
       await waitFor(() => {
-        expect(screen.getAllByText('just now').length).toBeGreaterThan(0);
+        // Should appear twice (created and updated)
+        expect(screen.getAllByText(expectedDate).length).toBe(2);
       });
     });
 
-    it('formats time as "1 minute ago" for singular minute', async () => {
+    it('formats today\'s date correctly', async () => {
+      const today = new Date();
       const project: Project = {
         ...mockProjects[0],
-        created_at: new Date(Date.now() - 1 * 60 * 1000).toISOString(), // 1 minute ago
-        updated_at: new Date(Date.now() - 1 * 60 * 1000).toISOString(),
+        created_at: today.toISOString(),
+        updated_at: today.toISOString(),
       };
       mockedApi.getProjects.mockResolvedValueOnce([project]);
 
       render(<ProjectList />);
 
+      const expectedDate = today.toLocaleDateString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric'
+      });
+
       await waitFor(() => {
-        expect(screen.getAllByText('1 minute ago').length).toBeGreaterThan(0);
+        expect(screen.getAllByText(expectedDate).length).toBe(2);
       });
     });
 
-    it('formats time in minutes for recent dates', async () => {
+    it('formats old dates correctly', async () => {
+      const oldDate = new Date('2023-01-15T08:30:00.000Z');
       const project: Project = {
         ...mockProjects[0],
-        created_at: new Date(Date.now() - 5 * 60 * 1000).toISOString(), // 5 minutes ago
-        updated_at: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+        created_at: oldDate.toISOString(),
+        updated_at: oldDate.toISOString(),
       };
       mockedApi.getProjects.mockResolvedValueOnce([project]);
 
       render(<ProjectList />);
 
+      const expectedDate = oldDate.toLocaleDateString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric'
+      });
+
       await waitFor(() => {
-        expect(screen.getAllByText('5 minutes ago').length).toBeGreaterThan(0);
+        expect(screen.getAllByText(expectedDate).length).toBe(2);
       });
     });
 
-    it('formats time in hours', async () => {
+    it('displays different dates for created and updated when they differ', async () => {
+      const createdDate = new Date('2025-10-20T10:00:00.000Z');
+      const updatedDate = new Date('2025-10-26T15:00:00.000Z');
       const project: Project = {
         ...mockProjects[0],
-        created_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(), // 3 hours ago
-        updated_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+        created_at: createdDate.toISOString(),
+        updated_at: updatedDate.toISOString(),
       };
       mockedApi.getProjects.mockResolvedValueOnce([project]);
 
       render(<ProjectList />);
 
-      await waitFor(() => {
-        expect(screen.getAllByText('3 hours ago').length).toBeGreaterThan(0);
+      const expectedCreated = createdDate.toLocaleDateString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric'
       });
-    });
-
-    it('formats time as "1 hour ago" for singular hour', async () => {
-      const project: Project = {
-        ...mockProjects[0],
-        created_at: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(), // 1 hour ago
-        updated_at: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-      };
-      mockedApi.getProjects.mockResolvedValueOnce([project]);
-
-      render(<ProjectList />);
-
-      await waitFor(() => {
-        expect(screen.getAllByText('1 hour ago').length).toBeGreaterThan(0);
+      const expectedUpdated = updatedDate.toLocaleDateString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric'
       });
-    });
-
-    it('formats time as "yesterday"', async () => {
-      const project: Project = {
-        ...mockProjects[0],
-        created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-        updated_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-      };
-      mockedApi.getProjects.mockResolvedValueOnce([project]);
-
-      render(<ProjectList />);
 
       await waitFor(() => {
-        expect(screen.getAllByText('yesterday').length).toBeGreaterThan(0);
-      });
-    });
-
-    it('formats time in weeks', async () => {
-      const project: Project = {
-        ...mockProjects[0],
-        created_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(), // 2 weeks ago
-        updated_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-      };
-      mockedApi.getProjects.mockResolvedValueOnce([project]);
-
-      render(<ProjectList />);
-
-      await waitFor(() => {
-        expect(screen.getAllByText('2 weeks ago').length).toBeGreaterThan(0);
-      });
-    });
-
-    it('formats time as "1 week ago" for singular week', async () => {
-      const project: Project = {
-        ...mockProjects[0],
-        created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week ago
-        updated_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-      };
-      mockedApi.getProjects.mockResolvedValueOnce([project]);
-
-      render(<ProjectList />);
-
-      await waitFor(() => {
-        expect(screen.getAllByText('1 week ago').length).toBeGreaterThan(0);
-      });
-    });
-
-    it('formats time in months', async () => {
-      const project: Project = {
-        ...mockProjects[0],
-        created_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(), // 60 days ago
-        updated_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
-      };
-      mockedApi.getProjects.mockResolvedValueOnce([project]);
-
-      render(<ProjectList />);
-
-      await waitFor(() => {
-        expect(screen.getAllByText('2 months ago').length).toBeGreaterThan(0);
-      });
-    });
-
-    it('formats time as "1 month ago" for singular month', async () => {
-      const project: Project = {
-        ...mockProjects[0],
-        created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days ago
-        updated_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-      };
-      mockedApi.getProjects.mockResolvedValueOnce([project]);
-
-      render(<ProjectList />);
-
-      await waitFor(() => {
-        expect(screen.getAllByText('1 month ago').length).toBeGreaterThan(0);
-      });
-    });
-
-    it('formats time in years', async () => {
-      const project: Project = {
-        ...mockProjects[0],
-        created_at: new Date(Date.now() - 730 * 24 * 60 * 60 * 1000).toISOString(), // 730 days ago (2 years)
-        updated_at: new Date(Date.now() - 730 * 24 * 60 * 60 * 1000).toISOString(),
-      };
-      mockedApi.getProjects.mockResolvedValueOnce([project]);
-
-      render(<ProjectList />);
-
-      await waitFor(() => {
-        expect(screen.getAllByText('2 years ago').length).toBeGreaterThan(0);
-      });
-    });
-
-    it('formats time as "1 year ago" for singular year', async () => {
-      const project: Project = {
-        ...mockProjects[0],
-        created_at: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(), // 365 days ago
-        updated_at: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(),
-      };
-      mockedApi.getProjects.mockResolvedValueOnce([project]);
-
-      render(<ProjectList />);
-
-      await waitFor(() => {
-        expect(screen.getAllByText('1 year ago').length).toBeGreaterThan(0);
+        expect(screen.getByText(expectedCreated)).toBeInTheDocument();
+        expect(screen.getByText(expectedUpdated)).toBeInTheDocument();
       });
     });
   });
