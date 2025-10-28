@@ -1,6 +1,7 @@
+import os
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
-import os
 
 # Database URL - can be easily switched to PostgreSQL
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./youtube_assistant.db")
@@ -9,14 +10,12 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./youtube_assistant.db")
 # This won't be needed for PostgreSQL
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 
-engine = create_engine(
-    DATABASE_URL,
-    connect_args=connect_args
-)
+engine = create_engine(DATABASE_URL, connect_args=connect_args)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
+
 
 # Dependency to get database session
 def get_db():
