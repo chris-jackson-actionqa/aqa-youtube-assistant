@@ -20,6 +20,65 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Code Quality
+
+This project enforces code quality through linting and formatting tools.
+
+### Linting with ESLint
+
+ESLint is configured with Next.js and TypeScript support, plus Prettier integration to avoid conflicts.
+
+```bash
+# Run ESLint to check for issues
+npm run lint
+
+# Automatically fix fixable issues
+npm run lint:fix
+```
+
+**Configuration files:**
+- `eslint.config.mjs` - ESLint configuration
+- Extends: `next/core-web-vitals`, `next/typescript`, `prettier`
+
+### Code Formatting with Prettier
+
+Prettier ensures consistent code style across the entire codebase.
+
+```bash
+# Format all code files
+npm run format
+
+# Check if code is properly formatted (without changing files)
+npm run format:check
+```
+
+**Configuration files:**
+- `.prettierrc` - Prettier configuration
+- `.prettierignore` - Files to exclude from formatting
+
+**Prettier settings:**
+- **Semi-colons**: Required (`;`)
+- **Quotes**: Double quotes (`"`)
+- **Trailing commas**: ES5 style
+- **Print width**: 80 characters
+- **Tab width**: 2 spaces
+- **Arrow parens**: Always
+
+### Pre-commit Checks
+
+Before each commit, the following checks run automatically via `.githooks/pre-commit`:
+
+1. **Prettier formatting check** - Ensures all code is formatted
+2. **ESLint** - Checks for linting errors
+3. **Unit tests with coverage** - All tests must pass with 98%+ coverage
+
+**If checks fail:**
+- Format code: `npm run format`
+- Fix linting: `npm run lint:fix`
+- Fix tests: Ensure all tests pass and meet coverage thresholds
+
+**Note:** You cannot commit code that fails these checks. This ensures code quality is maintained across the project.
+
 ## Testing
 
 This project uses Jest and React Testing Library for unit testing with strict coverage requirements.
@@ -40,6 +99,7 @@ npm run test:coverage
 ### Coverage Requirements
 
 All code must meet these coverage thresholds:
+
 - **Statements**: 98%
 - **Branches**: 98%
 - **Functions**: 98%
@@ -79,12 +139,12 @@ describe('ComponentToTest', () => {
     it('should do something specific', () => {
       // Arrange: Set up test data and mocks
       const mockFn = jest.fn();
-      
+
       // Act: Render component and interact
       render(<ComponentToTest onAction={mockFn} />);
       const button = screen.getByRole('button', { name: /click me/i });
       fireEvent.click(button);
-      
+
       // Assert: Verify expected behavior
       expect(mockFn).toHaveBeenCalledTimes(1);
     });
@@ -129,6 +189,7 @@ xdg-open coverage/index.html  # Linux
 ```
 
 The report shows:
+
 - Line-by-line coverage with uncovered lines highlighted
 - Branch coverage details
 - Function coverage
@@ -138,6 +199,7 @@ The report shows:
 Tests run automatically before each commit via git hooks. See `../.githooks/README.md` for details.
 
 If tests fail, the commit will be blocked. Fix the tests before committing:
+
 - All tests must pass
 - Coverage thresholds (98%) must be met
 
