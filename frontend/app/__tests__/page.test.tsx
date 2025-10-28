@@ -37,6 +37,11 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 })
 
+// Helper function to wait for ProjectList to finish loading
+const waitForProjectListToLoad = async () => {
+  await waitFor(() => expect(screen.queryByLabelText('Loading projects')).not.toBeInTheDocument())
+}
+
 describe('Home Page - Component Integration', () => {
   const mockProjects: Project[] = [
     {
@@ -76,7 +81,7 @@ describe('Home Page - Component Integration', () => {
       expect(screen.getByText(/Helper for planning and making YouTube videos/)).toBeInTheDocument()
       
       // Wait for ProjectList to finish loading to prevent act() warnings
-      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
+      await waitForProjectListToLoad()
     })
 
     it('should render create project section with heading', async () => {
@@ -86,7 +91,7 @@ describe('Home Page - Component Integration', () => {
       expect(screen.getByRole('button', { name: 'Create new project' })).toBeInTheDocument()
       
       // Wait for ProjectList to finish loading to prevent act() warnings
-      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
+      await waitForProjectListToLoad()
     })
 
     it('should render projects section with heading', async () => {
@@ -95,7 +100,7 @@ describe('Home Page - Component Integration', () => {
       expect(screen.getByRole('heading', { name: 'Your Projects', level: 2 })).toBeInTheDocument()
       
       // Wait for ProjectList to finish loading to prevent act() warnings
-      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
+      await waitForProjectListToLoad()
     })
 
     it('should use semantic HTML structure', async () => {
@@ -106,7 +111,7 @@ describe('Home Page - Component Integration', () => {
       expect(container.querySelectorAll('section')).toHaveLength(2) // Create + Projects sections
       
       // Wait for ProjectList to finish loading to prevent act() warnings
-      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
+      await waitForProjectListToLoad()
     })
   })
 
@@ -117,14 +122,14 @@ describe('Home Page - Component Integration', () => {
       expect(screen.getByRole('button', { name: 'Create new project' })).toBeInTheDocument()
       
       // Wait for ProjectList to finish loading to prevent act() warnings
-      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
+      await waitForProjectListToLoad()
     })
 
     it('should show ProjectForm when create button is clicked', async () => {
       render(<Home />)
       
       // Wait for ProjectList to finish loading first
-      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
+      await waitForProjectListToLoad()
 
       const createButton = screen.getByRole('button', { name: 'Create new project' })
       fireEvent.click(createButton)
@@ -139,7 +144,7 @@ describe('Home Page - Component Integration', () => {
       render(<Home />)
       
       // Wait for ProjectList to finish loading first
-      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
+      await waitForProjectListToLoad()
 
       // Open form
       const createButton = screen.getByRole('button', { name: 'Create new project' })
@@ -241,7 +246,7 @@ describe('Home Page - Component Integration', () => {
       expect(screen.queryByRole('button', { name: 'Clear project selection' })).not.toBeInTheDocument()
       
       // Wait for ProjectList to finish loading to prevent act() warnings
-      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
+      await waitForProjectListToLoad()
     })
 
     it('should show current project indicator when project is selected', async () => {
@@ -425,7 +430,7 @@ describe('Home Page - Component Integration', () => {
       })
       
       // Wait for ProjectList to finish loading to prevent act() warnings
-      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
+      await waitForProjectListToLoad()
     })
 
     it('should have accessible create button', async () => {
@@ -435,7 +440,7 @@ describe('Home Page - Component Integration', () => {
       expect(createButton).toHaveAccessibleName()
       
       // Wait for ProjectList to finish loading to prevent act() warnings
-      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
+      await waitForProjectListToLoad()
     })
 
     it('should have accessible clear selection button', async () => {
@@ -449,7 +454,7 @@ describe('Home Page - Component Integration', () => {
       })
       
       // Wait for ProjectList to finish loading to prevent act() warnings
-      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
+      await waitForProjectListToLoad()
     })
 
     it('should have proper heading hierarchy', async () => {
@@ -462,7 +467,7 @@ describe('Home Page - Component Integration', () => {
       expect(h2s.length).toBeGreaterThanOrEqual(2)
       
       // Wait for ProjectList to finish loading to prevent act() warnings
-      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
+      await waitForProjectListToLoad()
     })
   })
 
@@ -474,7 +479,7 @@ describe('Home Page - Component Integration', () => {
       expect(main).toHaveClass('max-w-6xl', 'mx-auto')
       
       // Wait for ProjectList to finish loading to prevent act() warnings
-      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
+      await waitForProjectListToLoad()
     })
 
     it('should apply responsive padding classes', async () => {
@@ -484,7 +489,7 @@ describe('Home Page - Component Integration', () => {
       expect(wrapper).toHaveClass('p-8', 'sm:p-20')
       
       // Wait for ProjectList to finish loading to prevent act() warnings
-      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
+      await waitForProjectListToLoad()
     })
   })
 })
