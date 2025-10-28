@@ -11,6 +11,7 @@ Before writing tests, verify:
 - [ ] TypeScript interfaces are properly defined
 - [ ] Dependencies and imports are correct
 - [ ] Test file location follows project structure
+- [ ] Working on correct branch: `test/issue-XX-description` (see Git workflow)
 
 ## Project Testing Standards
 
@@ -518,6 +519,7 @@ it('should show loading spinner while fetching', () => {
 
 ## References
 
+- **Git Workflow**: `/.github/workflows/GIT_GITHUB_WORKFLOW_CHECKLIST.md`
 - **Project Testing Docs**: `/frontend/README.md` (Testing section)
 - **Jest Config**: `/frontend/jest.config.mjs`
 - **Existing Tests**: 
@@ -527,6 +529,62 @@ it('should show loading spinner while fetching', () => {
 - **React Testing Library**: https://testing-library.com/react
 - **Jest Documentation**: https://jestjs.io/docs/getting-started
 
+## Git Workflow Integration
+
+All testing work must follow the standard Git and GitHub workflow. See the [Git and GitHub Workflow Checklist](../workflows/GIT_GITHUB_WORKFLOW_CHECKLIST.md) for complete details.
+
+### Quick Workflow Summary
+
+1. **Before Starting**:
+   ```bash
+   git checkout main
+   git pull origin main
+   git checkout -b test/issue-XX-description
+   ```
+
+2. **During Testing**:
+   - Run tests frequently: `npm test`
+   - Check coverage: `npm run test:coverage`
+   - Commit after each test suite is complete and passing
+   - Use clear commit messages: `test: add unit tests for ComponentName`
+
+3. **Pre-Commit Requirements**:
+   - [ ] All tests pass
+   - [ ] Coverage meets 98% threshold (aim for 100%)
+   - [ ] No console errors or warnings
+   - [ ] No commented-out code
+   - [ ] **Never use `--no-verify` or `--no-hooks`** - Fix issues instead
+   - [ ] **Never lower coverage thresholds** - Get permission first
+
+4. **Committing Tests**:
+   ```bash
+   # Stage test files
+   git add app/components/__tests__/ComponentName.test.tsx
+   
+   # Commit (pre-commit hooks will run)
+   git commit -m "test: add comprehensive unit tests for ComponentName"
+   
+   # If hooks fail, fix the issues and commit again
+   ```
+
+5. **Pushing and PR**:
+   ```bash
+   git push -u origin test/issue-XX-description
+   ```
+   - Create PR with clear description of test coverage
+   - Link to related issue
+   - Include coverage metrics in PR description
+
+### Important Reminders
+
+- ⚠️ **Pre-commit hooks will fail if**:
+  - Tests don't pass
+  - Coverage drops below threshold
+  - Linting issues exist
+- ✅ **Always fix issues** - Never bypass hooks
+- 📊 **Include coverage report** in PR description
+- 🔗 **Reference the component/feature issue** being tested
+
 ## Agent Behavior
 
 When invoked for testing tasks:
@@ -534,12 +592,15 @@ When invoked for testing tasks:
 1. **Analyze** the target file/component thoroughly
 2. **Plan** test structure based on code analysis
 3. **Write** comprehensive tests following this guide
-4. **Verify** coverage meets requirements
-5. **Iterate** until 100% coverage achieved (or explain why not possible)
-6. **Document** any edge cases or limitations
+4. **Commit incrementally** following Git workflow (after each complete test suite)
+5. **Verify** coverage meets requirements
+6. **Iterate** until 100% coverage achieved (or explain why not possible)
+7. **Document** any edge cases or limitations
+8. **Push and create PR** with complete test coverage
 
 Always prioritize:
 - User-facing behavior over implementation
 - Readability over cleverness
 - Comprehensive coverage over speed
 - Realistic scenarios over contrived tests
+- **Following Git workflow** for all commits and PRs
