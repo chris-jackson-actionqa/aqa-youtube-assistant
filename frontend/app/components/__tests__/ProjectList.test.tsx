@@ -167,60 +167,64 @@ describe('ProjectList', () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
+      // Wait for loading to finish first
       await waitFor(() => {
-        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
-        expect(screen.getByText('Test Project 2')).toBeInTheDocument();
-        expect(screen.getByText('Test Project 3')).toBeInTheDocument();
+        expect(screen.queryByLabelText('Loading projects')).not.toBeInTheDocument();
       });
+
+      expect(screen.getByText('Test Project 1')).toBeInTheDocument();
+      expect(screen.getByText('Test Project 2')).toBeInTheDocument();
+      expect(screen.getByText('Test Project 3')).toBeInTheDocument();
     });
 
     it('displays project descriptions', async () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
-      await waitFor(() => {
-        expect(screen.getByText('This is a test project description')).toBeInTheDocument();
-        expect(screen.getByText('Another test project')).toBeInTheDocument();
-      });
+      // Use findBy to wait for async data loading
+      expect(await screen.findByText('This is a test project description')).toBeInTheDocument();
+      expect(await screen.findByText('Another test project')).toBeInTheDocument();
     });
 
     it('does not display description when null', async () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
-      await waitFor(() => {
-        const projectCard = screen.getByText('Test Project 3').closest('div[role="button"]') as HTMLElement;
-        expect(projectCard).toBeInTheDocument();
-        const descriptions = within(projectCard).queryByText(/description/i);
-        expect(descriptions).not.toBeInTheDocument();
-      });
+      // Wait for project to load
+      const projectName = await screen.findByText('Test Project 3');
+      const projectCard = projectName.closest('div[role="button"]') as HTMLElement;
+      expect(projectCard).toBeInTheDocument();
+      const descriptions = within(projectCard).queryByText(/description/i);
+      expect(descriptions).not.toBeInTheDocument();
     });
 
     it('displays status badges with correct labels', async () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Planned')).toBeInTheDocument();
-        expect(screen.getByText('In Progress')).toBeInTheDocument();
-        expect(screen.getByText('Completed')).toBeInTheDocument();
-      });
+      // Use findBy to automatically wait for data
+      expect(await screen.findByText('Planned')).toBeInTheDocument();
+      expect(await screen.findByText('In Progress')).toBeInTheDocument();
+      expect(await screen.findByText('Completed')).toBeInTheDocument();
     });
 
     it('displays formatted dates for created and updated', async () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
+      // Wait for loading to finish and data to render
       await waitFor(() => {
-        // Check that dates are displayed in MM/DD/YYYY format
-        // mockProjects have specific dates, check that at least some formatted dates are present
-        const timeElements = screen.getAllByRole('time');
-        expect(timeElements.length).toBeGreaterThan(0);
-        
-        // Verify the format matches MM/DD/YYYY pattern
-        timeElements.forEach(element => {
-          expect(element.textContent).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
-        });
+        expect(screen.queryByLabelText('Loading projects')).not.toBeInTheDocument();
+      });
+
+      // Check that dates are displayed in MM/DD/YYYY format
+      // mockProjects have specific dates, check that at least some formatted dates are present
+      const timeElements = screen.getAllByRole('time');
+      expect(timeElements.length).toBeGreaterThan(0);
+      
+      // Verify the format matches MM/DD/YYYY pattern
+      timeElements.forEach(element => {
+        expect(element.textContent).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
       });
     });
 
@@ -234,24 +238,26 @@ describe('ProjectList', () => {
 
       render(<ProjectList />);
 
-      await waitFor(() => {
-        const displayedText = screen.getByText(/aaa/);
-        expect(displayedText.textContent).toHaveLength(103); // 100 chars + '...'
-        expect(displayedText.textContent).toContain('...');
-      });
+      // Use findBy to wait for content to load
+      const displayedText = await screen.findByText(/aaa/);
+      expect(displayedText.textContent).toHaveLength(103); // 100 chars + '...'
+      expect(displayedText.textContent).toContain('...');
     });
 
     it('renders projects in a grid layout', async () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
+      // Wait for loading to complete
       await waitFor(() => {
-        const grid = screen.getByRole('list', { name: 'Projects' });
-        expect(grid).toHaveClass('grid');
-        expect(grid).toHaveClass('grid-cols-1');
-        expect(grid).toHaveClass('md:grid-cols-2');
-        expect(grid).toHaveClass('lg:grid-cols-3');
+        expect(screen.queryByLabelText('Loading projects')).not.toBeInTheDocument();
       });
+
+      const grid = screen.getByRole('list', { name: 'Projects' });
+      expect(grid).toHaveClass('grid');
+      expect(grid).toHaveClass('grid-cols-1');
+      expect(grid).toHaveClass('md:grid-cols-2');
+      expect(grid).toHaveClass('lg:grid-cols-3');
     });
   });
 
@@ -261,12 +267,9 @@ describe('ProjectList', () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList onProjectSelect={onProjectSelect} />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
-      });
-
-      const projectCard = screen.getByText('Test Project 1').closest('div[role="button"]');
-      fireEvent.click(projectCard!);
+      // Wait for project to appear
+      const projectCard = await screen.findByText('Test Project 1');
+      fireEvent.click(projectCard.closest('div[role="button"]')!);
 
       expect(onProjectSelect).toHaveBeenCalledWith(mockProjects[0]);
     });
@@ -275,21 +278,21 @@ describe('ProjectList', () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList selectedProjectId={1} />);
 
-      await waitFor(() => {
-        const selectedCard = screen.getByText('Test Project 1').closest('div[role="button"]');
-        expect(selectedCard).toHaveClass('border-blue-500');
-        expect(selectedCard).toHaveClass('selected');
-      });
+      // Wait for project to render
+      const projectName = await screen.findByText('Test Project 1');
+      const selectedCard = projectName.closest('div[role="button"]');
+      expect(selectedCard).toHaveClass('border-blue-500');
+      expect(selectedCard).toHaveClass('selected');
     });
 
     it('shows aria-pressed for selected project', async () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList selectedProjectId={1} />);
 
-      await waitFor(() => {
-        const selectedCard = screen.getByText('Test Project 1').closest('div[role="button"]');
-        expect(selectedCard).toHaveAttribute('aria-pressed', 'true');
-      });
+      // Wait for project to render
+      const projectName = await screen.findByText('Test Project 1');
+      const selectedCard = projectName.closest('div[role="button"]');
+      expect(selectedCard).toHaveAttribute('aria-pressed', 'true');
     });
 
     it('supports keyboard navigation for selection', async () => {
@@ -297,12 +300,9 @@ describe('ProjectList', () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList onProjectSelect={onProjectSelect} />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
-      });
-
-      const projectCard = screen.getByText('Test Project 1').closest('div[role="button"]');
-      fireEvent.keyDown(projectCard!, { key: 'Enter' });
+      // Wait for project to appear
+      const projectCard = await screen.findByText('Test Project 1');
+      fireEvent.keyDown(projectCard.closest('div[role="button"]')!, { key: 'Enter' });
 
       expect(onProjectSelect).toHaveBeenCalledWith(mockProjects[0]);
     });
@@ -312,12 +312,9 @@ describe('ProjectList', () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList onProjectSelect={onProjectSelect} />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
-      });
-
-      const projectCard = screen.getByText('Test Project 1').closest('div[role="button"]');
-      fireEvent.keyDown(projectCard!, { key: ' ' });
+      // Wait for project to appear
+      const projectCard = await screen.findByText('Test Project 1');
+      fireEvent.keyDown(projectCard.closest('div[role="button"]')!, { key: ' ' });
 
       expect(onProjectSelect).toHaveBeenCalledWith(mockProjects[0]);
     });
@@ -327,12 +324,9 @@ describe('ProjectList', () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList onProjectSelect={onProjectSelect} />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
-      });
-
-      const projectCard = screen.getByText('Test Project 1').closest('div[role="button"]');
-      fireEvent.keyDown(projectCard!, { key: 'a' });
+      // Wait for project to appear
+      const projectCard = await screen.findByText('Test Project 1');
+      fireEvent.keyDown(projectCard.closest('div[role="button"]')!, { key: 'a' });
 
       expect(onProjectSelect).not.toHaveBeenCalled();
     });
@@ -344,9 +338,8 @@ describe('ProjectList', () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
-      });
+      // Wait for projects to load
+      await screen.findByText('Test Project 1');
 
       // Click delete button to open modal
       const deleteButton = screen.getAllByRole('button', { name: /delete project/i })[0];
@@ -370,9 +363,8 @@ describe('ProjectList', () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
-      });
+      // Wait for projects to load
+      await screen.findByText('Test Project 1');
 
       // Click delete button to open modal
       const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 1/i });
@@ -397,9 +389,8 @@ describe('ProjectList', () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList onProjectDelete={onProjectDelete} />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
-      });
+      // Wait for projects to load
+      await screen.findByText('Test Project 1');
 
       // Click delete button to open modal
       const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 1/i });
@@ -426,9 +417,8 @@ describe('ProjectList', () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
-      });
+      // Wait for projects to load
+      await screen.findByText('Test Project 1');
 
       // Click delete button to open modal
       const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 1/i });
@@ -454,9 +444,8 @@ describe('ProjectList', () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
-      });
+      // Wait for projects to load
+      await screen.findByText('Test Project 1');
 
       // Click delete button to open modal
       const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 1/i });
@@ -484,9 +473,8 @@ describe('ProjectList', () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
-      });
+      // Wait for projects to load
+      await screen.findByText('Test Project 1');
 
       // Click delete button to open modal
       const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 1/i });
@@ -513,9 +501,8 @@ describe('ProjectList', () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
-      });
+      // Wait for projects to load
+      await screen.findByText('Test Project 1');
 
       // Click delete button to open modal
       const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 1/i });
@@ -545,11 +532,10 @@ describe('ProjectList', () => {
 
       render(<ProjectList />);
 
-      await waitFor(() => {
-        const badge = screen.getByText('Planned');
-        expect(badge).toHaveClass('bg-blue-100');
-        expect(badge).toHaveClass('text-blue-800');
-      });
+      // Use findBy to wait for badge to appear
+      const badge = await screen.findByText('Planned');
+      expect(badge).toHaveClass('bg-blue-100');
+      expect(badge).toHaveClass('text-blue-800');
     });
 
     it('displays correct color for in_progress status', async () => {
@@ -558,11 +544,10 @@ describe('ProjectList', () => {
 
       render(<ProjectList />);
 
-      await waitFor(() => {
-        const badge = screen.getByText('In Progress');
-        expect(badge).toHaveClass('bg-purple-100');
-        expect(badge).toHaveClass('text-purple-800');
-      });
+      // Use findBy to wait for badge to appear
+      const badge = await screen.findByText('In Progress');
+      expect(badge).toHaveClass('bg-purple-100');
+      expect(badge).toHaveClass('text-purple-800');
     });
 
     it('displays correct color for completed status', async () => {
@@ -571,11 +556,10 @@ describe('ProjectList', () => {
 
       render(<ProjectList />);
 
-      await waitFor(() => {
-        const badge = screen.getByText('Completed');
-        expect(badge).toHaveClass('bg-green-100');
-        expect(badge).toHaveClass('text-green-800');
-      });
+      // Use findBy to wait for badge to appear
+      const badge = await screen.findByText('Completed');
+      expect(badge).toHaveClass('bg-green-100');
+      expect(badge).toHaveClass('text-green-800');
     });
 
     it('displays correct color for archived status', async () => {
@@ -584,11 +568,10 @@ describe('ProjectList', () => {
 
       render(<ProjectList />);
 
-      await waitFor(() => {
-        const badge = screen.getByText('Archived');
-        expect(badge).toHaveClass('bg-gray-100');
-        expect(badge).toHaveClass('text-gray-800');
-      });
+      // Use findBy to wait for badge to appear
+      const badge = await screen.findByText('Archived');
+      expect(badge).toHaveClass('bg-gray-100');
+      expect(badge).toHaveClass('text-gray-800');
     });
 
     it('falls back to planned style for unknown status', async () => {
@@ -597,11 +580,10 @@ describe('ProjectList', () => {
 
       render(<ProjectList />);
 
-      await waitFor(() => {
-        const badge = screen.getByText('Unknown Status');
-        expect(badge).toHaveClass('bg-blue-100');
-        expect(badge).toHaveClass('text-blue-800');
-      });
+      // Use findBy to wait for badge to appear
+      const badge = await screen.findByText('Unknown Status');
+      expect(badge).toHaveClass('bg-blue-100');
+      expect(badge).toHaveClass('text-blue-800');
     });
 
     it('displays "Unknown Status" label for unrecognized status', async () => {
@@ -610,12 +592,11 @@ describe('ProjectList', () => {
 
       render(<ProjectList />);
 
-      await waitFor(() => {
-        const badge = screen.getByText('Unknown Status');
-        expect(badge).toBeInTheDocument();
-        // Should use planned color as fallback
-        expect(badge).toHaveClass('bg-blue-100');
-      });
+      // Use findBy to wait for badge to appear
+      const badge = await screen.findByText('Unknown Status');
+      expect(badge).toBeInTheDocument();
+      // Should use planned color as fallback
+      expect(badge).toHaveClass('bg-blue-100');
     });
   });
 
@@ -637,6 +618,7 @@ describe('ProjectList', () => {
         year: 'numeric'
       });
 
+      // Wait for dates to render
       await waitFor(() => {
         // Should appear twice (created and updated)
         expect(screen.getAllByText(expectedDate).length).toBe(2);
@@ -660,6 +642,7 @@ describe('ProjectList', () => {
         year: 'numeric'
       });
 
+      // Wait for dates to render
       await waitFor(() => {
         expect(screen.getAllByText(expectedDate).length).toBe(2);
       });
@@ -682,6 +665,7 @@ describe('ProjectList', () => {
         year: 'numeric'
       });
 
+      // Wait for dates to render
       await waitFor(() => {
         expect(screen.getAllByText(expectedDate).length).toBe(2);
       });
@@ -710,6 +694,7 @@ describe('ProjectList', () => {
         year: 'numeric'
       });
 
+      // Wait for dates to render
       await waitFor(() => {
         expect(screen.getByText(expectedCreated)).toBeInTheDocument();
         expect(screen.getByText(expectedUpdated)).toBeInTheDocument();
@@ -722,56 +707,64 @@ describe('ProjectList', () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
+      // Wait for projects to load
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Delete project Test Project 1' })).toBeInTheDocument();
-        const projectCard = screen.getByText('Test Project 1').closest('div[role="button"]');
-        expect(projectCard).toHaveAttribute('aria-pressed');
+        expect(screen.queryByLabelText('Loading projects')).not.toBeInTheDocument();
       });
+
+      expect(screen.getByRole('button', { name: 'Delete project Test Project 1' })).toBeInTheDocument();
+      const projectCard = screen.getByText('Test Project 1').closest('div[role="button"]');
+      expect(projectCard).toHaveAttribute('aria-pressed');
     });
 
     it('has role="button" on project cards', async () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
+      // Wait for projects to load
       await waitFor(() => {
-        const projectCards = screen.getAllByRole('button', { name: /select project/i });
-        expect(projectCards.length).toBe(3);
+        expect(screen.queryByLabelText('Loading projects')).not.toBeInTheDocument();
       });
+
+      const projectCards = screen.getAllByRole('button', { name: /select project/i });
+      expect(projectCards.length).toBe(3);
     });
 
     it('has descriptive aria-label on project cards', async () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Select project Test Project 1' })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Select project Test Project 2' })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Select project Test Project 3' })).toBeInTheDocument();
-      });
+      // Wait for projects to load and use findBy
+      expect(await screen.findByRole('button', { name: 'Select project Test Project 1' })).toBeInTheDocument();
+      expect(await screen.findByRole('button', { name: 'Select project Test Project 2' })).toBeInTheDocument();
+      expect(await screen.findByRole('button', { name: 'Select project Test Project 3' })).toBeInTheDocument();
     });
 
     it('has keyboard focus styles on project cards', async () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
-      await waitFor(() => {
-        const projectCard = screen.getByText('Test Project 1').closest('div[role="button"]');
-        expect(projectCard).toHaveClass('focus:outline-none');
-        expect(projectCard).toHaveClass('focus:ring-2');
-        expect(projectCard).toHaveClass('focus:ring-blue-500');
-        expect(projectCard).toHaveClass('focus:ring-offset-2');
-      });
+      // Wait for project to load
+      const projectName = await screen.findByText('Test Project 1');
+      const projectCard = projectName.closest('div[role="button"]');
+      expect(projectCard).toHaveClass('focus:outline-none');
+      expect(projectCard).toHaveClass('focus:ring-2');
+      expect(projectCard).toHaveClass('focus:ring-blue-500');
+      expect(projectCard).toHaveClass('focus:ring-offset-2');
     });
 
     it('has tabIndex={0} for keyboard navigation', async () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
+      // Wait for projects to load
       await waitFor(() => {
-        const projectCards = screen.getAllByRole('button', { name: /select project/i });
-        projectCards.forEach(card => {
-          expect(card).toHaveAttribute('tabindex', '0');
-        });
+        expect(screen.queryByLabelText('Loading projects')).not.toBeInTheDocument();
+      });
+
+      const projectCards = screen.getAllByRole('button', { name: /select project/i });
+      projectCards.forEach(card => {
+        expect(card).toHaveAttribute('tabindex', '0');
       });
     });
 
@@ -779,42 +772,50 @@ describe('ProjectList', () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
-      await waitFor(() => {
-        const badge = screen.getByText('Planned');
-        expect(badge).toHaveAttribute('aria-label', 'Status: Planned');
-      });
+      // Use findBy to wait for badge
+      const badge = await screen.findByText('Planned');
+      expect(badge).toHaveAttribute('aria-label', 'Status: Planned');
     });
 
     it('has semantic time elements', async () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
+      // Wait for time elements to render
       await waitFor(() => {
-        const timeElements = screen.getAllByRole('time');
-        expect(timeElements.length).toBeGreaterThan(0);
-        expect(timeElements[0]).toHaveAttribute('datetime');
+        expect(screen.queryByLabelText('Loading projects')).not.toBeInTheDocument();
       });
+
+      const timeElements = screen.getAllByRole('time');
+      expect(timeElements.length).toBeGreaterThan(0);
+      expect(timeElements[0]).toHaveAttribute('datetime');
     });
 
     it('uses list semantic structure', async () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
+      // Wait for list to load
       await waitFor(() => {
-        expect(screen.getByRole('list', { name: 'Projects' })).toBeInTheDocument();
-        const buttons = screen.getAllByRole('button', { name: /select project/i });
-        expect(buttons).toHaveLength(3);
+        expect(screen.queryByLabelText('Loading projects')).not.toBeInTheDocument();
       });
+
+      expect(screen.getByRole('list', { name: 'Projects' })).toBeInTheDocument();
+      const buttons = screen.getAllByRole('button', { name: /select project/i });
+      expect(buttons).toHaveLength(3);
     });
 
     it('has hidden decorative SVG icons', async () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
+      // Wait for projects to load
       await waitFor(() => {
-        const svgs = document.querySelectorAll('svg[aria-hidden="true"]');
-        expect(svgs.length).toBeGreaterThan(0);
+        expect(screen.queryByLabelText('Loading projects')).not.toBeInTheDocument();
       });
+
+      const svgs = document.querySelectorAll('svg[aria-hidden="true"]');
+      expect(svgs.length).toBeGreaterThan(0);
     });
   });
 
@@ -825,9 +826,8 @@ describe('ProjectList', () => {
 
       render(<ProjectList />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
-      });
+      // Use findBy to wait for project to load
+      expect(await screen.findByText('Test Project 1')).toBeInTheDocument();
     });
 
     it('handles short description without truncation', async () => {
@@ -836,9 +836,8 @@ describe('ProjectList', () => {
 
       render(<ProjectList />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Short text')).toBeInTheDocument();
-      });
+      // Use findBy to wait for content
+      expect(await screen.findByText('Short text')).toBeInTheDocument();
     });
 
     it('handles missing callbacks gracefully', async () => {
@@ -847,12 +846,9 @@ describe('ProjectList', () => {
 
       render(<ProjectList />); // No callbacks provided
 
-      await waitFor(() => {
-        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
-      });
-
-      const projectCard = screen.getByText('Test Project 1').closest('div[role="button"]');
-      fireEvent.click(projectCard!);
+      // Wait for project to load
+      const projectCard = await screen.findByText('Test Project 1');
+      fireEvent.click(projectCard.closest('div[role="button"]')!);
 
       // Click delete button to open modal
       const deleteButtons = screen.getAllByRole('button', { name: /delete project/i });
@@ -877,9 +873,8 @@ describe('ProjectList', () => {
 
       render(<ProjectList />);
 
-      await waitFor(() => {
-        expect(screen.getByText('No projects yet')).toBeInTheDocument();
-      });
+      // Use findBy to wait for empty state
+      expect(await screen.findByText('No projects yet')).toBeInTheDocument();
     });
 
     it('shows error but keeps existing projects visible on delete error', async () => {
@@ -890,9 +885,8 @@ describe('ProjectList', () => {
 
       render(<ProjectList />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
-      });
+      // Wait for projects to load
+      await screen.findByText('Test Project 1');
 
       // Click delete button to open modal
       const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 1/i });
@@ -920,9 +914,8 @@ describe('ProjectList', () => {
 
       render(<ProjectList />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
-      });
+      // Wait for projects to load
+      await screen.findByText('Test Project 1');
 
       // Click delete button to open modal
       const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 1/i });
@@ -952,9 +945,8 @@ describe('ProjectList', () => {
 
       render(<ProjectList />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
-      });
+      // Wait for projects to load
+      await screen.findByText('Test Project 1');
 
       // Find delete button
       const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 1/i });
@@ -975,9 +967,8 @@ describe('ProjectList', () => {
 
       render(<ProjectList />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
-      });
+      // Use findBy to wait for project
+      await screen.findByText('Test Project 1');
 
       // Should render without error even with null description
       expect(screen.queryByText('This is a test project description')).not.toBeInTheDocument();
@@ -993,9 +984,8 @@ describe('ProjectList', () => {
 
       render(<ProjectList />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
-      });
+      // Wait for project to load
+      await screen.findByText('Test Project 1');
 
       // Description should be truncated (max 150 chars + '...')
       const descElement = screen.getByText(/A+\.\.\./);
@@ -1013,9 +1003,8 @@ describe('ProjectList', () => {
 
       render(<ProjectList />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
-      });
+      // Wait for projects to load
+      await screen.findByText('Test Project 1');
 
       // Open modal
       const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 1/i });
@@ -1056,9 +1045,8 @@ describe('ProjectList', () => {
 
       render(<ProjectList />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Test Project 1')).toBeInTheDocument();
-      });
+      // Wait for projects to load
+      await screen.findByText('Test Project 1');
 
       // Open modal
       const deleteButtons = screen.getAllByRole('button', { name: /delete project test project 1/i });

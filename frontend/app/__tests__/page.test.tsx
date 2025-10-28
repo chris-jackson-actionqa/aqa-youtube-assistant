@@ -69,44 +69,62 @@ describe('Home Page - Component Integration', () => {
   })
 
   describe('Page Layout', () => {
-    it('should render page title and description', () => {
+    it('should render page title and description', async () => {
       render(<Home />)
 
       expect(screen.getByRole('heading', { name: 'YouTube Assistant', level: 1 })).toBeInTheDocument()
       expect(screen.getByText(/Helper for planning and making YouTube videos/)).toBeInTheDocument()
+      
+      // Wait for ProjectList to finish loading to prevent act() warnings
+      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
     })
 
-    it('should render create project section with heading', () => {
+    it('should render create project section with heading', async () => {
       render(<Home />)
 
       expect(screen.getByRole('heading', { name: 'Create New Project', level: 2 })).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Create new project' })).toBeInTheDocument()
+      
+      // Wait for ProjectList to finish loading to prevent act() warnings
+      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
     })
 
-    it('should render projects section with heading', () => {
+    it('should render projects section with heading', async () => {
       render(<Home />)
 
       expect(screen.getByRole('heading', { name: 'Your Projects', level: 2 })).toBeInTheDocument()
+      
+      // Wait for ProjectList to finish loading to prevent act() warnings
+      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
     })
 
-    it('should use semantic HTML structure', () => {
+    it('should use semantic HTML structure', async () => {
       const { container } = render(<Home />)
 
       expect(container.querySelector('main')).toBeInTheDocument()
       expect(container.querySelector('header')).toBeInTheDocument()
       expect(container.querySelectorAll('section')).toHaveLength(2) // Create + Projects sections
+      
+      // Wait for ProjectList to finish loading to prevent act() warnings
+      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
     })
   })
 
   describe('ProjectForm Integration', () => {
-    it('should show create button by default', () => {
+    it('should show create button by default', async () => {
       render(<Home />)
 
       expect(screen.getByRole('button', { name: 'Create new project' })).toBeInTheDocument()
+      
+      // Wait for ProjectList to finish loading to prevent act() warnings
+      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
     })
 
     it('should show ProjectForm when create button is clicked', async () => {
       render(<Home />)
+      
+      // Wait for ProjectList to finish loading first
+      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
 
       const createButton = screen.getByRole('button', { name: 'Create new project' })
       fireEvent.click(createButton)
@@ -119,6 +137,9 @@ describe('Home Page - Component Integration', () => {
 
     it('should hide ProjectForm when cancel is clicked', async () => {
       render(<Home />)
+      
+      // Wait for ProjectList to finish loading first
+      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
 
       // Open form
       const createButton = screen.getByRole('button', { name: 'Create new project' })
@@ -213,11 +234,14 @@ describe('Home Page - Component Integration', () => {
   })
 
   describe('ProjectContext Integration', () => {
-    it('should not show current project indicator when no project selected', () => {
+    it('should not show current project indicator when no project selected', async () => {
       render(<Home />)
 
       expect(screen.queryByText('Working on:')).not.toBeInTheDocument()
       expect(screen.queryByRole('button', { name: 'Clear project selection' })).not.toBeInTheDocument()
+      
+      // Wait for ProjectList to finish loading to prevent act() warnings
+      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
     })
 
     it('should show current project indicator when project is selected', async () => {
@@ -399,13 +423,19 @@ describe('Home Page - Component Integration', () => {
         const currentProjectStatus = screen.getByRole('status', { name: 'Current project' })
         expect(currentProjectStatus).toBeInTheDocument()
       })
+      
+      // Wait for ProjectList to finish loading to prevent act() warnings
+      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
     })
 
-    it('should have accessible create button', () => {
+    it('should have accessible create button', async () => {
       render(<Home />)
 
       const createButton = screen.getByRole('button', { name: 'Create new project' })
       expect(createButton).toHaveAccessibleName()
+      
+      // Wait for ProjectList to finish loading to prevent act() warnings
+      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
     })
 
     it('should have accessible clear selection button', async () => {
@@ -417,9 +447,12 @@ describe('Home Page - Component Integration', () => {
         const clearButton = screen.getByRole('button', { name: 'Clear project selection' })
         expect(clearButton).toHaveAccessibleName()
       })
+      
+      // Wait for ProjectList to finish loading to prevent act() warnings
+      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
     })
 
-    it('should have proper heading hierarchy', () => {
+    it('should have proper heading hierarchy', async () => {
       const { container } = render(<Home />)
 
       const h1 = container.querySelector('h1')
@@ -427,22 +460,31 @@ describe('Home Page - Component Integration', () => {
 
       expect(h1).toBeInTheDocument()
       expect(h2s.length).toBeGreaterThanOrEqual(2)
+      
+      // Wait for ProjectList to finish loading to prevent act() warnings
+      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
     })
   })
 
   describe('Responsive Design', () => {
-    it('should apply responsive container classes', () => {
+    it('should apply responsive container classes', async () => {
       const { container} = render(<Home />)
 
       const main = container.querySelector('main')
       expect(main).toHaveClass('max-w-6xl', 'mx-auto')
+      
+      // Wait for ProjectList to finish loading to prevent act() warnings
+      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
     })
 
-    it('should apply responsive padding classes', () => {
+    it('should apply responsive padding classes', async () => {
       const { container } = render(<Home />)
 
       const wrapper = container.querySelector('[class*="min-h-screen"]')
       expect(wrapper).toHaveClass('p-8', 'sm:p-20')
+      
+      // Wait for ProjectList to finish loading to prevent act() warnings
+      await waitFor(() => expect(screen.queryByLabelText('Loading')).not.toBeInTheDocument())
     })
   })
 })
