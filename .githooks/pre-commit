@@ -1,19 +1,57 @@
 #!/bin/bash
 
-# Git pre-commit hook to run unit tests
-# This hook runs before each commit to ensure tests pass
+# Git pre-commit hook to run linting, type checking, and tests
+# This hook runs before each commit to ensure code quality
 
-echo "Running unit tests before commit..."
+echo "Running pre-commit checks..."
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# Run backend tests
-echo "🐍 Running backend tests..."
+# Run backend checks
+echo "🐍 Running backend checks..."
 cd backend
 
+# Check if ruff is installed
+if ! command -v ruff &> /dev/null; then
+    echo "⚠️  Ruff not installed. Run 'pip install -r requirements-dev.txt'"
+    echo "Skipping linting checks..."
+else
+    # Run Ruff linting
+    echo "  → Checking code with Ruff..."
+    ruff check .
+    RUFF_EXIT_CODE=$?
+    
+    if [ $RUFF_EXIT_CODE -ne 0 ]; then
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "❌ Ruff linting failed! Commit aborted."
+        echo "Run 'make format' or 'ruff check --fix .' to fix issues."
+        cd ..
+        exit 1
+    fi
+    echo "  ✓ Ruff checks passed"
+fi
+
+# Check if mypy is installed
+if ! command -v mypy &> /dev/null; then
+    echo "⚠️  mypy not installed. Run 'pip install -r requirements-dev.txt'"
+    echo "Skipping type checking..."
+else
+    # Run mypy type checking
+    echo "  → Type checking with mypy..."
+    mypy app/
+    MYPY_EXIT_CODE=$?
+    
+    if [ $MYPY_EXIT_CODE -ne 0 ]; then
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "❌ mypy type checking failed! Commit aborted."
+        echo "Fix type errors or add type ignores where appropriate."
+        cd ..
+        exit 1
+    fi
+    echo "  ✓ Type checking passed"
+fi
+
 # Run unit tests with pytest
-# -q for quiet mode (less verbose output)
-# --tb=short for shorter traceback on failures
-# -x to stop on first failure
+echo "  → Running unit tests..."
 pytest unit_tests/ -q --tb=short -x
 
 # Capture the exit code

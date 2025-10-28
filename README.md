@@ -77,17 +77,29 @@ The frontend will be available at http://localhost:3000
 
 ### Git Hooks
 
-This project uses Git hooks to maintain code quality. A pre-commit hook automatically runs unit tests before each commit.
+This project uses Git hooks to maintain code quality. A pre-commit hook automatically runs linting, type checking, and tests before each commit.
 
-**Pre-commit Hook**: Located at `.git/hooks/pre-commit`, this hook:
+**Pre-commit Hook**: Located at `.githooks/pre-commit`, this hook:
+- Runs **Ruff** linting checks on backend code
+- Runs **mypy** type checking on backend code
 - Runs all unit tests in `backend/unit_tests/`
-- Blocks the commit if any tests fail
-- Provides clear feedback on test results
+- Runs all frontend tests with coverage
+- Blocks the commit if any checks fail
+- Provides clear feedback on what needs to be fixed
 
-The hook was created during initial setup and is already executable. If you need to recreate it or set it up on a fresh clone:
+**Installation** (required for fresh clones):
 
 ```bash
-# The hook is already in .git/hooks/pre-commit
+# Copy the hook template to your local .git/hooks directory
+cp .githooks/pre-commit .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+```
+
+**Requirements for backend checks:**
+```bash
+# Install development dependencies
+cd backend
+pip install -r requirements-dev.txt
 # If needed, ensure it's executable:
 chmod +x .git/hooks/pre-commit
 ```
