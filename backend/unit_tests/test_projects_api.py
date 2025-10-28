@@ -126,6 +126,7 @@ class TestGetProjects:
 
     def test_get_projects_multiple(self, client, create_sample_project):
         """Test getting multiple projects."""
+        # Create projects for testing list retrieval; return values unused
         create_sample_project(name="Project 1", status="planned")
         create_sample_project(name="Project 2", status="in_progress")
         create_sample_project(name="Project 3", status="completed")

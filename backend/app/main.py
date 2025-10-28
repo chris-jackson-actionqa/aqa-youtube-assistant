@@ -91,6 +91,7 @@ async def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
         # Handle database-level unique constraint violation
         # This is a fallback in case application-level check was bypassed
         # (e.g., race condition)
+        # Suppress exception chain to hide SQLAlchemy internals from API response
         raise HTTPException(
             status_code=400,
             detail=f"A project named '{project.name}' already exists",
@@ -188,6 +189,7 @@ async def update_project(
     for field, value in update_data.items():
         setattr(db_project, field, value)
 
+    # SQLAlchemy Column type annotations don't match runtime assignment behavior
     db_project.updated_at = datetime.now(UTC)  # type: ignore[assignment]
 
     try:
@@ -199,6 +201,7 @@ async def update_project(
         # Handle database-level unique constraint violation
         # This is a fallback in case application-level check was bypassed
         project_name = update_data.get("name", "unknown")
+        # Suppress exception chain to hide SQLAlchemy internals from API response
         raise HTTPException(
             status_code=400,
             detail=f"A project named '{project_name}' already exists",

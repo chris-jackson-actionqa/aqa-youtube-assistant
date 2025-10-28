@@ -30,12 +30,19 @@ Please help me complete the pull request workflow for my current branch:
    - Wait for the review to complete
    - Show review comments
 
-5. **Address review comments** if needed
-   - Help understand and implement any requested changes
+5. **Address ALL review comments** (REQUIRED)
+   - **CRITICAL**: Review comments MUST be addressed before resolving
+   - For each comment:
+     1. Read and understand the requested change
+     2. Implement the code modification
+     3. Verify the change is correct
+     4. Only AFTER implementing, resolve the thread using GitHub CLI/GraphQL
    - Make necessary code modifications
    - Commit and push the changes with `git commit` and `git push`
-   - Respond to review comments using GitHub MCP server tools
+   - Respond to review comments using GitHub MCP server tools to explain changes
+   - **NEVER resolve a comment without implementing the requested change**
    - Re-check workflow status with `gh pr checks <PR_NUMBER>`
+   - Use GraphQL to resolve threads: `gh api graphql -f query='mutation { resolveReviewThread(input: {threadId: "THREAD_ID"}) { thread { isResolved } } }'`
 
 6. **Verify all checks passed before merging** (use GitHub CLI)
    - Run `gh pr checks <PR_NUMBER>` to confirm all checks are green ✓
@@ -136,6 +143,12 @@ I'm ready to create a pull request. Please follow the pull request workflow:
   - Frontend tests must pass (98% coverage)
   - E2E tests must pass
   - All linting and formatting checks must pass
+- **CRITICAL**: Always address review comments BEFORE resolving them
+  - Implement the requested code changes
+  - Test that the changes work
+  - Commit and push the changes
+  - Only then resolve the comment thread
+  - Never resolve a comment without making the requested change
 - Use `gh pr checks --watch` to monitor checks in real-time
 - The AI will pause at review comments to let you review and approve changes
 - You can customize the merge strategy when merging
