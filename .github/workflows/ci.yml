@@ -24,6 +24,8 @@ jobs:
           echo "## CI Test Results Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "✅ This PR triggers the following workflows automatically:" >> $GITHUB_STEP_SUMMARY
+          echo "- Backend Linting (Ruff code quality checks)" >> $GITHUB_STEP_SUMMARY
+          echo "- Backend Type Checking (mypy static type analysis)" >> $GITHUB_STEP_SUMMARY
           echo "- Backend Tests (pytest unit + integration, 95% coverage)" >> $GITHUB_STEP_SUMMARY
           echo "- Frontend Tests (Jest unit tests, 98% coverage)" >> $GITHUB_STEP_SUMMARY
           echo "- E2E Tests (Playwright end-to-end tests)" >> $GITHUB_STEP_SUMMARY
