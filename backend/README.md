@@ -15,6 +15,97 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+3. For development, install development dependencies:
+```bash
+pip install -r requirements-dev.txt
+```
+
+## Code Quality Tools
+
+This project uses modern Python linting and formatting tools:
+
+### Ruff (Linter & Formatter)
+
+Ruff is an extremely fast all-in-one Python linter and formatter that replaces multiple tools (Flake8, isort, Black, etc.).
+
+**Format code:**
+```bash
+make format
+# or
+ruff format .
+ruff check --fix .
+```
+
+**Check code (without fixing):**
+```bash
+make lint
+# or
+ruff check .
+```
+
+### mypy (Type Checker)
+
+mypy provides static type checking for Python code.
+
+**Run type checking:**
+```bash
+make type-check
+# or
+mypy app/
+```
+
+### Configuration
+
+All linting and formatting configurations are in `pyproject.toml`:
+- **Ruff**: Line length 88, PEP 8 compliance, import sorting
+- **mypy**: Type checking with Pydantic plugin support
+
+### Pre-Commit Testing
+
+Tests automatically run before each commit via Git hooks to ensure code quality.
+
+## Testing
+
+The backend has comprehensive test coverage with pytest.
+
+**Run all tests:**
+```bash
+make test
+# or
+pytest unit_tests/ integration_tests/ -v --cov=app --cov-report=term
+```
+
+**Run only unit tests:**
+```bash
+pytest unit_tests/ -v
+```
+
+**Run only integration tests:**
+```bash
+pytest integration_tests/ -v
+```
+
+**Generate HTML coverage report:**
+```bash
+pytest --cov=app --cov-report=html
+# Open htmlcov/index.html in browser
+```
+
+**Coverage Requirements:**
+- Minimum coverage: 95%
+- Target: Near 100% for all new code
+- Configuration in `pyproject.toml`
+
+## Development Workflow
+
+1. Install development dependencies: `pip install -r requirements-dev.txt`
+2. Make code changes
+3. Format code: `make format`
+4. Check linting: `make lint`
+5. Run type checking: `make type-check`
+6. Run tests: `make test`
+7. Commit changes (tests run automatically via pre-commit hook)
+
 ## Running the Application
 
 Start the development server:
