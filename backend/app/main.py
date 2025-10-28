@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from typing import List
-from datetime import datetime
+from datetime import datetime, UTC
 
 from .database import engine, get_db
 from .models import Base, Project
@@ -182,7 +182,7 @@ async def update_project(project_id: int, project_update: ProjectUpdate, db: Ses
     for field, value in update_data.items():
         setattr(db_project, field, value)
     
-    db_project.updated_at = datetime.utcnow()
+    db_project.updated_at = datetime.now(UTC)
     
     try:
         db.commit()
