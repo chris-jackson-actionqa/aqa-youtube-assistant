@@ -1,6 +1,6 @@
 /**
  * Test Data Fixtures for E2E Testing
- * 
+ *
  * Provides consistent test data for creating, updating, and validating projects.
  */
 
@@ -16,25 +16,25 @@ export const testProjects = {
     description: 'A test project for E2E testing',
     status: 'planned',
   },
-  
+
   minimal: {
     name: 'Minimal Project',
     description: '',
     status: 'planned',
   },
-  
+
   complete: {
     name: 'Complete Project',
     description: 'A fully detailed test project with all fields populated',
     status: 'in_progress',
   },
-  
+
   duplicate: {
     name: 'Duplicate Project',
     description: 'Testing duplicate validation',
     status: 'planned',
   },
-  
+
   longDescription: {
     name: 'Long Description Project',
     description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. '.repeat(10),
@@ -47,12 +47,12 @@ export const invalidProjects = {
     name: '',
     description: 'Should fail validation',
   },
-  
+
   whitespaceOnly: {
     name: '   ',
     description: 'Whitespace name should fail',
   },
-  
+
   tooLongName: {
     name: 'A'.repeat(256),
     description: 'Name exceeds maximum length',

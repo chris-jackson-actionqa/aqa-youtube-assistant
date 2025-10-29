@@ -69,6 +69,69 @@ npm run test:webkit
 npm run test:report
 ```
 
+## Code Quality
+
+### Linting
+
+ESLint is configured with TypeScript and Playwright-specific rules to enforce code quality and best practices.
+
+```bash
+# Check for linting errors
+npm run lint
+
+# Auto-fix linting errors
+npm run lint:fix
+```
+
+Key linting rules include:
+- `playwright/no-wait-for-timeout` - Prevents brittle waits
+- `playwright/no-force-option` - Discourages force clicks that bypass actionability checks
+- `playwright/no-networkidle` - Warns against using networkidle (use specific waits instead)
+- `playwright/expect-expect` - Ensures tests have assertions
+- TypeScript strict mode with proper type checking
+
+### Formatting
+
+Prettier is configured for consistent code formatting across all test files.
+
+```bash
+# Check formatting
+npm run format:check
+
+# Apply formatting
+npm run format
+```
+
+### Type Checking
+
+TypeScript type checking ensures type safety across all test files.
+
+```bash
+# Run type checking
+npm run type-check
+```
+
+### Pre-commit Workflow
+
+Before committing changes, run:
+```bash
+npm run lint:fix    # Fix linting issues
+npm run format      # Format code
+npm run type-check  # Verify types
+npm test            # Run tests
+```
+
+### VSCode Integration
+
+The `.vscode/settings.json` is configured to:
+- Auto-format on save with Prettier
+- Auto-fix ESLint issues on save
+- Validate TypeScript as you type
+
+Make sure you have the following VSCode extensions installed:
+- ESLint (`dbaeumer.vscode-eslint`)
+- Prettier (`esbenp.prettier-vscode`)
+
 ## Writing Tests
 
 ### Basic Test Structure
