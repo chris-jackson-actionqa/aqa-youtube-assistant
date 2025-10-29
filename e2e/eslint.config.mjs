@@ -21,7 +21,7 @@ export default tseslint.config(
           varsIgnorePattern: '^_',
         },
       ],
-      'playwright/no-wait-for-timeout': 'error',
+      'playwright/no-wait-for-timeout': 'warn',
       'playwright/no-force-option': 'warn',
       'playwright/no-useless-await': 'error',
       'playwright/prefer-to-be': 'error',

@@ -21,15 +21,15 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 
 ## Legend
 
-| Symbol | Meaning |
-|--------|---------|
-| ⭐ | Critical (must pass for release) |
-| ⚠️ | High priority (should pass) |
-| 📋 | Medium priority (nice to have) |
-| ✅ | Implemented & Passing |
-| 🚧 | Partially Implemented |
-| ⏳ | Not Yet Implemented |
-| ❌ | Blocked/Deprecated |
+| Symbol | Meaning                          |
+| ------ | -------------------------------- |
+| ⭐     | Critical (must pass for release) |
+| ⚠️     | High priority (should pass)      |
+| 📋     | Medium priority (nice to have)   |
+| ✅     | Implemented & Passing            |
+| 🚧     | Partially Implemented            |
+| ⏳     | Not Yet Implemented              |
+| ❌     | Blocked/Deprecated               |
 
 ---
 
@@ -44,22 +44,26 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: User successfully creates a new project with name and description
 
 **Preconditions**:
+
 - User on homepage
 - Database is empty
 
 **Steps**:
+
 1. Click "Create New Project" button
 2. Fill in project name: "Test Project"
 3. Fill in description: "Test Description"
 4. Click "Create Project" button
 
 **Expected Result**:
+
 - Project created in database
 - Project card appears in list
 - Success message displayed
 - Form closes/resets
 
 **Test Data**:
+
 - Name: "Test Project"
 - Description: "Test Description"
 
@@ -73,15 +77,18 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: User creates project with only name (minimal valid data)
 
 **Preconditions**:
+
 - User on homepage
 
 **Steps**:
+
 1. Click "Create New Project" button
 2. Fill in project name: "Minimal Project"
 3. Leave description empty
 4. Click "Create Project" button
 
 **Expected Result**:
+
 - Project created successfully
 - Project appears in list with no description
 - Success message shown
@@ -97,11 +104,13 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: System prevents creating project with empty name
 
 **Steps**:
+
 1. Click "Create New Project" button
 2. Leave project name empty
 3. Attempt to click "Create Project" button
 
 **Expected Result**:
+
 - Submit button is disabled
 - No project created
 - Form remains open
@@ -116,11 +125,13 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: System rejects project name containing only whitespace
 
 **Steps**:
+
 1. Click "Create New Project" button
-2. Fill name with spaces: "     "
+2. Fill name with spaces: " "
 3. Attempt to submit
 
 **Expected Result**:
+
 - Validation error shown
 - No project created
 
@@ -134,14 +145,17 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: System prevents creating project with duplicate name
 
 **Preconditions**:
+
 - Project "Existing Project" already exists
 
 **Steps**:
+
 1. Click "Create New Project" button
 2. Fill in name: "Existing Project"
 3. Click "Create Project"
 
 **Expected Result**:
+
 - Error message: "Project with this name already exists"
 - No duplicate created
 - Form remains open for correction
@@ -156,12 +170,15 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: Duplicate detection works regardless of case
 
 **Preconditions**:
+
 - Project "Test Project" exists
 
 **Steps**:
+
 1. Try to create "test project" (lowercase)
 
 **Expected Result**:
+
 - Detected as duplicate
 - Error shown
 
@@ -175,9 +192,11 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: System handles very long project names
 
 **Steps**:
+
 1. Create project with name of 255 characters
 
 **Expected Result**:
+
 - Project created (if within limit)
 - Name displayed correctly (possibly truncated in UI)
 
@@ -191,9 +210,11 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: System handles special characters in project name
 
 **Test Data**:
+
 - Name: `Project #1: "TypeScript" & <React>`
 
 **Expected Result**:
+
 - Project created successfully
 - Special characters preserved
 - No XSS vulnerabilities
@@ -208,11 +229,13 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: User cancels project creation without saving
 
 **Steps**:
+
 1. Click "Create New Project"
 2. Fill in data
 3. Click "Cancel"
 
 **Expected Result**:
+
 - Form closes
 - No project created
 - No error messages
@@ -227,10 +250,12 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: UI shows loading state during project creation
 
 **Steps**:
+
 1. Fill form and submit
 2. Observe UI during API call
 
 **Expected Result**:
+
 - Loading spinner/indicator visible
 - Submit button disabled
 - Form inputs disabled
@@ -247,12 +272,15 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: System displays all existing projects
 
 **Preconditions**:
+
 - 3 projects exist in database
 
 **Steps**:
+
 1. Navigate to homepage
 
 **Expected Result**:
+
 - All 3 projects displayed
 - Each shows name, description, status
 - Projects are in correct order
@@ -268,12 +296,15 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: System shows empty state when no projects exist
 
 **Preconditions**:
+
 - Database is empty
 
 **Steps**:
+
 1. Navigate to homepage
 
 **Expected Result**:
+
 - Empty state message shown
 - "Create your first project" guidance
 - "Create New Project" button visible
@@ -289,9 +320,11 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: Each project card displays all required information
 
 **Preconditions**:
+
 - Project with all fields populated exists
 
 **Expected Result**:
+
 - Project name visible
 - Description visible
 - Status badge visible
@@ -308,9 +341,11 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: Long descriptions are truncated with ellipsis
 
 **Preconditions**:
+
 - Project with 500-character description exists
 
 **Expected Result**:
+
 - Description truncated at reasonable length
 - Ellipsis (...) shown
 - Option to expand (optional)
@@ -327,9 +362,11 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: User selects a project to work on
 
 **Steps**:
+
 1. Click on project card
 
 **Expected Result**:
+
 - Project card shows selected state (visual indicator)
 - Header shows "Working on: [Project Name]"
 - Selection state saved
@@ -344,12 +381,15 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: User clears current project selection
 
 **Preconditions**:
+
 - Project is selected
 
 **Steps**:
+
 1. Click "Clear" button in header
 
 **Expected Result**:
+
 - Selection cleared
 - "Working on:" header hidden
 - No project has selected state
@@ -364,13 +404,16 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: User switches from one project to another
 
 **Preconditions**:
+
 - Multiple projects exist
 - One is currently selected
 
 **Steps**:
+
 1. Click different project
 
 **Expected Result**:
+
 - Previous selection cleared
 - New project selected
 - Header updates to new project
@@ -385,12 +428,15 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: Project selection survives page reload
 
 **Preconditions**:
+
 - Project selected
 
 **Steps**:
+
 1. Reload page
 
 **Expected Result**:
+
 - Same project still selected
 - Header shows correct project
 - Visual indicator still present
@@ -407,11 +453,13 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: User deletes project after confirming
 
 **Steps**:
+
 1. Click delete button on project card
 2. Verify confirmation modal appears
 3. Click "Delete Project" button
 
 **Expected Result**:
+
 - Confirmation modal shows project name
 - After confirmation, project deleted
 - Project removed from list
@@ -427,10 +475,12 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: User cancels deletion
 
 **Steps**:
+
 1. Click delete button
 2. Click "Cancel" in modal
 
 **Expected Result**:
+
 - Modal closes
 - Project still exists
 - No error messages
@@ -445,12 +495,15 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: Deleting currently selected project clears selection
 
 **Preconditions**:
+
 - Project is selected
 
 **Steps**:
+
 1. Delete the selected project
 
 **Expected Result**:
+
 - Project deleted
 - Selection cleared
 - Header updated
@@ -465,12 +518,15 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: Deleting last project shows empty state
 
 **Preconditions**:
+
 - Only one project exists
 
 **Steps**:
+
 1. Delete the project
 
 **Expected Result**:
+
 - Empty state displayed
 - Helpful message shown
 
@@ -486,10 +542,12 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: System handles server error gracefully
 
 **Steps**:
+
 1. Mock API to return 500
 2. Attempt to create project
 
 **Expected Result**:
+
 - User-friendly error message
 - No application crash
 - Retry option available
@@ -504,10 +562,12 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: System handles network timeout
 
 **Steps**:
+
 1. Mock slow API (10+ seconds)
 2. Attempt operation
 
 **Expected Result**:
+
 - Timeout message shown
 - Ability to retry
 - No hanging state
@@ -522,10 +582,12 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: Graceful behavior when backend is down
 
 **Steps**:
+
 1. Stop backend server
 2. Attempt to load projects
 
 **Expected Result**:
+
 - Clear error message
 - Suggestion to check connection
 - No infinite loading
@@ -540,10 +602,12 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: Handle deleting project that no longer exists
 
 **Steps**:
+
 1. Delete project via API
 2. Try to delete via UI
 
 **Expected Result**:
+
 - Appropriate error message
 - Project removed from UI
 
@@ -559,10 +623,12 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: Form data not preserved on accidental refresh
 
 **Steps**:
+
 1. Fill project form
 2. Refresh page without submitting
 
 **Expected Result**:
+
 - Form data lost (expected behavior)
 - No unsaved data warning (can add in future)
 
@@ -576,10 +642,12 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: New project appears immediately in list
 
 **Steps**:
+
 1. Create project
 2. Observe list
 
 **Expected Result**:
+
 - Project appears immediately
 - No page reload needed
 - List updates automatically
@@ -596,11 +664,13 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: User can navigate using keyboard
 
 **Steps**:
+
 1. Use Tab key to navigate
 2. Use Enter to select
 3. Use Escape to cancel
 
 **Expected Result**:
+
 - Tab order is logical
 - Enter submits forms
 - Escape closes modals
@@ -615,10 +685,12 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: UI works in dark mode
 
 **Steps**:
+
 1. Enable dark mode
 2. Test all workflows
 
 **Expected Result**:
+
 - All elements visible
 - Colors appropriate
 - No contrast issues
@@ -633,10 +705,12 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: UI works on mobile devices
 
 **Steps**:
+
 1. Test on mobile viewport (375x667)
 2. Test all interactions
 
 **Expected Result**:
+
 - Layout adjusts properly
 - Touch targets adequate size
 - No horizontal scroll
@@ -654,12 +728,14 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: All API operations work correctly
 
 **Steps**:
+
 1. Create via POST
 2. Read via GET
 3. Update via PUT
 4. Delete via DELETE
 
 **Expected Result**:
+
 - All operations succeed
 - Data persists correctly
 - Proper HTTP status codes
@@ -675,6 +751,7 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 **Description**: Health endpoint responds correctly
 
 **Expected Result**:
+
 - Returns 200 OK
 - Response time < 100ms
 
@@ -684,43 +761,47 @@ This document provides a comprehensive inventory of all E2E test cases for the Y
 
 ### Implementation Status
 
-| Category | Total | Implemented | In Progress | Not Started |
-|----------|-------|-------------|-------------|-------------|
-| Project Creation | 10 | 2 | 0 | 8 |
-| Project List | 4 | 1 | 0 | 3 |
-| Project Selection | 4 | 0 | 0 | 4 |
-| Project Deletion | 4 | 0 | 0 | 4 |
-| Error Handling | 4 | 0 | 0 | 4 |
-| State Persistence | 2 | 0 | 0 | 2 |
-| User Interface | 3 | 0 | 0 | 3 |
-| API Integration | 2 | 2 | 0 | 0 |
-| **TOTAL** | **33** | **5** | **0** | **28** |
+| Category          | Total  | Implemented | In Progress | Not Started |
+| ----------------- | ------ | ----------- | ----------- | ----------- |
+| Project Creation  | 10     | 2           | 0           | 8           |
+| Project List      | 4      | 1           | 0           | 3           |
+| Project Selection | 4      | 0           | 0           | 4           |
+| Project Deletion  | 4      | 0           | 0           | 4           |
+| Error Handling    | 4      | 0           | 0           | 4           |
+| State Persistence | 2      | 0           | 0           | 2           |
+| User Interface    | 3      | 0           | 0           | 3           |
+| API Integration   | 2      | 2           | 0           | 0           |
+| **TOTAL**         | **33** | **5**       | **0**       | **28**      |
 
 ### Priority Breakdown
 
-| Priority | Count | Implemented | Remaining |
-|----------|-------|-------------|-----------|
-| ⭐ Critical | 10 | 4 | 6 |
-| ⚠️ High | 13 | 1 | 12 |
-| 📋 Medium | 10 | 0 | 10 |
+| Priority    | Count | Implemented | Remaining |
+| ----------- | ----- | ----------- | --------- |
+| ⭐ Critical | 10    | 4           | 6         |
+| ⚠️ High     | 13    | 1           | 12        |
+| 📋 Medium   | 10    | 0           | 10        |
 
 ---
 
 ## Test Execution Plan
 
 ### Phase 1: Critical Path (Issues #21, #22)
+
 **Target**: Week 1  
 **Tests**: PC-001, PC-003, PL-002, PD-001, API-001, API-002
 
 ### Phase 2: Validation & Edge Cases
+
 **Target**: Week 2  
 **Tests**: PC-002, PC-004, PC-005, PC-006, PL-001, PS-001, PS-004
 
 ### Phase 3: Error Handling
+
 **Target**: Week 3  
 **Tests**: EH-001, EH-002, PD-002, PD-003
 
 ### Phase 4: Polish & Enhancement
+
 **Target**: Week 4  
 **Tests**: Remaining medium priority tests
 

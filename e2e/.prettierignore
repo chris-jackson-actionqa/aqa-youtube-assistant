@@ -1,6 +1,5 @@
 playwright-report/
 test-results/
 node_modules/
-*.json
-*.md
+package-lock.json
 coverage/
