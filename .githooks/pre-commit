@@ -129,6 +129,65 @@ else
     echo "✅ Frontend checks passed!"
 fi
 
+echo ""
+
+# Run E2E checks
+echo "🎭 Running E2E checks..."
+cd e2e
+
+# Check if node_modules exists (E2E dependencies installed)
+if [ ! -d "node_modules" ]; then
+    echo "⚠️  E2E dependencies not installed. Skipping E2E checks."
+    echo "Run 'cd e2e && npm install' to enable E2E linting and formatting."
+else
+    # Run Prettier format check
+    echo "  → Checking code formatting with Prettier..."
+    npm run format:check --silent
+    E2E_PRETTIER_EXIT_CODE=$?
+    
+    if [ $E2E_PRETTIER_EXIT_CODE -ne 0 ]; then
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "❌ E2E code formatting check failed! Commit aborted."
+        echo "Run 'cd e2e && npm run format' to fix formatting issues."
+        cd ..
+        exit 1
+    fi
+    echo "  ✓ Code formatting passed"
+
+    # Run ESLint
+    echo "  → Linting with ESLint..."
+    npm run lint --silent
+    E2E_ESLINT_EXIT_CODE=$?
+    
+    if [ $E2E_ESLINT_EXIT_CODE -ne 0 ]; then
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "❌ E2E ESLint check failed! Commit aborted."
+        echo "Run 'cd e2e && npm run lint:fix' to fix linting issues."
+        cd ..
+        exit 1
+    fi
+    echo "  ✓ ESLint passed"
+
+    # Run TypeScript type checking
+    echo "  → Type checking with TypeScript..."
+    npm run type-check --silent
+    E2E_TYPECHECK_EXIT_CODE=$?
+    
+    if [ $E2E_TYPECHECK_EXIT_CODE -ne 0 ]; then
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "❌ E2E type checking failed! Commit aborted."
+        echo "Fix type errors before committing."
+        cd ..
+        exit 1
+    fi
+    echo "  ✓ Type checking passed"
+
+    echo "✅ E2E checks passed!"
+    
+    # Return to the root directory
+    cd ..
+fi
+
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "✅ All tests passed!"
 exit 0

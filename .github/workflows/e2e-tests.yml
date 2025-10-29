@@ -96,6 +96,25 @@ jobs:
         working-directory: e2e
         run: npm ci
       
+      - name: Run E2E code quality checks
+        working-directory: e2e
+        run: |
+          echo "Running E2E code quality checks..."
+          
+          # Check code formatting with Prettier
+          echo "→ Checking code formatting..."
+          npm run format:check
+          
+          # Lint with ESLint
+          echo "→ Linting code..."
+          npm run lint
+          
+          # Type check with TypeScript
+          echo "→ Type checking..."
+          npm run type-check
+          
+          echo "✅ E2E code quality checks passed!"
+      
       - name: Install Playwright system dependencies
         working-directory: e2e
         run: npx playwright install-deps
