@@ -253,8 +253,11 @@ class TestMigrationIdempotency:
         # Run migration first time
         migrate_add_workspaces.migrate()
 
-        # Add projects
+        # Create projects table with workspace_id and add projects
         engine = create_engine(f"sqlite:///{db_path}")
+        # Use the Project model to create the table schema
+        Project.__table__.create(engine)
+
         with Session(engine) as session:
             projects = [
                 Project(name="Project A", workspace_id=1),

@@ -36,11 +36,16 @@ from sqlalchemy.orm import Session, declarative_base
 # Add the app directory to the Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "app"))
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./youtube_assistant.db")
-connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
-
-engine = create_engine(DATABASE_URL, connect_args=connect_args)
 Base = declarative_base()
+
+
+def get_engine():
+    """Get database engine based on current DATABASE_URL environment variable."""
+    database_url = os.getenv("DATABASE_URL", "sqlite:///./youtube_assistant.db")
+    connect_args = (
+        {"check_same_thread": False} if database_url.startswith("sqlite") else {}
+    )
+    return create_engine(database_url, connect_args=connect_args)
 
 
 class Workspace(Base):
@@ -100,6 +105,8 @@ def index_exists(inspector, table_name: str, index_name: str) -> bool:
 
 def migrate():
     """Run the migration to add workspaces functionality."""
+    engine = get_engine()
+    database_url = os.getenv("DATABASE_URL", "sqlite:///./youtube_assistant.db")
     inspector = inspect(engine)
 
     print("Starting migration: Adding workspaces functionality...")
@@ -137,7 +144,7 @@ def migrate():
             with engine.connect() as conn:
                 # SQLite doesn't support ALTER TABLE ADD COLUMN with all constraints
                 # so we add the column first, then create the index
-                if DATABASE_URL.startswith("sqlite"):
+                if database_url.startswith("sqlite"):
                     conn.execute(
                         text(
                             "ALTER TABLE projects "
