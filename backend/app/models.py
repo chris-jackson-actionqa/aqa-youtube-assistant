@@ -80,6 +80,9 @@ class Project(Base):
     name = Column(String(255), nullable=False, index=True)
     description = Column(Text)
     status = Column(String(50), default="planned")
+    # Workspace foreign key with default=1 references "Default Workspace"
+    # The migration script ensures workspace id=1 always exists
+    # Future enhancement: Add DB constraint to prevent deletion of workspace id=1
     workspace_id = Column(
         Integer,
         ForeignKey("workspaces.id", ondelete="CASCADE"),

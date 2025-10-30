@@ -29,6 +29,7 @@ from sqlalchemy import (
     create_engine,
     func,
     inspect,
+    text,
 )
 from sqlalchemy.orm import Session, declarative_base
 
@@ -138,18 +139,27 @@ def migrate():
                 # so we add the column first, then create the index
                 if DATABASE_URL.startswith("sqlite"):
                     conn.execute(
-                        "ALTER TABLE projects ADD COLUMN workspace_id INTEGER DEFAULT 1"
+                        text(
+                            "ALTER TABLE projects "
+                            "ADD COLUMN workspace_id INTEGER DEFAULT 1"
+                        )
                     )
                     conn.commit()
                 else:
                     # PostgreSQL syntax
                     conn.execute(
-                        "ALTER TABLE projects ADD COLUMN workspace_id INTEGER DEFAULT 1"
+                        text(
+                            "ALTER TABLE projects "
+                            "ADD COLUMN workspace_id INTEGER DEFAULT 1"
+                        )
                     )
                     conn.execute(
-                        "ALTER TABLE projects ADD CONSTRAINT fk_project_workspace "
-                        "FOREIGN KEY (workspace_id) REFERENCES workspaces(id) "
-                        "ON DELETE CASCADE"
+                        text(
+                            "ALTER TABLE projects "
+                            "ADD CONSTRAINT fk_project_workspace "
+                            "FOREIGN KEY (workspace_id) REFERENCES workspaces(id) "
+                            "ON DELETE CASCADE"
+                        )
                     )
                     conn.commit()
             print("✓ workspace_id column added to projects table")
@@ -159,7 +169,7 @@ def migrate():
         # Step 4: Update existing projects to have workspace_id=1
         with Session(engine) as session:
             result = session.execute(
-                "UPDATE projects SET workspace_id = 1 WHERE workspace_id IS NULL"
+                text("UPDATE projects SET workspace_id = 1 WHERE workspace_id IS NULL")
             )
             session.commit()
             if result.rowcount > 0:
@@ -175,8 +185,10 @@ def migrate():
             print("Creating index on projects.workspace_id...")
             with engine.connect() as conn:
                 conn.execute(
-                    "CREATE INDEX ix_projects_workspace_id "
-                    "ON projects(workspace_id)"
+                    text(
+                        "CREATE INDEX ix_projects_workspace_id "
+                        "ON projects(workspace_id)"
+                    )
                 )
                 conn.commit()
             print("✓ Index created on projects.workspace_id")
