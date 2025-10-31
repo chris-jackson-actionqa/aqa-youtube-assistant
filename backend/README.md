@@ -117,9 +117,8 @@ The API will be available at http://localhost:8000
 
 ## API Documentation
 
-Once the server is running, visit:
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
+- [Workspace API Documentation](docs/WORKSPACE_API.md) - Complete guide to workspace CRUD endpoints and workspace filtering
+- [Postman Collection Documentation](docs/POSTMAN_COLLECTION.md) - API testing examples
 
 ## API Endpoints
 
