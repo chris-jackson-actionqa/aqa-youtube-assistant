@@ -38,7 +38,10 @@ function TestComponent() {
       <button
         onClick={async () => {
           try {
-            await createWorkspace("New Workspace", "New description");
+            await createWorkspace({
+              name: "New Workspace",
+              description: "New description",
+            });
           } catch {
             // Error handled in context
           }
@@ -49,7 +52,10 @@ function TestComponent() {
       <button
         onClick={async () => {
           try {
-            await updateWorkspace(1, "Updated", "Updated description");
+            await updateWorkspace(1, {
+              name: "Updated",
+              description: "Updated description",
+            });
           } catch {
             // Error handled in context
           }
@@ -376,10 +382,10 @@ describe("WorkspaceContext", () => {
       });
 
       await waitFor(() => {
-        expect(workspaceApi.create).toHaveBeenCalledWith(
-          "New Workspace",
-          "New description"
-        );
+        expect(workspaceApi.create).toHaveBeenCalledWith({
+          name: "New Workspace",
+          description: "New description",
+        });
       });
 
       expect(workspaceApi.list).toHaveBeenCalledTimes(2); // Initial + refresh
@@ -467,11 +473,10 @@ describe("WorkspaceContext", () => {
       });
 
       await waitFor(() => {
-        expect(workspaceApi.update).toHaveBeenCalledWith(
-          1,
-          "Updated",
-          "Updated description"
-        );
+        expect(workspaceApi.update).toHaveBeenCalledWith(1, {
+          name: "Updated",
+          description: "Updated description",
+        });
       });
 
       expect(workspaceApi.list).toHaveBeenCalledTimes(2); // Initial + refresh

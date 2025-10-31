@@ -11,7 +11,11 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import { Workspace } from "../types/workspace";
+import {
+  Workspace,
+  WorkspaceCreate,
+  WorkspaceUpdate,
+} from "../types/workspace";
 import { workspaceApi } from "../lib/workspaceApi";
 
 /**
@@ -25,12 +29,8 @@ export interface WorkspaceContextType {
 
   // Actions
   selectWorkspace: (workspaceId: number) => void;
-  createWorkspace: (name: string, description?: string) => Promise<Workspace>;
-  updateWorkspace: (
-    id: number,
-    name?: string,
-    description?: string
-  ) => Promise<void>;
+  createWorkspace: (data: WorkspaceCreate) => Promise<Workspace>;
+  updateWorkspace: (id: number, data: WorkspaceUpdate) => Promise<void>;
   deleteWorkspace: (id: number) => Promise<void>;
   refreshWorkspaces: () => Promise<void>;
 }
@@ -123,13 +123,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   /**
    * Create a new workspace
    */
-  const createWorkspace = async (
-    name: string,
-    description?: string
-  ): Promise<Workspace> => {
+  const createWorkspace = async (data: WorkspaceCreate): Promise<Workspace> => {
     setError(null);
     try {
-      const newWorkspace = await workspaceApi.create(name, description);
+      const newWorkspace = await workspaceApi.create(data);
       await refreshWorkspaces();
       return newWorkspace;
     } catch (err) {
@@ -145,12 +142,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
    */
   const updateWorkspace = async (
     id: number,
-    name?: string,
-    description?: string
+    data: WorkspaceUpdate
   ): Promise<void> => {
     setError(null);
     try {
-      await workspaceApi.update(id, name, description);
+      await workspaceApi.update(id, data);
       await refreshWorkspaces();
     } catch (err) {
       const errorMessage =

@@ -3,7 +3,11 @@
  * Handles CRUD operations for workspaces
  */
 
-import { Workspace } from "../types/workspace";
+import {
+  Workspace,
+  WorkspaceCreate,
+  WorkspaceUpdate,
+} from "../types/workspace";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -86,31 +90,20 @@ export const workspaceApi = {
   /**
    * Create a new workspace
    */
-  create: async (name: string, description?: string): Promise<Workspace> => {
-    const body: { name: string; description?: string } = { name };
-    if (description !== undefined) {
-      body.description = description;
-    }
+  create: async (data: WorkspaceCreate): Promise<Workspace> => {
     return workspaceApiFetch<Workspace>("/api/workspaces", {
       method: "POST",
-      body: JSON.stringify(body),
+      body: JSON.stringify(data),
     });
   },
 
   /**
    * Update an existing workspace
    */
-  update: async (
-    id: number,
-    name?: string,
-    description?: string
-  ): Promise<Workspace> => {
-    const body: Record<string, unknown> = {};
-    if (name !== undefined) body.name = name;
-    if (description !== undefined) body.description = description;
+  update: async (id: number, data: WorkspaceUpdate): Promise<Workspace> => {
     return workspaceApiFetch<Workspace>(`/api/workspaces/${id}`, {
       method: "PUT",
-      body: JSON.stringify(body),
+      body: JSON.stringify(data),
     });
   },
 

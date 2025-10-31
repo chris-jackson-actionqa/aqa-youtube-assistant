@@ -184,10 +184,10 @@ describe("Workspace API Client", () => {
         json: async () => mockWorkspace,
       });
 
-      const result = await workspaceApi.create(
-        "New Workspace",
-        "New workspace description"
-      );
+      const result = await workspaceApi.create({
+        name: "New Workspace",
+        description: "New workspace description",
+      });
 
       expect(global.fetch).toHaveBeenCalledWith(
         "http://localhost:8000/api/workspaces",
@@ -214,7 +214,10 @@ describe("Workspace API Client", () => {
       });
 
       await expect(
-        workspaceApi.create("Duplicate", "Duplicate workspace")
+        workspaceApi.create({
+          name: "Duplicate",
+          description: "Duplicate workspace",
+        })
       ).rejects.toThrow(WorkspaceApiError);
 
       // Reset mock for second call
@@ -226,7 +229,10 @@ describe("Workspace API Client", () => {
       });
 
       await expect(
-        workspaceApi.create("Duplicate", "Duplicate workspace")
+        workspaceApi.create({
+          name: "Duplicate",
+          description: "Duplicate workspace",
+        })
       ).rejects.toThrow("Workspace name already exists");
     });
 
@@ -243,7 +249,7 @@ describe("Workspace API Client", () => {
         json: async () => mockWorkspace,
       });
 
-      const result = await workspaceApi.create("Minimal Workspace");
+      const result = await workspaceApi.create({ name: "Minimal Workspace" });
 
       expect(global.fetch).toHaveBeenCalledWith(
         "http://localhost:8000/api/workspaces",
@@ -273,7 +279,10 @@ describe("Workspace API Client", () => {
         json: async () => mockWorkspace,
       });
 
-      const result = await workspaceApi.create("Another Workspace", undefined);
+      const result = await workspaceApi.create({
+        name: "Another Workspace",
+        description: undefined,
+      });
 
       expect(global.fetch).toHaveBeenCalledWith(
         "http://localhost:8000/api/workspaces",
@@ -281,6 +290,7 @@ describe("Workspace API Client", () => {
           method: "POST",
           body: JSON.stringify({
             name: "Another Workspace",
+            description: undefined,
           }),
           headers: {
             "Content-Type": "application/json",
@@ -305,11 +315,10 @@ describe("Workspace API Client", () => {
         json: async () => mockUpdatedWorkspace,
       });
 
-      const result = await workspaceApi.update(
-        1,
-        "Updated Name",
-        "Updated description"
-      );
+      const result = await workspaceApi.update(1, {
+        name: "Updated Name",
+        description: "Updated description",
+      });
 
       expect(global.fetch).toHaveBeenCalledWith(
         "http://localhost:8000/api/workspaces/1",
@@ -336,7 +345,10 @@ describe("Workspace API Client", () => {
       });
 
       await expect(
-        workspaceApi.update(999, "Name", "Description")
+        workspaceApi.update(999, {
+          name: "Name",
+          description: "Description",
+        })
       ).rejects.toThrow(WorkspaceApiError);
 
       // Reset mock for second call
@@ -348,7 +360,10 @@ describe("Workspace API Client", () => {
       });
 
       await expect(
-        workspaceApi.update(999, "Name", "Description")
+        workspaceApi.update(999, {
+          name: "Name",
+          description: "Description",
+        })
       ).rejects.toThrow("Workspace not found");
     });
 
@@ -365,7 +380,7 @@ describe("Workspace API Client", () => {
         json: async () => mockUpdatedWorkspace,
       });
 
-      const result = await workspaceApi.update(1, "New Name Only");
+      const result = await workspaceApi.update(1, { name: "New Name Only" });
 
       expect(global.fetch).toHaveBeenCalledWith(
         "http://localhost:8000/api/workspaces/1",
@@ -395,11 +410,9 @@ describe("Workspace API Client", () => {
         json: async () => mockUpdatedWorkspace,
       });
 
-      const result = await workspaceApi.update(
-        1,
-        undefined,
-        "New Description Only"
-      );
+      const result = await workspaceApi.update(1, {
+        description: "New Description Only",
+      });
 
       expect(global.fetch).toHaveBeenCalledWith(
         "http://localhost:8000/api/workspaces/1",
@@ -429,7 +442,7 @@ describe("Workspace API Client", () => {
         json: async () => mockUpdatedWorkspace,
       });
 
-      const result = await workspaceApi.update(1);
+      const result = await workspaceApi.update(1, {});
 
       expect(global.fetch).toHaveBeenCalledWith(
         "http://localhost:8000/api/workspaces/1",
