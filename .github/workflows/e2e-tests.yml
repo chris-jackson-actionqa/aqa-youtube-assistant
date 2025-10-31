@@ -42,12 +42,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       
+      - name: Initialize database
+        working-directory: backend
+        run: |
+          # Run workspace migration to create default workspace
+          python migrate_add_workspaces.py
+          echo "Database initialized with default workspace"
+      
       - name: Start backend server
         working-directory: backend
         run: |
-          # Use in-memory SQLite for CI testing (faster, isolated)
-          export DATABASE_URL="sqlite:///:memory:"
-          # Start server in background
+          # Start server in background (uses youtube_assistant.db created by migration)
           python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
           # Save PID for later cleanup
           echo $! > backend.pid
