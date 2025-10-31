@@ -73,19 +73,25 @@ describe("WorkspaceCreateModal", () => {
     it("should render Cancel button", async () => {
       renderWithProvider();
 
-      expect(screen.getByRole("button", { name: /cancel/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /cancel/i })
+      ).toBeInTheDocument();
     });
 
     it("should render Create button", async () => {
       renderWithProvider();
 
-      expect(screen.getByRole("button", { name: /^create$/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /^create$/i })
+      ).toBeInTheDocument();
     });
 
     it("should render close button", async () => {
       renderWithProvider();
 
-      expect(screen.getByRole("button", { name: /close modal/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /close modal/i })
+      ).toBeInTheDocument();
     });
 
     it("should show character counters", async () => {
@@ -184,7 +190,9 @@ describe("WorkspaceCreateModal", () => {
       const user = userEvent.setup();
       renderWithProvider();
 
-      const descInput = screen.getByLabelText(/description/i) as HTMLTextAreaElement;
+      const descInput = screen.getByLabelText(
+        /description/i
+      ) as HTMLTextAreaElement;
       await user.type(descInput, "Test description");
 
       expect(descInput.value).toBe("Test description");
@@ -225,7 +233,9 @@ describe("WorkspaceCreateModal", () => {
       const user = userEvent.setup();
       renderWithProvider();
 
-      const descInput = screen.getByLabelText(/description/i) as HTMLTextAreaElement;
+      const descInput = screen.getByLabelText(
+        /description/i
+      ) as HTMLTextAreaElement;
       const longText = "a".repeat(600);
       await user.type(descInput, longText);
 
@@ -241,7 +251,9 @@ describe("WorkspaceCreateModal", () => {
       const createBtn = screen.getByRole("button", { name: /^create$/i });
       await user.click(createBtn);
 
-      expect(screen.getByText("Workspace name is required")).toBeInTheDocument();
+      expect(
+        screen.getByText("Workspace name is required")
+      ).toBeInTheDocument();
     });
 
     it("should show error when name is only whitespace", async () => {
@@ -254,7 +266,9 @@ describe("WorkspaceCreateModal", () => {
       const createBtn = screen.getByRole("button", { name: /^create$/i });
       await user.click(createBtn);
 
-      expect(screen.getByText("Workspace name is required")).toBeInTheDocument();
+      expect(
+        screen.getByText("Workspace name is required")
+      ).toBeInTheDocument();
     });
 
     it("should mark name input as invalid when error", async () => {
@@ -286,7 +300,9 @@ describe("WorkspaceCreateModal", () => {
       const createBtn = screen.getByRole("button", { name: /^create$/i });
       await user.click(createBtn);
 
-      expect(screen.getByText("Workspace name is required")).toBeInTheDocument();
+      expect(
+        screen.getByText("Workspace name is required")
+      ).toBeInTheDocument();
 
       const nameInput = screen.getByLabelText(/name/i);
       await user.type(nameInput, "New");
@@ -295,7 +311,9 @@ describe("WorkspaceCreateModal", () => {
       await user.click(createBtn);
 
       // Error should be different or gone
-      expect(screen.queryByText("Workspace name is required")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Workspace name is required")
+      ).not.toBeInTheDocument();
     });
 
     it("should show error when name exceeds 100 characters", async () => {
@@ -304,7 +322,7 @@ describe("WorkspaceCreateModal", () => {
 
       const nameInput = screen.getByLabelText(/name/i) as HTMLInputElement;
       const longName = "a".repeat(101); // 101 characters
-      
+
       // Use fireEvent to directly set the value
       fireEvent.change(nameInput, { target: { value: longName } });
 
@@ -323,7 +341,9 @@ describe("WorkspaceCreateModal", () => {
       const nameInput = screen.getByLabelText(/name/i) as HTMLInputElement;
       fireEvent.change(nameInput, { target: { value: "Valid Name" } });
 
-      const descInput = screen.getByLabelText(/description/i) as HTMLTextAreaElement;
+      const descInput = screen.getByLabelText(
+        /description/i
+      ) as HTMLTextAreaElement;
       const longDescription = "a".repeat(501); // 501 characters
       fireEvent.change(descInput, { target: { value: longDescription } });
 
@@ -548,7 +568,9 @@ describe("WorkspaceCreateModal", () => {
       await user.click(createBtn);
 
       await waitFor(() => {
-        expect(screen.getByText("Failed to create workspace")).toBeInTheDocument();
+        expect(
+          screen.getByText("Failed to create workspace")
+        ).toBeInTheDocument();
       });
     });
 
@@ -565,7 +587,9 @@ describe("WorkspaceCreateModal", () => {
       await user.click(createBtn);
 
       await waitFor(() => {
-        expect(screen.getByText("Failed to create workspace")).toBeInTheDocument();
+        expect(
+          screen.getByText("Failed to create workspace")
+        ).toBeInTheDocument();
       });
     });
 
@@ -584,7 +608,9 @@ describe("WorkspaceCreateModal", () => {
       await user.click(createBtn);
 
       await waitFor(() => {
-        expect(screen.getByText("Failed to create workspace")).toBeInTheDocument();
+        expect(
+          screen.getByText("Failed to create workspace")
+        ).toBeInTheDocument();
       });
 
       expect(mockOnClose).not.toHaveBeenCalled();
@@ -605,7 +631,9 @@ describe("WorkspaceCreateModal", () => {
       await user.click(createBtn);
 
       await waitFor(() => {
-        expect(screen.getByText("Failed to create workspace")).toBeInTheDocument();
+        expect(
+          screen.getByText("Failed to create workspace")
+        ).toBeInTheDocument();
       });
 
       expect(createBtn).not.toBeDisabled();
@@ -705,7 +733,10 @@ describe("WorkspaceCreateModal", () => {
 
       const modal = screen.getByRole("dialog");
       expect(modal).toHaveAttribute("aria-labelledby", "modal-title");
-      expect(screen.getByText("Create Workspace")).toHaveAttribute("id", "modal-title");
+      expect(screen.getByText("Create Workspace")).toHaveAttribute(
+        "id",
+        "modal-title"
+      );
     });
 
     it("should have proper form labels", async () => {
@@ -790,7 +821,7 @@ describe("WorkspaceCreateModal", () => {
 
       // Should not have called createWorkspace (Enter was prevented)
       expect(workspaceApi.create).not.toHaveBeenCalled();
-      
+
       // Modal should still be open (not closed)
       expect(screen.getByTestId("workspace-create-modal")).toBeInTheDocument();
     });

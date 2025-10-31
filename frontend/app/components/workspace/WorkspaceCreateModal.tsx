@@ -175,7 +175,10 @@ export default function WorkspaceCreateModal({
               htmlFor="workspace-name"
               className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
-              Name <span className="text-red-600" aria-label="required">*</span>
+              Name{" "}
+              <span className="text-red-600" aria-label="required">
+                *
+              </span>
             </label>
             <input
               ref={nameInputRef}

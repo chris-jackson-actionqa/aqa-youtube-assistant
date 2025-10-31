@@ -4,12 +4,7 @@
  */
 
 import React from "react";
-import {
-  render,
-  screen,
-  waitFor,
-  within,
-} from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import userEvent from "@testing-library/user-event";
 import WorkspaceSelector from "../WorkspaceSelector";
@@ -22,7 +17,11 @@ jest.mock("../../../lib/workspaceApi");
 
 // Mock WorkspaceCreateModal to avoid dependency
 jest.mock("../WorkspaceCreateModal", () => {
-  return function MockWorkspaceCreateModal({ onClose }: { onClose: () => void }) {
+  return function MockWorkspaceCreateModal({
+    onClose,
+  }: {
+    onClose: () => void;
+  }) {
     return (
       <div data-testid="create-modal">
         <button onClick={onClose}>Close Modal</button>
@@ -90,7 +89,9 @@ describe("WorkspaceSelector", () => {
       renderWithProvider();
 
       await waitFor(() => {
-        const button = screen.getByRole("button", { name: /current workspace/i });
+        const button = screen.getByRole("button", {
+          name: /current workspace/i,
+        });
         const svg = button.querySelector('svg[viewBox="0 0 24 24"]');
         expect(svg).toBeInTheDocument();
       });
@@ -100,7 +101,9 @@ describe("WorkspaceSelector", () => {
       renderWithProvider();
 
       await waitFor(() => {
-        const button = screen.getByRole("button", { name: /current workspace/i });
+        const button = screen.getByRole("button", {
+          name: /current workspace/i,
+        });
         const svgs = button.querySelectorAll("svg");
         expect(svgs.length).toBeGreaterThanOrEqual(2);
       });
@@ -110,7 +113,9 @@ describe("WorkspaceSelector", () => {
       renderWithProvider();
 
       await waitFor(() => {
-        const button = screen.getByRole("button", { name: /current workspace/i });
+        const button = screen.getByRole("button", {
+          name: /current workspace/i,
+        });
         expect(button).toHaveAttribute("aria-expanded", "false");
         expect(button).toHaveAttribute("aria-haspopup", "listbox");
       });
@@ -130,7 +135,9 @@ describe("WorkspaceSelector", () => {
       await user.click(button);
 
       expect(button).toHaveAttribute("aria-expanded", "true");
-      expect(screen.getByRole("listbox", { name: /workspace list/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("listbox", { name: /workspace list/i })
+      ).toBeInTheDocument();
     });
 
     it("should close dropdown when clicked again", async () => {
@@ -142,7 +149,7 @@ describe("WorkspaceSelector", () => {
       });
 
       const button = screen.getByRole("button", { name: /current workspace/i });
-      
+
       // Open
       await user.click(button);
       expect(button).toHaveAttribute("aria-expanded", "true");
@@ -161,10 +168,14 @@ describe("WorkspaceSelector", () => {
         expect(screen.getByText("Default Workspace")).toBeInTheDocument();
       });
 
-      await user.click(screen.getByRole("button", { name: /current workspace/i }));
+      await user.click(
+        screen.getByRole("button", { name: /current workspace/i })
+      );
 
       // Check each workspace appears in dropdown (use getAllByText for duplicates)
-      expect(screen.getAllByText("Default Workspace").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Default Workspace").length).toBeGreaterThan(
+        0
+      );
       expect(screen.getByText("Marketing Projects")).toBeInTheDocument();
       expect(screen.getByText("Client Work")).toBeInTheDocument();
     });
@@ -177,7 +188,9 @@ describe("WorkspaceSelector", () => {
         expect(screen.getByText("Default Workspace")).toBeInTheDocument();
       });
 
-      await user.click(screen.getByRole("button", { name: /current workspace/i }));
+      await user.click(
+        screen.getByRole("button", { name: /current workspace/i })
+      );
 
       const options = screen.getAllByRole("option");
       const selectedOption = options.find((opt) =>
@@ -196,7 +209,9 @@ describe("WorkspaceSelector", () => {
         expect(screen.getByText("Default Workspace")).toBeInTheDocument();
       });
 
-      await user.click(screen.getByRole("button", { name: /current workspace/i }));
+      await user.click(
+        screen.getByRole("button", { name: /current workspace/i })
+      );
 
       expect(screen.getByText("Create Workspace")).toBeInTheDocument();
     });
@@ -250,13 +265,17 @@ describe("WorkspaceSelector", () => {
         expect(screen.getByText("Default Workspace")).toBeInTheDocument();
       });
 
-      await user.click(screen.getByRole("button", { name: /current workspace/i }));
+      await user.click(
+        screen.getByRole("button", { name: /current workspace/i })
+      );
 
       const marketingOption = screen.getByText("Marketing Projects");
       await user.click(marketingOption);
 
       await waitFor(() => {
-        expect(localStorage.getItem("aqa-youtube-assistant:selected-workspace-id")).toBe("2");
+        expect(
+          localStorage.getItem("aqa-youtube-assistant:selected-workspace-id")
+        ).toBe("2");
       });
     });
   });
@@ -270,7 +289,9 @@ describe("WorkspaceSelector", () => {
         expect(screen.getByText("Default Workspace")).toBeInTheDocument();
       });
 
-      await user.click(screen.getByRole("button", { name: /current workspace/i }));
+      await user.click(
+        screen.getByRole("button", { name: /current workspace/i })
+      );
 
       const createButton = screen.getByText("Create Workspace");
       await user.click(createButton);
@@ -303,7 +324,9 @@ describe("WorkspaceSelector", () => {
         expect(screen.getByText("Default Workspace")).toBeInTheDocument();
       });
 
-      await user.click(screen.getByRole("button", { name: /current workspace/i }));
+      await user.click(
+        screen.getByRole("button", { name: /current workspace/i })
+      );
 
       const createButton = screen.getByText("Create Workspace");
       await user.click(createButton);
@@ -392,7 +415,7 @@ describe("WorkspaceSelector", () => {
 
       // First ArrowDown should focus first option
       await user.keyboard("{ArrowDown}");
-      
+
       const options = screen.getAllByRole("option");
       expect(options[0]).toHaveClass("bg-gray-100");
     });
@@ -410,12 +433,14 @@ describe("WorkspaceSelector", () => {
 
       // ArrowUp from -1 should wrap to last item (Create Workspace button)
       await user.keyboard("{ArrowUp}");
-      
+
       // The create workspace button should be focused
       // Check using the option role and text content
       const allOptions = screen.getAllByRole("option");
       const lastOption = allOptions[allOptions.length - 1];
-      expect(within(lastOption).getByText("Create Workspace")).toBeInTheDocument();
+      expect(
+        within(lastOption).getByText("Create Workspace")
+      ).toBeInTheDocument();
     });
 
     it("should select workspace with Enter key", async () => {
@@ -432,7 +457,7 @@ describe("WorkspaceSelector", () => {
       // Navigate to second option
       await user.keyboard("{ArrowDown}");
       await user.keyboard("{ArrowDown}");
-      
+
       // Select with Enter
       await user.keyboard("{Enter}");
 
@@ -457,7 +482,7 @@ describe("WorkspaceSelector", () => {
       await user.keyboard("{ArrowDown}");
       await user.keyboard("{ArrowDown}");
       await user.keyboard("{ArrowDown}");
-      
+
       // Select with Space
       await user.keyboard(" ");
 
@@ -483,7 +508,7 @@ describe("WorkspaceSelector", () => {
       for (let i = 0; i < options.length; i++) {
         await user.keyboard("{ArrowDown}");
       }
-      
+
       // Select with Enter
       await user.keyboard("{Enter}");
 
@@ -498,15 +523,17 @@ describe("WorkspaceSelector", () => {
         expect(screen.getByText("Default Workspace")).toBeInTheDocument();
       });
 
-      await user.click(screen.getByRole("button", { name: /current workspace/i }));
+      await user.click(
+        screen.getByRole("button", { name: /current workspace/i })
+      );
 
       // Navigate somewhere first
       await user.keyboard("{ArrowDown}");
       await user.keyboard("{ArrowDown}");
-      
+
       // Press Home
       await user.keyboard("{Home}");
-      
+
       const options = screen.getAllByRole("option");
       expect(options[0]).toHaveClass("bg-gray-100");
     });
@@ -519,11 +546,13 @@ describe("WorkspaceSelector", () => {
         expect(screen.getByText("Default Workspace")).toBeInTheDocument();
       });
 
-      await user.click(screen.getByRole("button", { name: /current workspace/i }));
+      await user.click(
+        screen.getByRole("button", { name: /current workspace/i })
+      );
 
       // Press End
       await user.keyboard("{End}");
-      
+
       const options = screen.getAllByRole("option");
       const lastOption = options[options.length - 1];
       expect(lastOption).toHaveClass("bg-gray-100");
@@ -537,7 +566,9 @@ describe("WorkspaceSelector", () => {
         expect(screen.getByText("Default Workspace")).toBeInTheDocument();
       });
 
-      await user.click(screen.getByRole("button", { name: /current workspace/i }));
+      await user.click(
+        screen.getByRole("button", { name: /current workspace/i })
+      );
 
       const options = screen.getAllByRole("option");
       const totalOptions = options.length;
@@ -546,7 +577,7 @@ describe("WorkspaceSelector", () => {
       for (let i = 0; i <= totalOptions; i++) {
         await user.keyboard("{ArrowDown}");
       }
-      
+
       // Should wrap to first option
       expect(options[0]).toHaveClass("bg-gray-100");
     });
@@ -622,7 +653,9 @@ describe("WorkspaceSelector", () => {
         expect(screen.getByText("Default Workspace")).toBeInTheDocument();
       });
 
-      await user.click(screen.getByRole("button", { name: /current workspace/i }));
+      await user.click(
+        screen.getByRole("button", { name: /current workspace/i })
+      );
 
       expect(screen.getByRole("listbox")).toBeInTheDocument();
       expect(screen.getAllByRole("option").length).toBeGreaterThan(0);
@@ -636,7 +669,9 @@ describe("WorkspaceSelector", () => {
         expect(screen.getByText("Default Workspace")).toBeInTheDocument();
       });
 
-      await user.click(screen.getByRole("button", { name: /current workspace/i }));
+      await user.click(
+        screen.getByRole("button", { name: /current workspace/i })
+      );
 
       const listbox = screen.getByRole("listbox", { name: /workspace list/i });
       expect(listbox).toBeInTheDocument();
@@ -650,7 +685,9 @@ describe("WorkspaceSelector", () => {
         expect(screen.getByText("Default Workspace")).toBeInTheDocument();
       });
 
-      await user.click(screen.getByRole("button", { name: /current workspace/i }));
+      await user.click(
+        screen.getByRole("button", { name: /current workspace/i })
+      );
 
       const options = screen.getAllByRole("option");
       options.forEach((option) => {
@@ -666,7 +703,9 @@ describe("WorkspaceSelector", () => {
         expect(screen.getByText("Default Workspace")).toBeInTheDocument();
       });
 
-      await user.click(screen.getByRole("button", { name: /current workspace/i }));
+      await user.click(
+        screen.getByRole("button", { name: /current workspace/i })
+      );
 
       expect(screen.getByRole("separator")).toBeInTheDocument();
     });
@@ -694,7 +733,7 @@ describe("WorkspaceSelector", () => {
   describe("Edge Cases", () => {
     it("should handle empty workspace list gracefully", async () => {
       (workspaceApi.list as jest.Mock).mockResolvedValue([]);
-      
+
       renderWithProvider();
 
       await waitFor(() => {
@@ -704,7 +743,7 @@ describe("WorkspaceSelector", () => {
 
     it("should not crash if currentWorkspace is null", async () => {
       (workspaceApi.list as jest.Mock).mockResolvedValue([]);
-      
+
       renderWithProvider();
 
       await waitFor(() => {
@@ -729,7 +768,7 @@ describe("WorkspaceSelector", () => {
       await user.click(button);
       await user.click(button);
       await user.click(button);
-      
+
       // Final state should be open (odd number of clicks)
       await waitFor(() => {
         expect(button).toHaveAttribute("aria-expanded", "true");
@@ -758,7 +797,9 @@ describe("WorkspaceSelector", () => {
       await user.click(button);
 
       const options = screen.getAllByRole("option");
-      const focusedOptions = options.filter((opt) => opt.classList.contains("bg-gray-100"));
+      const focusedOptions = options.filter((opt) =>
+        opt.classList.contains("bg-gray-100")
+      );
       expect(focusedOptions.length).toBe(0);
     });
   });
