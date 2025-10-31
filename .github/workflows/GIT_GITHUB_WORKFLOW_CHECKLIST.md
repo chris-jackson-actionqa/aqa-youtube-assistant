@@ -92,6 +92,28 @@ git add <fixed-files>
 git commit -m "message"
 ```
 
+**⚠️ CRITICAL: Pre-Commit Hooks**
+
+Pre-commit hooks run automatically when you commit. They exist to catch issues before they reach the repository:
+
+- **If pre-commit hooks fail**: The commit will be aborted
+- **Your responsibility**: Fix the issues, don't bypass the hooks
+- **NEVER use `--no-verify` or `--no-hooks`**: These flags bypass quality checks
+
+**Common hook failures and solutions:**
+```bash
+# ❌ WRONG: Bypassing hooks
+git commit --no-verify -m "message"
+
+# ✅ CORRECT: Fix the issues
+# 1. Read the error message
+# 2. Fix the failing tests or linting issues
+# 3. Stage the fixes
+git add <fixed-files>
+# 4. Commit normally (hooks will run again)
+git commit -m "message"
+```
+
 **Commit Message Format:**
 ```
 <type>: <short description>

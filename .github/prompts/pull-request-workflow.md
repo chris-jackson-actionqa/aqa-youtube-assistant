@@ -24,6 +24,7 @@ Please help me complete the pull request workflow for my current branch:
    - Use `gh pr checks <PR_NUMBER> --watch` to monitor in real-time
    - Wait for all checks to complete successfully
    - If any fail, use `gh run view <RUN_ID> --log-failed` to debug
+   - **NEVER bypass failing checks** - Fix the issues instead
 
 4. **Request Copilot code review** using the GitHub MCP server
    - Use `mcp_github_github_request_copilot_review` tool
@@ -52,6 +53,8 @@ Please help me complete the pull request workflow for my current branch:
      - ✓ E2E tests
    - Confirm code review is approved
    - Ensure no failing tests or linting issues
+   - **CRITICAL**: All checks MUST pass - never merge with failing checks
+   - **NEVER lower coverage thresholds to make checks pass**
 
 7. **Merge the pull request** using the GitHub MCP server
    - Use `mcp_github_github_merge_pull_request` tool
@@ -143,6 +146,10 @@ I'm ready to create a pull request. Please follow the pull request workflow:
   - Frontend tests must pass (98% coverage)
   - E2E tests must pass
   - All linting and formatting checks must pass
+- **NEVER use `--no-verify` to bypass pre-commit hooks**
+- **NEVER lower coverage thresholds to make tests pass**
+- **NEVER exclude files from coverage without explicit permission**
+- **If struggling with coverage**: Ask for help, don't lower standards
 - **CRITICAL**: Always address review comments BEFORE resolving them
   - Implement the requested code changes
   - Test that the changes work

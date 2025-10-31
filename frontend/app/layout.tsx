@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { WorkspaceProvider } from "./contexts/WorkspaceContext";
 import { ProjectProvider } from "./contexts/ProjectContext";
 
 export const metadata: Metadata = {
@@ -16,7 +17,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        <ProjectProvider>{children}</ProjectProvider>
+        <WorkspaceProvider>
+          <ProjectProvider>{children}</ProjectProvider>
+        </WorkspaceProvider>
       </body>
     </html>
   );

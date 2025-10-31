@@ -8,6 +8,20 @@ import { Project, ProjectCreate, ProjectUpdate } from "../types/project";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 /**
+ * Get current workspace ID from localStorage
+ * Defaults to workspace 1 if not found
+ */
+function getWorkspaceId(): number {
+  if (typeof window === "undefined") {
+    return 1; // Default for SSR
+  }
+  const savedId = localStorage.getItem(
+    "aqa-youtube-assistant:selected-workspace-id"
+  );
+  return savedId ? parseInt(savedId, 10) : 1;
+}
+
+/**
  * Custom error class for API errors
  */
 export class ApiError extends Error {
@@ -28,10 +42,13 @@ async function apiFetch<T>(
   endpoint: string,
   options?: RequestInit
 ): Promise<T> {
+  const workspaceId = getWorkspaceId();
+
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       headers: {
         "Content-Type": "application/json",
+        "X-Workspace-Id": workspaceId.toString(),
         ...options?.headers,
       },
       ...options,
