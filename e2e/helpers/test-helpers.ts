@@ -207,14 +207,14 @@ export class ProjectHelpers {
    */
   async ensureDefaultWorkspace(): Promise<void> {
     const context = this.request || this.page.request;
-    
+
     // Try to get workspace 1
     const getResponse = await context.get(`${this.baseURL}/api/workspaces/1`);
-    
+
     if (getResponse.ok()) {
       return; // Workspace already exists
     }
-    
+
     // Create default workspace
     const createResponse = await context.post(`${this.baseURL}/api/workspaces`, {
       data: {
@@ -222,10 +222,12 @@ export class ProjectHelpers {
         description: 'Default workspace for testing',
       },
     });
-    
+
     if (!createResponse.ok()) {
       const errorText = await createResponse.text();
-      throw new Error(`Failed to create default workspace: ${createResponse.status()} - ${errorText}`);
+      throw new Error(
+        `Failed to create default workspace: ${createResponse.status()} - ${errorText}`
+      );
     }
   }
 
@@ -240,7 +242,7 @@ export class ProjectHelpers {
   ): Promise<Project> {
     // Ensure default workspace exists
     await this.ensureDefaultWorkspace();
-    
+
     const context = this.request || this.page.request;
     const response = await context.post(`${this.baseURL}/api/projects`, {
       data: {
