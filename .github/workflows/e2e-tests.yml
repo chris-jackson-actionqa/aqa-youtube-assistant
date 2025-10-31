@@ -42,6 +42,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       
+      # Database Setup for E2E Tests
+      # IMPORTANT: E2E tests use youtube_assistant_test.db (NOT youtube_assistant.db)
+      # This is a separate database file from development to ensure test isolation.
+      # Both migration and server must use the same DATABASE_URL environment variable.
+      # See backend/docs/DATABASE_MANAGEMENT.md for details.
       - name: Initialize database
         working-directory: backend
         env:

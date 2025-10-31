@@ -120,6 +120,12 @@ The API will be available at http://localhost:8000
 - [Workspace API Documentation](docs/WORKSPACE_API.md) - Complete guide to workspace CRUD endpoints and workspace filtering
 - [Postman Collection Documentation](docs/POSTMAN_COLLECTION.md) - API testing examples
 
+## Database Management
+
+- [Database Management Guide](docs/DATABASE_MANAGEMENT.md) - **Important:** Understanding development vs test databases, migrations, and environment variables
+
+⚠️ **Critical:** The backend uses **separate SQLite files** for development (`youtube_assistant.db`) and E2E tests (`youtube_assistant_test.db`). When making schema changes, ensure migrations run on **both** databases. See the Database Management Guide for details.
+
 ## API Endpoints
 
 - `GET /` - Root endpoint with API information
