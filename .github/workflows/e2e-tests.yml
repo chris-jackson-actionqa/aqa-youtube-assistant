@@ -44,6 +44,8 @@ jobs:
       
       - name: Initialize database
         working-directory: backend
+        env:
+          DATABASE_URL: "sqlite:///./youtube_assistant_test.db"
         run: |
           # Run workspace migration to create default workspace
           python migrate_add_workspaces.py
@@ -51,8 +53,10 @@ jobs:
       
       - name: Start backend server
         working-directory: backend
+        env:
+          DATABASE_URL: "sqlite:///./youtube_assistant_test.db"
         run: |
-          # Start server in background (uses youtube_assistant.db created by migration)
+          # Start server in background using test database
           python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
           # Save PID for later cleanup
           echo $! > backend.pid
