@@ -22,10 +22,54 @@ describe("API Client", () => {
     jest.clearAllMocks();
     // Clear console.log mock
     jest.spyOn(console, "log").mockImplementation();
+    // Clear localStorage
+    localStorage.clear();
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  describe("Workspace Header", () => {
+    it("should include X-Workspace-Id header from localStorage", async () => {
+      localStorage.setItem("aqa-youtube-assistant:selected-workspace-id", "5");
+      
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],
+      });
+
+      await getProjects();
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            "X-Workspace-Id": "5",
+          }),
+        })
+      );
+    });
+
+    it("should default to workspace ID 1 when not in localStorage", async () => {
+      // localStorage is cleared in beforeEach
+      
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],
+      });
+
+      await getProjects();
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            "X-Workspace-Id": "1",
+          }),
+        })
+      );
+    });
   });
 
   describe("ApiError", () => {
@@ -79,6 +123,7 @@ describe("API Client", () => {
           body: JSON.stringify(projectData),
           headers: {
             "Content-Type": "application/json",
+            "X-Workspace-Id": "1",
           },
         }
       );
@@ -147,6 +192,7 @@ describe("API Client", () => {
         {
           headers: {
             "Content-Type": "application/json",
+            "X-Workspace-Id": "1",
           },
         }
       );
@@ -187,6 +233,7 @@ describe("API Client", () => {
         {
           headers: {
             "Content-Type": "application/json",
+            "X-Workspace-Id": "1",
           },
         }
       );
@@ -247,6 +294,7 @@ describe("API Client", () => {
           body: JSON.stringify(updateData),
           headers: {
             "Content-Type": "application/json",
+            "X-Workspace-Id": "1",
           },
         }
       );
@@ -292,6 +340,7 @@ describe("API Client", () => {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
+            "X-Workspace-Id": "1",
           },
         }
       );
@@ -340,6 +389,7 @@ describe("API Client", () => {
         {
           headers: {
             "Content-Type": "application/json",
+            "X-Workspace-Id": "1",
           },
         }
       );
@@ -466,9 +516,10 @@ describe("API Client", () => {
       expect(global.fetch).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
-          headers: {
+          headers: expect.objectContaining({
             "Content-Type": "application/json",
-          },
+            "X-Workspace-Id": "1",
+          }),
         })
       );
     });
