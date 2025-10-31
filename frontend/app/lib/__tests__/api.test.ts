@@ -33,7 +33,7 @@ describe("API Client", () => {
   describe("Workspace Header", () => {
     it("should include X-Workspace-Id header from localStorage", async () => {
       localStorage.setItem("aqa-youtube-assistant:selected-workspace-id", "5");
-      
+
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => [],
@@ -53,7 +53,7 @@ describe("API Client", () => {
 
     it("should default to workspace ID 1 when not in localStorage", async () => {
       // localStorage is cleared in beforeEach
-      
+
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => [],

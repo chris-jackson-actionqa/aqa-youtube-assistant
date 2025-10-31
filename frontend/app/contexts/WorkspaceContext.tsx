@@ -91,9 +91,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         }
       } catch (err) {
         const errorMessage =
-          err instanceof Error
-            ? err.message
-            : "Failed to load workspaces";
+          err instanceof Error ? err.message : "Failed to load workspaces";
         setError(errorMessage);
       } finally {
         setIsLoading(false);

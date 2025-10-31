@@ -15,7 +15,9 @@ function getWorkspaceId(): number {
   if (typeof window === "undefined") {
     return 1; // Default for SSR
   }
-  const savedId = localStorage.getItem("aqa-youtube-assistant:selected-workspace-id");
+  const savedId = localStorage.getItem(
+    "aqa-youtube-assistant:selected-workspace-id"
+  );
   return savedId ? parseInt(savedId, 10) : 1;
 }
 
@@ -41,7 +43,7 @@ async function apiFetch<T>(
   options?: RequestInit
 ): Promise<T> {
   const workspaceId = getWorkspaceId();
-  
+
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       headers: {

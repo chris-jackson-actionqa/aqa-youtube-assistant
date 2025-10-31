@@ -3,10 +3,7 @@
  * Tests all workspace API functions and error handling
  */
 
-import {
-  workspaceApi,
-  WorkspaceApiError,
-} from "../workspaceApi";
+import { workspaceApi, WorkspaceApiError } from "../workspaceApi";
 import { Workspace } from "../../types/workspace";
 
 // Mock fetch globally
@@ -23,11 +20,9 @@ describe("Workspace API Client", () => {
 
   describe("WorkspaceApiError", () => {
     it("should create a WorkspaceApiError with message, status, and details", () => {
-      const error = new WorkspaceApiError(
-        "Test error",
-        400,
-        { detail: "Bad request" }
-      );
+      const error = new WorkspaceApiError("Test error", 400, {
+        detail: "Bad request",
+      });
 
       expect(error).toBeInstanceOf(Error);
       expect(error.name).toBe("WorkspaceApiError");
@@ -100,7 +95,7 @@ describe("Workspace API Client", () => {
       });
 
       await expect(workspaceApi.list()).rejects.toThrow(WorkspaceApiError);
-      
+
       // Reset mock for second call
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
@@ -108,7 +103,7 @@ describe("Workspace API Client", () => {
         statusText: "Internal Server Error",
         json: async () => ({ detail: "Database error" }),
       });
-      
+
       await expect(workspaceApi.list()).rejects.toThrow("Database error");
     });
 
@@ -160,7 +155,7 @@ describe("Workspace API Client", () => {
       });
 
       await expect(workspaceApi.get(999)).rejects.toThrow(WorkspaceApiError);
-      
+
       // Reset mock for second call
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
@@ -168,7 +163,7 @@ describe("Workspace API Client", () => {
         statusText: "Not Found",
         json: async () => ({ detail: "Workspace not found" }),
       });
-      
+
       await expect(workspaceApi.get(999)).rejects.toThrow(
         "Workspace not found"
       );
@@ -221,7 +216,7 @@ describe("Workspace API Client", () => {
       await expect(
         workspaceApi.create("Duplicate", "Duplicate workspace")
       ).rejects.toThrow(WorkspaceApiError);
-      
+
       // Reset mock for second call
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
@@ -229,7 +224,7 @@ describe("Workspace API Client", () => {
         statusText: "Bad Request",
         json: async () => ({ detail: "Workspace name already exists" }),
       });
-      
+
       await expect(
         workspaceApi.create("Duplicate", "Duplicate workspace")
       ).rejects.toThrow("Workspace name already exists");
@@ -283,7 +278,7 @@ describe("Workspace API Client", () => {
       await expect(
         workspaceApi.update(999, "Name", "Description")
       ).rejects.toThrow(WorkspaceApiError);
-      
+
       // Reset mock for second call
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
@@ -291,7 +286,7 @@ describe("Workspace API Client", () => {
         statusText: "Not Found",
         json: async () => ({ detail: "Workspace not found" }),
       });
-      
+
       await expect(
         workspaceApi.update(999, "Name", "Description")
       ).rejects.toThrow("Workspace not found");
@@ -341,10 +336,8 @@ describe("Workspace API Client", () => {
         json: async () => ({ detail: "Workspace not found" }),
       });
 
-      await expect(workspaceApi.delete(999)).rejects.toThrow(
-        WorkspaceApiError
-      );
-      
+      await expect(workspaceApi.delete(999)).rejects.toThrow(WorkspaceApiError);
+
       // Reset mock for second call
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
@@ -352,7 +345,7 @@ describe("Workspace API Client", () => {
         statusText: "Not Found",
         json: async () => ({ detail: "Workspace not found" }),
       });
-      
+
       await expect(workspaceApi.delete(999)).rejects.toThrow(
         "Workspace not found"
       );

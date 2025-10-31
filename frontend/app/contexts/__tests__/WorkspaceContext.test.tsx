@@ -5,10 +5,7 @@
 
 import React from "react";
 import { render, screen, waitFor, act } from "@testing-library/react";
-import {
-  WorkspaceProvider,
-  useWorkspace,
-} from "../WorkspaceContext";
+import { WorkspaceProvider, useWorkspace } from "../WorkspaceContext";
 import { workspaceApi } from "../../lib/workspaceApi";
 import { Workspace } from "../../types/workspace";
 
@@ -204,10 +201,7 @@ describe("WorkspaceContext", () => {
 
   describe("LocalStorage Persistence", () => {
     it("should restore workspace from localStorage", async () => {
-      localStorage.setItem(
-        "aqa-youtube-assistant:selected-workspace-id",
-        "2"
-      );
+      localStorage.setItem("aqa-youtube-assistant:selected-workspace-id", "2");
 
       render(
         <WorkspaceProvider>
@@ -417,9 +411,7 @@ describe("WorkspaceContext", () => {
     });
 
     it("should handle non-Error exceptions during create", async () => {
-      (workspaceApi.create as jest.Mock).mockRejectedValueOnce(
-        "String error"
-      );
+      (workspaceApi.create as jest.Mock).mockRejectedValueOnce("String error");
 
       render(
         <WorkspaceProvider>
@@ -511,9 +503,7 @@ describe("WorkspaceContext", () => {
     });
 
     it("should handle non-Error exceptions during update", async () => {
-      (workspaceApi.update as jest.Mock).mockRejectedValueOnce(
-        "String error"
-      );
+      (workspaceApi.update as jest.Mock).mockRejectedValueOnce("String error");
 
       render(
         <WorkspaceProvider>
@@ -570,7 +560,7 @@ describe("WorkspaceContext", () => {
     it("should select another workspace when deleting current workspace", async () => {
       // Ensure we start with Default Workspace selected
       (workspaceApi.list as jest.Mock).mockResolvedValueOnce(mockWorkspaces);
-      
+
       render(
         <WorkspaceProvider>
           <TestComponent />
@@ -606,7 +596,7 @@ describe("WorkspaceContext", () => {
       // Setup initial load with only one workspace
       const singleWorkspace: Workspace[] = [mockWorkspaces[0]];
       (workspaceApi.list as jest.Mock).mockResolvedValueOnce(singleWorkspace);
-      
+
       render(
         <WorkspaceProvider>
           <TestComponent />
@@ -630,14 +620,16 @@ describe("WorkspaceContext", () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByTestId("current-workspace")).toHaveTextContent("No workspace");
+        expect(screen.getByTestId("current-workspace")).toHaveTextContent(
+          "No workspace"
+        );
       });
     });
 
     it("should not change current workspace when deleting a different workspace", async () => {
       // Setup initial load
       (workspaceApi.list as jest.Mock).mockResolvedValueOnce(mockWorkspaces);
-      
+
       render(
         <WorkspaceProvider>
           <TestComponent />
@@ -686,10 +678,10 @@ describe("WorkspaceContext", () => {
 
     it("should handle delete errors", async () => {
       const errorMessage = "Failed to delete workspace";
-      
+
       // Setup initial load
       (workspaceApi.list as jest.Mock).mockResolvedValueOnce(mockWorkspaces);
-      
+
       render(
         <WorkspaceProvider>
           <TestComponent />
@@ -717,7 +709,7 @@ describe("WorkspaceContext", () => {
     it("should handle non-Error exceptions during delete", async () => {
       // Setup initial load
       (workspaceApi.list as jest.Mock).mockResolvedValueOnce(mockWorkspaces);
-      
+
       render(
         <WorkspaceProvider>
           <TestComponent />
@@ -747,7 +739,7 @@ describe("WorkspaceContext", () => {
     it("should refresh workspace list", async () => {
       // Setup initial load
       (workspaceApi.list as jest.Mock).mockResolvedValueOnce(mockWorkspaces);
-      
+
       render(
         <WorkspaceProvider>
           <TestComponent />
@@ -768,10 +760,8 @@ describe("WorkspaceContext", () => {
           created_at: "2025-10-23T00:00:00Z",
         },
       ];
-      
-      (workspaceApi.list as jest.Mock).mockResolvedValueOnce(
-        updatedWorkspaces
-      );
+
+      (workspaceApi.list as jest.Mock).mockResolvedValueOnce(updatedWorkspaces);
 
       await act(async () => {
         screen.getByText("Refresh Workspaces").click();
@@ -785,7 +775,7 @@ describe("WorkspaceContext", () => {
     it("should update current workspace on refresh if it still exists", async () => {
       // Setup initial load
       (workspaceApi.list as jest.Mock).mockResolvedValueOnce(mockWorkspaces);
-      
+
       render(
         <WorkspaceProvider>
           <TestComponent />
@@ -826,7 +816,7 @@ describe("WorkspaceContext", () => {
     it("should not update current workspace if it no longer exists after refresh", async () => {
       // Setup initial load
       (workspaceApi.list as jest.Mock).mockResolvedValueOnce(mockWorkspaces);
-      
+
       render(
         <WorkspaceProvider>
           <TestComponent />
@@ -852,7 +842,7 @@ describe("WorkspaceContext", () => {
       await waitFor(() => {
         expect(screen.getByTestId("workspace-count")).toHaveTextContent("1");
       });
-      
+
       // The workspace reference stays the same until manually changed
       expect(screen.getByTestId("current-workspace")).toHaveTextContent(
         "Default Workspace"
