@@ -395,11 +395,15 @@ async def create_project(
             status_code=404, detail=f"Workspace with id {workspace_id} not found"
         )
 
-    # Check for duplicate names (case-insensitive)
+    # Check for duplicate names within the same workspace (case-insensitive)
     # Using ilike() for case-insensitive comparison handles different capitalization
     # Note: Name has already been trimmed by Pydantic validator
+    # Projects with the same name are allowed in different workspaces
     existing_project = (
-        db.query(Project).filter(Project.name.ilike(project.name)).first()
+        db.query(Project)
+        .filter(Project.name.ilike(project.name))
+        .filter(Project.workspace_id == workspace_id)
+        .first()
     )
     if existing_project:
         raise HTTPException(
@@ -544,12 +548,15 @@ async def update_project(
     # Update only provided fields
     update_data = project_update.model_dump(exclude_unset=True)
 
-    # If name is being updated, check for duplicates (excluding current project)
+    # If name is being updated, check for duplicates within the same workspace
+    # (excluding current project)
     # Note: Name has already been trimmed by Pydantic validator
+    # Projects with the same name are allowed in different workspaces
     if "name" in update_data:
         existing_project = (
             db.query(Project)
             .filter(Project.name.ilike(update_data["name"]), Project.id != project_id)
+            .filter(Project.workspace_id == workspace_id)
             .first()
         )
         if existing_project:
