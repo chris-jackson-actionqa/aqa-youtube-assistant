@@ -12,7 +12,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.database import Base, get_db
 from app.main import app
-from app.models import Project
+from app.models import Project, Workspace
 
 # Create in-memory SQLite database for testing
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
@@ -31,11 +31,18 @@ def db_session():
     Create a fresh database session for each test.
 
     This fixture creates all tables before the test and drops them after,
-    ensuring test isolation.
+    ensuring test isolation. Also creates a default workspace (id=1) that
+    is required by the application.
     """
     Base.metadata.create_all(bind=engine)
     session = TestingSessionLocal()
     try:
+        # Create default workspace (required for projects)
+        default_workspace = Workspace(
+            id=1, name="Default Workspace", description="Default workspace for testing"
+        )
+        session.add(default_workspace)
+        session.commit()
         yield session
     finally:
         session.close()
