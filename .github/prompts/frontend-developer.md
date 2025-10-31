@@ -283,8 +283,10 @@ git commit -m "a11y: add ARIA labels to delete button"
 **Before EVERY commit, verify**:
 - ✅ All tests pass
 - ✅ Coverage meets threshold (98%+)
+- ✅ **No coverage threshold reductions**
 - ✅ Code follows style guide
 - ✅ No debug statements or commented code
+- ✅ **Pre-commit hooks will run - do NOT bypass with `--no-verify`**
 
 See the full [Pre-Commit Checklist](../.github/workflows/GIT_GITHUB_WORKFLOW_CHECKLIST.md#-pre-commit-checklist) for complete requirements.
 
