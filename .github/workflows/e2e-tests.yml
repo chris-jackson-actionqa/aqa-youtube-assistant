@@ -42,12 +42,26 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       
+      # Database Setup for E2E Tests
+      # IMPORTANT: E2E tests use youtube_assistant_test.db (NOT youtube_assistant.db)
+      # This is a separate database file from development to ensure test isolation.
+      # Both migration and server must use the same DATABASE_URL environment variable.
+      # See backend/docs/DATABASE_MANAGEMENT.md for details.
+      - name: Initialize database
+        working-directory: backend
+        env:
+          DATABASE_URL: "sqlite:///./youtube_assistant_test.db"
+        run: |
+          # Run workspace migration to create default workspace
+          python migrate_add_workspaces.py
+          echo "Database initialized with default workspace"
+      
       - name: Start backend server
         working-directory: backend
+        env:
+          DATABASE_URL: "sqlite:///./youtube_assistant_test.db"
         run: |
-          # Use in-memory SQLite for CI testing (faster, isolated)
-          export DATABASE_URL="sqlite:///:memory:"
-          # Start server in background
+          # Start server in background using test database
           python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
           # Save PID for later cleanup
           echo $! > backend.pid

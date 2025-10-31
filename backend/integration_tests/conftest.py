@@ -55,8 +55,19 @@ def db_session(db_engine):
     This fixture provides a fresh database session that is rolled back
     after each test to maintain test isolation.
     """
+    from app.models import Workspace
+
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=db_engine)
     session = SessionLocal()
+
+    # Create default workspace (id=1) to match application behavior
+    default_workspace = Workspace(
+        id=1,
+        name="Default Workspace",
+        description="Default workspace for testing",
+    )
+    session.add(default_workspace)
+    session.commit()
 
     try:
         yield session
@@ -109,6 +120,7 @@ def create_sample_project(db_session):
             "name": "Sample Project",
             "description": "Sample description",
             "status": "planned",
+            "workspace_id": 1,  # Default workspace
         }
         project_data.update(kwargs)
 

@@ -631,3 +631,238 @@ class TestValidationEnhancements:
             # Should catch IntegrityError and return 400
             assert response.status_code == 400
             assert "already exists" in response.json()["detail"].lower()
+
+
+class TestProjectWorkspaceFiltering:
+    """
+    Tests for workspace filtering in project endpoints.
+
+    Tests the X-Workspace-Id header handling and workspace isolation for all
+    project CRUD operations.
+
+    Related: Issue #92
+    """
+
+    def test_create_project_default_workspace(self, client):
+        """Test project creation defaults to workspace_id=1."""
+        project_data = {"name": "Test Project", "description": "Test"}
+        response = client.post("/api/projects", json=project_data)
+
+        assert response.status_code == 201
+        data = response.json()
+        assert data["workspace_id"] == 1
+
+    def test_create_project_with_workspace_header(self, client, db_session):
+        """Test project creation with X-Workspace-Id header."""
+        from app.models import Workspace
+
+        # Create a second workspace
+        workspace = Workspace(name="Test Workspace")
+        db_session.add(workspace)
+        db_session.commit()
+        db_session.refresh(workspace)
+
+        project_data = {"name": "Test Project", "description": "Test"}
+        response = client.post(
+            "/api/projects",
+            json=project_data,
+            headers={"X-Workspace-Id": str(workspace.id)},
+        )
+
+        assert response.status_code == 201
+        data = response.json()
+        assert data["workspace_id"] == workspace.id
+
+    def test_create_project_invalid_workspace(self, client):
+        """Test project creation fails with non-existent workspace."""
+        project_data = {"name": "Test Project", "description": "Test"}
+        response = client.post(
+            "/api/projects", json=project_data, headers={"X-Workspace-Id": "999"}
+        )
+
+        assert response.status_code == 404
+        assert "workspace" in response.json()["detail"].lower()
+
+    def test_list_projects_default_workspace(self, client, create_sample_project):
+        """Test listing projects defaults to workspace_id=1."""
+        # Create projects in default workspace
+        create_sample_project(name="Project 1")
+        create_sample_project(name="Project 2")
+
+        response = client.get("/api/projects")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 2
+        assert all(p["workspace_id"] == 1 for p in data)
+
+    def test_list_projects_with_workspace_header(self, client, db_session):
+        """Test listing projects filters by X-Workspace-Id header."""
+        from app.models import Project, Workspace
+
+        # Create two workspaces
+        workspace1 = db_session.query(Workspace).filter(Workspace.id == 1).first()
+        workspace2 = Workspace(name="Workspace 2")
+        db_session.add(workspace2)
+        db_session.commit()
+        db_session.refresh(workspace2)
+
+        # Create projects in different workspaces
+        project1 = Project(name="Project in WS1", workspace_id=workspace1.id)
+        project2 = Project(name="Project in WS2", workspace_id=workspace2.id)
+        db_session.add(project1)
+        db_session.add(project2)
+        db_session.commit()
+
+        # List projects in workspace 1
+        response = client.get("/api/projects", headers={"X-Workspace-Id": "1"})
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 1
+        assert data[0]["name"] == "Project in WS1"
+
+        # List projects in workspace 2
+        response = client.get(
+            "/api/projects", headers={"X-Workspace-Id": str(workspace2.id)}
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 1
+        assert data[0]["name"] == "Project in WS2"
+
+    def test_get_project_same_workspace(self, client, create_sample_project):
+        """Test getting project succeeds when in same workspace."""
+        project = create_sample_project(name="Test Project")
+
+        response = client.get(
+            f"/api/projects/{project.id}", headers={"X-Workspace-Id": "1"}
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["id"] == project.id
+        assert data["workspace_id"] == 1
+
+    def test_get_project_different_workspace_returns_404(self, client, db_session):
+        """Test getting project from different workspace returns 404."""
+        from app.models import Project, Workspace
+
+        # Create workspace and project
+        workspace = Workspace(name="Workspace 2")
+        db_session.add(workspace)
+        db_session.commit()
+        db_session.refresh(workspace)
+
+        project = Project(name="Test Project", workspace_id=workspace.id)
+        db_session.add(project)
+        db_session.commit()
+        db_session.refresh(project)
+
+        # Try to access from workspace 1
+        response = client.get(
+            f"/api/projects/{project.id}", headers={"X-Workspace-Id": "1"}
+        )
+
+        assert response.status_code == 404
+        assert "not found" in response.json()["detail"].lower()
+
+    def test_update_project_same_workspace(self, client, create_sample_project):
+        """Test updating project succeeds when in same workspace."""
+        project = create_sample_project(name="Original Name")
+
+        response = client.put(
+            f"/api/projects/{project.id}",
+            json={"name": "Updated Name"},
+            headers={"X-Workspace-Id": "1"},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["name"] == "Updated Name"
+        assert data["workspace_id"] == 1
+
+    def test_update_project_different_workspace_returns_404(self, client, db_session):
+        """Test updating project from different workspace returns 404."""
+        from app.models import Project, Workspace
+
+        # Create workspace and project
+        workspace = Workspace(name="Workspace 2")
+        db_session.add(workspace)
+        db_session.commit()
+        db_session.refresh(workspace)
+
+        project = Project(name="Test Project", workspace_id=workspace.id)
+        db_session.add(project)
+        db_session.commit()
+        db_session.refresh(project)
+
+        # Try to update from workspace 1
+        response = client.put(
+            f"/api/projects/{project.id}",
+            json={"name": "Updated Name"},
+            headers={"X-Workspace-Id": "1"},
+        )
+
+        assert response.status_code == 404
+        assert "not found" in response.json()["detail"].lower()
+
+    def test_delete_project_same_workspace(self, client, create_sample_project):
+        """Test deleting project succeeds when in same workspace."""
+        project = create_sample_project(name="To Delete")
+
+        response = client.delete(
+            f"/api/projects/{project.id}", headers={"X-Workspace-Id": "1"}
+        )
+
+        assert response.status_code == 204
+
+        # Verify deletion
+        response = client.get(
+            f"/api/projects/{project.id}", headers={"X-Workspace-Id": "1"}
+        )
+        assert response.status_code == 404
+
+    def test_delete_project_different_workspace_returns_404(self, client, db_session):
+        """Test deleting project from different workspace returns 404."""
+        from app.models import Project, Workspace
+
+        # Create workspace and project
+        workspace = Workspace(name="Workspace 2")
+        db_session.add(workspace)
+        db_session.commit()
+        db_session.refresh(workspace)
+
+        project = Project(name="Test Project", workspace_id=workspace.id)
+        db_session.add(project)
+        db_session.commit()
+        db_session.refresh(project)
+
+        # Try to delete from workspace 1
+        response = client.delete(
+            f"/api/projects/{project.id}", headers={"X-Workspace-Id": "1"}
+        )
+
+        assert response.status_code == 404
+        assert "not found" in response.json()["detail"].lower()
+
+        # Verify project still exists in its own workspace
+        response = client.get(
+            f"/api/projects/{project.id}",
+            headers={"X-Workspace-Id": str(workspace.id)},
+        )
+        assert response.status_code == 200
+
+    def test_workspace_header_null_defaults_to_1(self, client, create_sample_project):
+        """Test that null/missing workspace header defaults to workspace_id=1."""
+        project = create_sample_project(name="Test Project")
+
+        # No header
+        response = client.get(f"/api/projects/{project.id}")
+        assert response.status_code == 200
+
+        # Explicit header with null (simulated as string "null")
+        response = client.get(
+            f"/api/projects/{project.id}", headers={"X-Workspace-Id": "0"}
+        )
+        # Header value "0" evaluates to falsy, should default to 1
+        assert response.status_code == 200
