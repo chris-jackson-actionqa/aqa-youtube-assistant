@@ -229,6 +229,66 @@ describe("Workspace API Client", () => {
         workspaceApi.create("Duplicate", "Duplicate workspace")
       ).rejects.toThrow("Workspace name already exists");
     });
+
+    it("should create workspace without description (optional parameter)", async () => {
+      const mockWorkspace: Workspace = {
+        id: 5,
+        name: "Minimal Workspace",
+        description: "",
+        created_at: "2025-10-31T00:00:00Z",
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockWorkspace,
+      });
+
+      const result = await workspaceApi.create("Minimal Workspace");
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        "http://localhost:8000/api/workspaces",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            name: "Minimal Workspace",
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      expect(result).toEqual(mockWorkspace);
+    });
+
+    it("should create workspace with undefined description (optional parameter)", async () => {
+      const mockWorkspace: Workspace = {
+        id: 6,
+        name: "Another Workspace",
+        description: "",
+        created_at: "2025-10-31T00:00:00Z",
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockWorkspace,
+      });
+
+      const result = await workspaceApi.create("Another Workspace", undefined);
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        "http://localhost:8000/api/workspaces",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            name: "Another Workspace",
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      expect(result).toEqual(mockWorkspace);
+    });
   });
 
   describe("workspaceApi.update", () => {
@@ -290,6 +350,98 @@ describe("Workspace API Client", () => {
       await expect(
         workspaceApi.update(999, "Name", "Description")
       ).rejects.toThrow("Workspace not found");
+    });
+
+    it("should update workspace with only name (partial update)", async () => {
+      const mockUpdatedWorkspace: Workspace = {
+        id: 1,
+        name: "New Name Only",
+        description: "Existing description",
+        created_at: "2025-10-21T00:00:00Z",
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockUpdatedWorkspace,
+      });
+
+      const result = await workspaceApi.update(1, "New Name Only");
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        "http://localhost:8000/api/workspaces/1",
+        {
+          method: "PUT",
+          body: JSON.stringify({
+            name: "New Name Only",
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      expect(result).toEqual(mockUpdatedWorkspace);
+    });
+
+    it("should update workspace with only description (partial update)", async () => {
+      const mockUpdatedWorkspace: Workspace = {
+        id: 1,
+        name: "Existing name",
+        description: "New Description Only",
+        created_at: "2025-10-21T00:00:00Z",
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockUpdatedWorkspace,
+      });
+
+      const result = await workspaceApi.update(
+        1,
+        undefined,
+        "New Description Only"
+      );
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        "http://localhost:8000/api/workspaces/1",
+        {
+          method: "PUT",
+          body: JSON.stringify({
+            description: "New Description Only",
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      expect(result).toEqual(mockUpdatedWorkspace);
+    });
+
+    it("should update workspace with neither name nor description (empty update)", async () => {
+      const mockUpdatedWorkspace: Workspace = {
+        id: 1,
+        name: "Unchanged",
+        description: "Unchanged",
+        created_at: "2025-10-21T00:00:00Z",
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockUpdatedWorkspace,
+      });
+
+      const result = await workspaceApi.update(1);
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        "http://localhost:8000/api/workspaces/1",
+        {
+          method: "PUT",
+          body: JSON.stringify({}),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      expect(result).toEqual(mockUpdatedWorkspace);
     });
   });
 

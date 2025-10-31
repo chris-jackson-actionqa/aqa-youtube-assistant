@@ -86,10 +86,14 @@ export const workspaceApi = {
   /**
    * Create a new workspace
    */
-  create: async (name: string, description: string): Promise<Workspace> => {
+  create: async (name: string, description?: string): Promise<Workspace> => {
+    const body: { name: string; description?: string } = { name };
+    if (description !== undefined) {
+      body.description = description;
+    }
     return workspaceApiFetch<Workspace>("/api/workspaces", {
       method: "POST",
-      body: JSON.stringify({ name, description }),
+      body: JSON.stringify(body),
     });
   },
 
@@ -98,12 +102,15 @@ export const workspaceApi = {
    */
   update: async (
     id: number,
-    name: string,
-    description: string
+    name?: string,
+    description?: string
   ): Promise<Workspace> => {
+    const body: Record<string, unknown> = {};
+    if (name !== undefined) body.name = name;
+    if (description !== undefined) body.description = description;
     return workspaceApiFetch<Workspace>(`/api/workspaces/${id}`, {
       method: "PUT",
-      body: JSON.stringify({ name, description }),
+      body: JSON.stringify(body),
     });
   },
 

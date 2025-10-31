@@ -25,11 +25,11 @@ export interface WorkspaceContextType {
 
   // Actions
   selectWorkspace: (workspaceId: number) => void;
-  createWorkspace: (name: string, description: string) => Promise<Workspace>;
+  createWorkspace: (name: string, description?: string) => Promise<Workspace>;
   updateWorkspace: (
     id: number,
-    name: string,
-    description: string
+    name?: string,
+    description?: string
   ) => Promise<void>;
   deleteWorkspace: (id: number) => Promise<void>;
   refreshWorkspaces: () => Promise<void>;
@@ -125,7 +125,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
    */
   const createWorkspace = async (
     name: string,
-    description: string
+    description?: string
   ): Promise<Workspace> => {
     setError(null);
     try {
@@ -145,8 +145,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
    */
   const updateWorkspace = async (
     id: number,
-    name: string,
-    description: string
+    name?: string,
+    description?: string
   ): Promise<void> => {
     setError(null);
     try {
@@ -167,14 +167,15 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     setError(null);
     try {
       await workspaceApi.delete(id);
-
-      // If we deleted the current workspace, select another one
-      if (currentWorkspace?.id === id) {
-        const remainingWorkspaces = workspaces.filter((w) => w.id !== id);
-        setCurrentWorkspace(remainingWorkspaces[0] || null);
-      }
-
       await refreshWorkspaces();
+
+      // If we deleted the current workspace, select another one from the updated list
+      if (currentWorkspace?.id === id) {
+        setCurrentWorkspace(() => {
+          const updated = workspaces.filter((w) => w.id !== id);
+          return updated[0] || null;
+        });
+      }
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to delete workspace";
