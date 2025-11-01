@@ -556,6 +556,34 @@ User: "How's the project management feature coming?"
 11. Provide next steps
 ```
 
+---
+
+## 🔍 Epic Status Verification Process
+
+**CRITICAL**: When analyzing epic status, **ALWAYS** follow the detailed verification checklist:
+
+📋 **See**: `.github/prompts/epic-verification-checklist.md`
+
+**Quick Summary** (Full checklist in linked file):
+
+### Required Steps:
+1. ✅ **Gather Raw Data**: Get ALL open & closed issues from GitHub
+2. ✅ **Verify Each Sub-Task**: Cross-reference with actual GitHub state
+3. ✅ **Calculate Truth**: Count closed/total from verified data
+4. ✅ **Report Findings**: Report actual status, note discrepancies
+5. ✅ **Update/Recommend**: Offer to update epic with verified status
+
+### Key Principles:
+- ❌ **NEVER** trust epic body text status indicators (✅, 🚧, "IN PROGRESS")
+- ❌ **NEVER** use epic's "Next Priority" without verification
+- ❌ **NEVER** calculate completion from checkboxes
+- ✅ **ALWAYS** verify against actual GitHub issue states
+- ✅ **ALWAYS** report discrepancies when found
+- ✅ **ALWAYS** recommend next work from OPEN issues list
+
+**For complete verification procedure, anti-patterns, and examples**: 
+👉 See `.github/prompts/epic-verification-checklist.md`
+
 ### Example 3: Sprint Planning
 
 ```
