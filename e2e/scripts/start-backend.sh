@@ -60,18 +60,18 @@ echo "🎯 Starting uvicorn server..."
 
 DATABASE_URL='sqlite:///./youtube_assistant_test.db' \
     $UVICORN_CMD app.main:app \
-    --host 0.0.0.0 \
+    --host 127.0.0.1 \
     --port 8000 \
-    > /tmp/e2e-backend.log 2>&1 &
+    > /tmp/e2e-backend-$$.log 2>&1 &
 
 BACKEND_PID=$!
 
 # Wait for server to start (max 30 seconds)
 echo "⏳ Waiting for backend server to start..."
 for i in {1..30}; do
-    if curl -s http://localhost:8000/health > /dev/null 2>&1; then
+    if curl -s http://localhost:8000/api/health > /dev/null 2>&1; then
         echo "✅ Backend server started successfully (PID: $BACKEND_PID)"
-        echo "📝 Logs: /tmp/e2e-backend.log"
+        echo "📝 Logs: /tmp/e2e-backend-$$.log"
         exit 0
     fi
     

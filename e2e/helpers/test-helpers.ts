@@ -40,8 +40,8 @@ export class ProjectHelpers {
    * Call this in beforeEach to enable parallel test execution
    */
   async setupWorkspace(): Promise<void> {
-    // Create unique workspace
-    const workspaceName = `test-workspace-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    // Create unique workspace with UUID
+    const workspaceName = `test-workspace-${crypto.randomUUID()}`;
     const context = this.request || this.page.request;
     const response = await context.post(`${this.baseURL}/api/workspaces`, {
       data: { name: workspaceName, description: 'E2E test workspace' },
@@ -90,11 +90,14 @@ export class ProjectHelpers {
       if (projectsRes.ok()) {
         const projects = await projectsRes.json();
 
-        for (const project of projects) {
-          await context.delete(`${this.baseURL}/api/projects/${project.id}`, {
-            headers: { 'X-Workspace-Id': this.workspaceId.toString() },
-          });
-        }
+        // Delete all projects in parallel for better performance
+        await Promise.all(
+          projects.map((project: { id: number }) =>
+            context.delete(`${this.baseURL}/api/projects/${project.id}`, {
+              headers: { 'X-Workspace-Id': this.workspaceId!.toString() },
+            })
+          )
+        );
       }
 
       // Delete workspace
@@ -257,7 +260,7 @@ export class ProjectHelpers {
 
   /**
    * Clear all projects from the current workspace
-   * @deprecated Use setupWorkspace/teardownWorkspace for test isolation instead
+   * @deprecated Since v2.0.0, will be removed in v3.0.0. Use setupWorkspace/teardownWorkspace for test isolation instead
    */
   async clearDatabase() {
     try {

@@ -101,7 +101,7 @@ export function createTestProject(overrides: Partial<TestProject> = {}): TestPro
 export async function createTestWorkspace(
   request: import('@playwright/test').APIRequestContext
 ): Promise<TestWorkspace> {
-  const name = `test-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const name = `test-${crypto.randomUUID()}`;
   const response = await request.post('http://localhost:8000/api/workspaces', {
     data: { name, description: 'Automated test workspace' },
   });

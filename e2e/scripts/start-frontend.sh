@@ -49,7 +49,7 @@ fi
 # Start server in background
 echo "🎯 Starting Next.js server with: $START_CMD"
 
-$START_CMD > /tmp/e2e-frontend.log 2>&1 &
+$START_CMD > /tmp/e2e-frontend-$$.log 2>&1 &
 
 FRONTEND_PID=$!
 
@@ -58,7 +58,7 @@ echo "⏳ Waiting for frontend server to start..."
 for i in {1..60}; do
     if curl -s http://localhost:3000 > /dev/null 2>&1; then
         echo "✅ Frontend server started successfully (PID: $FRONTEND_PID)"
-        echo "📝 Logs: /tmp/e2e-frontend.log"
+        echo "📝 Logs: /tmp/e2e-frontend-$$.log"
         exit 0
     fi
     

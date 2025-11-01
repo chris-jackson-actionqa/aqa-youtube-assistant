@@ -24,7 +24,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
 
   /* Use multiple workers for parallel execution */
-  workers: process.env.CI ? 4 : 4, // Parallel execution enabled after workspace isolation verification
+  workers: 4, // Parallel execution enabled after workspace isolation verification
 
   /* Reporter to use */
   reporter: [
