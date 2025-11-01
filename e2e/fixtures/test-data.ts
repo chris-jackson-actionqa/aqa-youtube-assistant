@@ -2,12 +2,19 @@
  * Test Data Fixtures for E2E Testing
  *
  * Provides consistent test data for creating, updating, and validating projects.
+ * Also includes workspace utilities for test isolation and parallel execution.
  */
 
 export interface TestProject {
   name: string;
   description?: string;
   status?: string;
+}
+
+export interface TestWorkspace {
+  id: number;
+  name: string;
+  description: string;
 }
 
 export const testProjects = {
@@ -85,4 +92,56 @@ export function createTestProject(overrides: Partial<TestProject> = {}): TestPro
     status: testProjects.valid.status,
     ...overrides,
   };
+}
+
+/**
+ * Create a unique test workspace for test isolation
+ * Enables parallel test execution without data conflicts
+ */
+export async function createTestWorkspace(
+  request: import('@playwright/test').APIRequestContext
+): Promise<TestWorkspace> {
+  const name = `test-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const response = await request.post('http://localhost:8000/api/workspaces', {
+    data: { name, description: 'Automated test workspace' },
+  });
+
+  if (!response.ok()) {
+    throw new Error(`Failed to create test workspace: ${response.status()}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Delete a test workspace and all its projects
+ * Used in test teardown to ensure proper cleanup
+ */
+export async function deleteTestWorkspace(
+  request: import('@playwright/test').APIRequestContext,
+  workspaceId: number
+): Promise<void> {
+  try {
+    // Delete all projects first
+    const projectsRes = await request.get('http://localhost:8000/api/projects', {
+      headers: { 'X-Workspace-Id': workspaceId.toString() },
+    });
+
+    if (projectsRes.ok()) {
+      const projects = await projectsRes.json();
+      await Promise.all(
+        projects.map((p: { id: number }) =>
+          request.delete(`http://localhost:8000/api/projects/${p.id}`, {
+            headers: { 'X-Workspace-Id': workspaceId.toString() },
+          })
+        )
+      );
+    }
+
+    // Delete workspace
+    await request.delete(`http://localhost:8000/api/workspaces/${workspaceId}`);
+  } catch (error) {
+    console.error('Workspace cleanup failed:', error);
+    // Don't throw - cleanup failures shouldn't fail tests
+  }
 }
