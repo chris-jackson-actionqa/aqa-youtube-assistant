@@ -348,7 +348,7 @@ CREATE TABLE user_workspaces (
 **Frontend:**
 - Context: `frontend/app/contexts/WorkspaceContext.tsx`
 - Components: `frontend/app/components/workspace/`
-- Tests: `frontend/app/components/__tests__/workspace/`
+- Tests: `frontend/app/components/workspace/__tests__/`
 
 **E2E:**
 - Helpers: `e2e/helpers/test-helpers.ts`

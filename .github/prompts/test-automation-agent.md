@@ -482,8 +482,10 @@ git config core.hooksPath .githooks
 {
   "scripts": {
     "test": "playwright test",
-    "test:staged": "playwright test --grep-invert @slow",
-    "test:visual:update": "playwright test --update-snapshots",
+    "test:ui": "playwright test --project=ui",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:report": "playwright show-report",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
