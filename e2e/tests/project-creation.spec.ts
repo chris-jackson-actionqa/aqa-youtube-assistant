@@ -14,17 +14,19 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { setupTest, ProjectHelpers } from '../helpers/test-helpers';
+import { ProjectHelpers } from '../helpers/test-helpers';
 import { generateUniqueProjectName } from '../fixtures/test-data';
 
 test.describe('Project Creation Workflow', () => {
   let helpers: ProjectHelpers;
 
   test.beforeEach(async ({ page }) => {
-    helpers = await setupTest(page);
-    await page.goto('/');
-    // eslint-disable-next-line playwright/no-networkidle
-    await page.waitForLoadState('networkidle');
+    helpers = new ProjectHelpers(page);
+    await helpers.setupWorkspace();
+  });
+
+  test.afterEach(async () => {
+    await helpers.teardownWorkspace();
   });
 
   test.describe('Happy Paths', () => {

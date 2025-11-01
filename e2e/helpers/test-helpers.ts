@@ -21,18 +21,104 @@ export interface Project {
  *
  * Encapsulates all project-related interactions to improve test maintainability
  * and reduce duplication across test files.
+ *
+ * Now uses workspace-based isolation for parallel test execution.
  */
 export class ProjectHelpers {
-  /** Default workspace ID used for test projects */
-  private static readonly DEFAULT_WORKSPACE_ID = 1;
-
   private readonly baseURL: string;
+  private workspaceId: number | null = null;
 
   constructor(
     private page: Page,
     private request?: APIRequestContext
   ) {
     this.baseURL = 'http://localhost:8000';
+  }
+
+  /**
+   * Setup a unique workspace for test isolation
+   * Call this in beforeEach to enable parallel test execution
+   */
+  async setupWorkspace(): Promise<void> {
+    // Create unique workspace with UUID
+    const workspaceName = `test-workspace-${crypto.randomUUID()}`;
+    const context = this.request || this.page.request;
+    const response = await context.post(`${this.baseURL}/api/workspaces`, {
+      data: { name: workspaceName, description: 'E2E test workspace' },
+    });
+
+    if (!response.ok()) {
+      throw new Error(`Failed to create test workspace: ${response.status()}`);
+    }
+
+    const workspace = await response.json();
+    this.workspaceId = workspace.id;
+
+    // Navigate to app first
+    await this.page.goto('/');
+    // eslint-disable-next-line playwright/no-networkidle
+    await this.page.waitForLoadState('networkidle');
+
+    // Set workspace in localStorage for UI
+    const workspaceIdToSet = this.workspaceId;
+    await this.page.evaluate((wsId) => {
+      // @ts-expect-error - localStorage is available in browser context
+      localStorage.setItem('aqa-youtube-assistant:selected-workspace-id', String(wsId));
+    }, workspaceIdToSet);
+
+    // Reload to apply workspace
+    await this.page.reload();
+    // eslint-disable-next-line playwright/no-networkidle
+    await this.page.waitForLoadState('networkidle');
+  }
+
+  /**
+   * Teardown workspace and clean up all projects
+   * Call this in afterEach to ensure proper cleanup
+   */
+  async teardownWorkspace(): Promise<void> {
+    if (!this.workspaceId) return;
+
+    try {
+      const context = this.request || this.page.request;
+
+      // Delete all projects in workspace
+      const projectsRes = await context.get(`${this.baseURL}/api/projects`, {
+        headers: { 'X-Workspace-Id': this.workspaceId.toString() },
+      });
+
+      if (projectsRes.ok()) {
+        const projects = await projectsRes.json();
+
+        // Delete all projects in parallel for better performance
+        await Promise.all(
+          projects.map((project: { id: number }) =>
+            context.delete(`${this.baseURL}/api/projects/${project.id}`, {
+              headers: { 'X-Workspace-Id': this.workspaceId!.toString() },
+            })
+          )
+        );
+      }
+
+      // Delete workspace
+      await context.delete(`${this.baseURL}/api/workspaces/${this.workspaceId}`);
+    } catch (error) {
+      console.error('Workspace teardown failed:', error);
+      // Don't throw - cleanup failures shouldn't fail tests
+    } finally {
+      this.workspaceId = null;
+    }
+  }
+
+  /**
+   * Get the current workspace ID
+   * Throws if workspace is not initialized
+   */
+  private getWorkspaceId(): number {
+    if (!this.workspaceId) {
+      throw new Error('Workspace not initialized. Call setupWorkspace() first.');
+    }
+    return this.workspaceId;
   }
 
   /**
@@ -155,11 +241,15 @@ export class ProjectHelpers {
   }
 
   /**
-   * Get all projects via API
+   * Get all projects via API (using current workspace)
    */
   async getAllProjectsViaAPI(): Promise<Project[]> {
     const context = this.request || this.page.request;
-    const response = await context.get(`${this.baseURL}/api/projects`);
+    const headers: { [key: string]: string } = this.workspaceId
+      ? { 'X-Workspace-Id': this.workspaceId.toString() }
+      : {};
+
+    const response = await context.get(`${this.baseURL}/api/projects`, { headers });
 
     if (!response.ok()) {
       throw new Error(`Failed to fetch projects: ${response.status()}`);
@@ -169,17 +259,20 @@ export class ProjectHelpers {
   }
 
   /**
-   * Clear all projects from the database via API
-   * Used for test isolation
+   * Clear all projects from the current workspace
+   * @deprecated Since v2.0.0, will be removed in v3.0.0. Use setupWorkspace/teardownWorkspace for test isolation instead
    */
   async clearDatabase() {
     try {
       const projects = await this.getAllProjectsViaAPI();
       const context = this.request || this.page.request;
+      const headers: { [key: string]: string } = this.workspaceId
+        ? { 'X-Workspace-Id': this.workspaceId.toString() }
+        : {};
 
       // Delete all projects
       for (const project of projects) {
-        await context.delete(`${this.baseURL}/api/projects/${project.id}`);
+        await context.delete(`${this.baseURL}/api/projects/${project.id}`, { headers });
       }
 
       // Poll until database is actually empty (up to 2s)
@@ -206,58 +299,26 @@ export class ProjectHelpers {
   }
 
   /**
-   * Ensure default workspace exists (workspace_id=1)
-   */
-  async ensureDefaultWorkspace(): Promise<void> {
-    const context = this.request || this.page.request;
-
-    // Try to get workspace 1
-    const getResponse = await context.get(
-      `${this.baseURL}/api/workspaces/${ProjectHelpers.DEFAULT_WORKSPACE_ID}`
-    );
-
-    if (getResponse.ok()) {
-      return; // Workspace already exists
-    }
-
-    // Create default workspace
-    const createResponse = await context.post(`${this.baseURL}/api/workspaces`, {
-      data: {
-        name: 'Default Workspace',
-        description: 'Default workspace for testing',
-      },
-    });
-
-    if (!createResponse.ok()) {
-      const errorText = await createResponse.text();
-      throw new Error(
-        `Failed to create default workspace: ${createResponse.status()} - ${errorText}`
-      );
-    }
-  }
-
-  /**
    * Create a project via API (faster than UI for test setup)
+   * Uses the current workspace set by setupWorkspace()
    */
   async createProjectViaAPI(
     name: string,
     description: string = '',
-    status: string = 'planned',
-    workspace_id: number = ProjectHelpers.DEFAULT_WORKSPACE_ID
+    status: string = 'planned'
   ): Promise<Project> {
-    // Ensure default workspace exists
-    await this.ensureDefaultWorkspace();
-
+    const workspaceId = this.getWorkspaceId();
     const context = this.request || this.page.request;
+
     const response = await context.post(`${this.baseURL}/api/projects`, {
       data: {
         name,
         description,
         status,
-        workspace_id,
+        workspace_id: workspaceId,
       },
       headers: {
-        'X-Workspace-Id': String(workspace_id),
+        'X-Workspace-Id': workspaceId.toString(),
       },
     });
 
@@ -293,7 +354,9 @@ export class ProjectHelpers {
    */
   async deleteProjectViaAPI(id: number): Promise<void> {
     const context = this.request || this.page.request;
-    const response = await context.delete(`${this.baseURL}/api/projects/${id}`);
+    const response = await context.delete(`${this.baseURL}/api/projects/${id}`, {
+      headers: { 'X-Workspace-Id': this.getWorkspaceId().toString() },
+    });
 
     if (!response.ok()) {
       throw new Error(`Failed to delete project via API: ${response.status()}`);
@@ -320,24 +383,14 @@ export class ProjectHelpers {
 
 /**
  * Setup helper for tests
- * Initializes ProjectHelpers and clears the database for test isolation
+ * Initializes ProjectHelpers and sets up workspace-based isolation
+ * @deprecated Use setupWorkspace() directly in beforeEach instead
  */
 export async function setupTest(page: Page): Promise<ProjectHelpers> {
   const helpers = new ProjectHelpers(page);
 
-  // Clear database first for test isolation
-  await helpers.clearDatabase();
-
-  // Wait for the UI to reflect the cleared database (no project cards present)
-  try {
-    // eslint-disable-next-line playwright/no-wait-for-selector
-    await page.waitForSelector('[data-testid="project-card"]', {
-      state: 'detached',
-      timeout: 2000,
-    });
-  } catch {
-    // If no project cards exist to begin with, this will timeout - that's OK
-  }
+  // Use new workspace-based isolation
+  await helpers.setupWorkspace();
 
   return helpers;
 }

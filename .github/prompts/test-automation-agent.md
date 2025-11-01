@@ -262,6 +262,32 @@ jobs:
 
 ## Test Architecture Guidelines
 
+### Database Configuration
+
+**IMPORTANT**: This project uses **separate databases** for development and testing:
+
+1. **Development Database**: `backend/youtube_assistant.db`
+   - Used during local development
+   - Persists data between runs
+   - Accessed when running `uvicorn app.main:app`
+
+2. **Test Database**: Controlled by `DATABASE_URL` environment variable
+   - E2E tests use a separate test database
+   - Backend integration tests use `backend/integration_tests/youtube_assistant_test.db`
+   - Tests should set `DATABASE_URL` to point to test database
+   - Cleaned/reset before each test run
+
+**E2E Test Database Setup**:
+```typescript
+// e2e/global-setup.ts
+// Set DATABASE_URL before running Python database operations
+process.env.DATABASE_URL = 'sqlite:///./youtube_assistant_test.db';
+
+// Then run migrations and setup
+```
+
+**Never delete or modify the development database in test code!**
+
 ### Test Organization
 ```
 tests/

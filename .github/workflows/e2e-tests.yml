@@ -36,39 +36,6 @@ jobs:
           cache: 'pip'
           cache-dependency-path: backend/requirements.txt
       
-      - name: Install backend dependencies
-        working-directory: backend
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      
-      # Database Setup for E2E Tests
-      # IMPORTANT: E2E tests use youtube_assistant_test.db (NOT youtube_assistant.db)
-      # This is a separate database file from development to ensure test isolation.
-      # Both migration and server must use the same DATABASE_URL environment variable.
-      # See backend/docs/DATABASE_MANAGEMENT.md for details.
-      - name: Initialize database
-        working-directory: backend
-        env:
-          DATABASE_URL: "sqlite:///./youtube_assistant_test.db"
-        run: |
-          # Run workspace migration to create default workspace
-          python migrate_add_workspaces.py
-          echo "Database initialized with default workspace"
-      
-      - name: Start backend server
-        working-directory: backend
-        env:
-          DATABASE_URL: "sqlite:///./youtube_assistant_test.db"
-        run: |
-          # Start server in background using test database
-          python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
-          # Save PID for later cleanup
-          echo $! > backend.pid
-          # Wait for backend to be ready
-          timeout 30 bash -c 'until curl -s http://localhost:8000/api/health > /dev/null; do sleep 1; done'
-          echo "Backend server started successfully"
-      
       # Frontend Setup
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -77,33 +44,30 @@ jobs:
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
       
-      - name: Install frontend dependencies
-        working-directory: frontend
-        run: npm ci
+      # Server Management using E2E Scripts
+      # The scripts handle: dependency installation, database setup, and server startup
+      # See e2e/scripts/README.md for details
+      - name: Make scripts executable
+        working-directory: e2e/scripts
+        run: chmod +x *.sh
       
-      - name: Build frontend
-        working-directory: frontend
-        run: npm run build
-        env:
-          NEXT_TELEMETRY_DISABLED: 1
-          # Skip linting during build since tests are run separately
-          SKIP_ENV_VALIDATION: 1
+      - name: Setup test database
+        working-directory: e2e/scripts
+        run: |
+          cd ../../backend
+          ../e2e/scripts/setup-test-database.sh
+      
+      - name: Start backend server
+        working-directory: e2e/scripts
+        run: |
+          cd ../../backend
+          ../e2e/scripts/start-backend.sh
       
       - name: Start frontend server
-        working-directory: frontend
+        working-directory: e2e/scripts
         run: |
-          # Ensure build output directory exists
-          if [ ! -d .next ]; then
-            echo "Build output directory .next not found! Frontend build may have failed."
-            exit 1
-          fi
-          # Start production server in background
-          npm run start &
-          # Save PID for later cleanup
-          echo $! > frontend.pid
-          # Wait for frontend to be ready
-          timeout 60 bash -c 'until curl -s http://localhost:3000 > /dev/null; do sleep 1; done'
-          echo "Frontend server started successfully"
+          cd ../../frontend
+          ../e2e/scripts/start-frontend.sh
       
       # E2E Test Setup
       - name: Install E2E test dependencies
@@ -179,18 +143,12 @@ jobs:
       
       - name: Cleanup servers
         if: always()
+        working-directory: e2e/scripts
         run: |
-          # Kill backend server
-          if [ -f backend/backend.pid ]; then
-            kill $(cat backend/backend.pid) || true
-          fi
-          # Kill frontend server
-          if [ -f frontend/frontend.pid ]; then
-            kill $(cat frontend/frontend.pid) || true
-          fi
-          # Ensure all Node and Python processes are stopped
-          pkill -f "uvicorn app.main:app" || true
-          pkill -f "next start" || true
+          cd ../../backend
+          ../e2e/scripts/kill-backend.sh || true
+          cd ../frontend
+          ../e2e/scripts/kill-frontend.sh || true
 
   # Summary job that depends on all test jobs
   e2e-test-summary:
