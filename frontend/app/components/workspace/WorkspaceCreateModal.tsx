@@ -35,7 +35,6 @@ export default function WorkspaceCreateModal({
 
   const modalRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   /**
    * Focus name input on mount
@@ -158,7 +157,7 @@ export default function WorkspaceCreateModal({
         className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md shadow-xl"
       >
         {/* Modal Header */}
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center mb-4">
           <h2
             id="modal-title"
             className="text-xl font-semibold text-gray-900 dark:text-gray-100"
@@ -294,29 +293,6 @@ export default function WorkspaceCreateModal({
               ) : (
                 "Create"
               )}
-            </button>
-            <button
-              ref={closeButtonRef}
-              type="button"
-              onClick={onClose}
-              aria-label="Close modal"
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors
-                       focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
             </button>
           </div>
         </form>

@@ -86,14 +86,6 @@ describe("WorkspaceCreateModal", () => {
       ).toBeInTheDocument();
     });
 
-    it("should render close button", async () => {
-      renderWithProvider();
-
-      expect(
-        screen.getByRole("button", { name: /close modal/i })
-      ).toBeInTheDocument();
-    });
-
     it("should show character counters", async () => {
       renderWithProvider();
 
@@ -136,7 +128,6 @@ describe("WorkspaceCreateModal", () => {
       const descInput = screen.getByLabelText(/description/i);
       const cancelBtn = screen.getByRole("button", { name: /cancel/i });
       const createBtn = screen.getByRole("button", { name: /^create$/i });
-      const closeBtn = screen.getByRole("button", { name: /close modal/i });
 
       // Start with name input focused
       expect(nameInput).toHaveFocus();
@@ -151,9 +142,6 @@ describe("WorkspaceCreateModal", () => {
       await user.tab();
       expect(createBtn).toHaveFocus();
 
-      await user.tab();
-      expect(closeBtn).toHaveFocus();
-
       // Should wrap back to first element
       await user.tab();
       expect(nameInput).toHaveFocus();
@@ -164,14 +152,14 @@ describe("WorkspaceCreateModal", () => {
       renderWithProvider();
 
       const nameInput = screen.getByLabelText(/name/i);
-      const closeBtn = screen.getByRole("button", { name: /close modal/i });
+      const createBtn = screen.getByRole("button", { name: /^create$/i });
 
       // Start with name input focused
       expect(nameInput).toHaveFocus();
 
-      // Shift+Tab should wrap to last element
+      // Shift+Tab should wrap to last element (Create button)
       await user.tab({ shift: true });
-      expect(closeBtn).toHaveFocus();
+      expect(createBtn).toHaveFocus();
     });
   });
 
@@ -668,16 +656,6 @@ describe("WorkspaceCreateModal", () => {
 
       const cancelBtn = screen.getByRole("button", { name: /cancel/i });
       await user.click(cancelBtn);
-
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
-    });
-
-    it("should call onClose when close X button clicked", async () => {
-      const user = userEvent.setup();
-      renderWithProvider();
-
-      const closeBtn = screen.getByRole("button", { name: /close modal/i });
-      await user.click(closeBtn);
 
       expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
