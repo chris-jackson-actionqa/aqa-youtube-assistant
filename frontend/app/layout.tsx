@@ -34,7 +34,7 @@ export default function RootLayout({
                 </div>
               </div>
             </header>
-            <main>{children}</main>
+            <main id="main-content">{children}</main>
           </ProjectProvider>
         </WorkspaceProvider>
       </body>

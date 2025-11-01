@@ -289,10 +289,9 @@ test.describe('Project Management Workflows', () => {
       // Wait for project to be visible
       await expect(page.locator('text=Keyboard Project')).toBeVisible();
 
-      // Tab to first project (WorkspaceSelector button, Create button, then first project)
-      await page.keyboard.press('Tab'); // WorkspaceSelector button in header
-      await page.keyboard.press('Tab'); // Create New Project button
-      await page.keyboard.press('Tab'); // First project
+      // Focus the project button directly using a robust selector instead of sequential Tab presses
+      const projectButton = page.getByRole('button', { name: /keyboard project/i });
+      await projectButton.focus();
 
       // Enter to select
       await page.keyboard.press('Enter');

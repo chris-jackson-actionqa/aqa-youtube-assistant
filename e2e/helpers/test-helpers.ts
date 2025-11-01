@@ -23,6 +23,9 @@ export interface Project {
  * and reduce duplication across test files.
  */
 export class ProjectHelpers {
+  /** Default workspace ID used for test projects */
+  private static readonly DEFAULT_WORKSPACE_ID = 1;
+
   private readonly baseURL: string;
 
   constructor(
@@ -209,7 +212,9 @@ export class ProjectHelpers {
     const context = this.request || this.page.request;
 
     // Try to get workspace 1
-    const getResponse = await context.get(`${this.baseURL}/api/workspaces/1`);
+    const getResponse = await context.get(
+      `${this.baseURL}/api/workspaces/${ProjectHelpers.DEFAULT_WORKSPACE_ID}`
+    );
 
     if (getResponse.ok()) {
       return; // Workspace already exists
@@ -238,7 +243,7 @@ export class ProjectHelpers {
     name: string,
     description: string = '',
     status: string = 'planned',
-    workspace_id: number = 1
+    workspace_id: number = ProjectHelpers.DEFAULT_WORKSPACE_ID
   ): Promise<Project> {
     // Ensure default workspace exists
     await this.ensureDefaultWorkspace();
