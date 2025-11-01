@@ -453,19 +453,42 @@ test('should not have accessibility violations', async ({ page }) => {
 
 ## Workflow Integration
 
-### Pre-commit Hook (with Husky)
+### Pre-commit Hook
+This project uses a bash-based pre-commit hook located at `.githooks/pre-commit` that automatically runs quality checks before each commit.
+
+**E2E Quality Checks Included:**
+- **Prettier**: Code formatting validation (`npm run format:check`)
+- **ESLint**: Linting and code quality checks (`npm run lint`)
+- **TypeScript**: Type checking (`npm run type-check`)
+
+The hook runs checks for:
+1. **Backend**: Ruff linting, mypy type checking, pytest unit tests
+2. **Frontend**: Prettier, ESLint, Jest unit tests with coverage
+3. **E2E**: Prettier, ESLint, TypeScript type checking
+
+**Installation:**
+```bash
+# From repository root
+cp .githooks/pre-commit .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+
+# Or configure git to use the .githooks directory
+git config core.hooksPath .githooks
+```
+
+**E2E Package Scripts:**
 ```json
-// package.json
+// e2e/package.json
 {
   "scripts": {
+    "test": "playwright test",
     "test:staged": "playwright test --grep-invert @slow",
     "test:visual:update": "playwright test --update-snapshots",
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run test:staged",
-      "pre-push": "npm run test:e2e"
-    }
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,json,md}\"",
+    "type-check": "tsc --noEmit"
   }
 }
 ```
