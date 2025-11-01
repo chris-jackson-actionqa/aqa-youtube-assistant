@@ -4,6 +4,7 @@ import { defineConfig, devices } from '@playwright/test';
  * Playwright E2E Test Configuration
  *
  * Tests the complete YouTube Assistant system (frontend + backend)
+ * Uses workspace-based isolation for parallel test execution
  * See https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
@@ -13,8 +14,8 @@ export default defineConfig({
   /* Maximum time one test can run for */
   timeout: 30 * 1000,
 
-  /* Run tests in files in parallel */
-  fullyParallel: false,
+  /* Run tests in files in parallel - enabled for workspace-based isolation */
+  fullyParallel: true,
 
   /* Fail the build on CI if you accidentally left test.only in the source code */
   forbidOnly: !!process.env.CI,
@@ -22,8 +23,8 @@ export default defineConfig({
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
 
-  /* Opt out of parallel tests on CI - use single worker for better test isolation */
-  workers: 1,
+  /* Use multiple workers for parallel execution */
+  workers: process.env.CI ? 4 : 4, // Parallel execution enabled after workspace isolation verification
 
   /* Reporter to use */
   reporter: [
@@ -32,6 +33,11 @@ export default defineConfig({
     ['json', { outputFile: 'test-results/results.json' }],
     process.env.CI ? ['github'] : ['list'],
   ],
+
+  /* Global setup and teardown */
+  // Disabled - database setup handled by ./scripts/setup-test-database.sh
+  // globalSetup: require.resolve('./global-setup'),
+  // globalTeardown: require.resolve('./global-teardown'),
 
   /* Shared settings for all the projects below */
   use: {
@@ -81,27 +87,14 @@ export default defineConfig({
     // },
   ],
 
-  /* Run your local dev servers before starting the tests */
-  webServer: process.env.CI
-    ? undefined
-    : [
-        // In CI, servers are started by GitHub Actions workflow
-        // Locally, we start dev servers automatically
-        {
-          command: 'cd ../backend && python -m uvicorn app.main:app --port 8000',
-          port: 8000,
-          timeout: 120 * 1000,
-          reuseExistingServer: true,
-          stdout: 'pipe',
-          stderr: 'pipe',
-        },
-        {
-          command: 'cd ../frontend && npm run dev',
-          port: 3000,
-          timeout: 120 * 1000,
-          reuseExistingServer: true,
-          stdout: 'pipe',
-          stderr: 'pipe',
-        },
-      ],
+  /* 
+   * Servers are managed externally via scripts in e2e/scripts/
+   * - start-backend.sh: Starts backend with test database on port 8000
+   * - start-frontend.sh: Starts frontend on port 3000
+   * - kill-backend.sh: Stops backend server
+   * - kill-frontend.sh: Stops frontend server
+   * 
+   * Run scripts before tests:
+   *   ./scripts/start-backend.sh && ./scripts/start-frontend.sh && npm test
+   */
 });
