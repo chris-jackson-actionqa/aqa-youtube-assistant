@@ -16,15 +16,18 @@ This document provides a quick reference to all project documentation.
 
 ## GitHub Issues
 
-### Epics
-- **[Issue #2: Project Management Epic](https://github.com/chris-jackson-actionqa/aqa-youtube-assistant/issues/2)** - Create, load, and delete projects
+### Completed Epics
+- ✅ **[Epic #90: Multi-Workspace Support](https://github.com/chris-jackson-actionqa/aqa-youtube-assistant/issues/90)** - Workspace organization and parallel E2E test execution (Completed Nov 1, 2025)
 
-### Active Tasks
-- **[Issue #3: Project Data Model](https://github.com/chris-jackson-actionqa/aqa-youtube-assistant/issues/3)** - Backend: Database schema and models
-- **[Issue #4: Project API Endpoints](https://github.com/chris-jackson-actionqa/aqa-youtube-assistant/issues/4)** - Backend: CRUD endpoints
-- **[Issue #5: Project UI Components](https://github.com/chris-jackson-actionqa/aqa-youtube-assistant/issues/5)** - Frontend: React components
-- **[Issue #6: Video-Project Relationship](https://github.com/chris-jackson-actionqa/aqa-youtube-assistant/issues/6)** - Backend: Link videos to projects
-- **[Issue #7: Integration Testing](https://github.com/chris-jackson-actionqa/aqa-youtube-assistant/issues/7)** - Testing: End-to-end workflows
+### Active Epics
+- 🚧 **[Epic #2: Project Management](https://github.com/chris-jackson-actionqa/aqa-youtube-assistant/issues/2)** - Create, load, and delete projects (60% complete)
+- 🚧 **[Epic #96: Alembic Database Migrations](https://github.com/chris-jackson-actionqa/aqa-youtube-assistant/issues/96)** - Automated migration system (Phase 1 ready)
+
+### Recent Completions
+- ✅ Issue #91-95 - Multi-Workspace Support (All sub-issues)
+- ✅ Issue #50 - Test Isolation Strategy (Closed by Epic #90)
+- ✅ Issue #3, #4 - Backend Project API
+- ✅ Issue #28 - Frontend Form Validation
 
 ## Development Resources
 
@@ -49,5 +52,5 @@ As the project grows, we'll add:
 
 ---
 
-**Last Updated**: October 19, 2025  
+**Last Updated**: November 1, 2025  
 **Maintained By**: Project Team
