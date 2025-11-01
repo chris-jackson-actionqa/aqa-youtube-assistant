@@ -17,6 +17,9 @@ Instead of letting Playwright manage the servers (which caused database connecti
 - Creates/resets the test database (`youtube_assistant_test.db`)
 - Runs database migrations
 - Creates default workspace (id=1)
+- **Local Mode**: Uses Python virtual environment (`.venv`)
+- **CI Mode**: Uses system Python with installed dependencies
+- Detects environment automatically via `$CI` variable
 - **Run this before starting servers**
 
 ```bash

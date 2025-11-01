@@ -18,6 +18,15 @@ echo "🗄️  Setting up test database..."
 # Navigate to backend directory
 cd "$BACKEND_DIR"
 
+# Detect CI environment and set Python command
+if [ "$CI" = "true" ]; then
+    PYTHON_CMD="python"
+    echo "🔍 CI environment detected - using system Python"
+else
+    PYTHON_CMD=".venv/bin/python"
+    echo "🔍 Local environment detected - using virtual environment"
+fi
+
 # Delete existing test database
 if [ -f "youtube_assistant_test.db" ]; then
     rm -f youtube_assistant_test.db
@@ -26,7 +35,7 @@ fi
 
 # Run database migration
 echo "📊 Running database migrations..."
-DATABASE_URL='sqlite:///./youtube_assistant_test.db' .venv/bin/python -c "
+DATABASE_URL='sqlite:///./youtube_assistant_test.db' $PYTHON_CMD -c "
 from app.database import SessionLocal, engine, Base
 from app.models import Project, Workspace
 
@@ -37,7 +46,7 @@ print('✓ Database tables created')
 
 # Create default workspace
 echo "🏢 Creating default workspace..."
-DATABASE_URL='sqlite:///./youtube_assistant_test.db' .venv/bin/python -c "
+DATABASE_URL='sqlite:///./youtube_assistant_test.db' $PYTHON_CMD -c "
 from app.database import SessionLocal
 from app.models import Workspace
 
