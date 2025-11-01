@@ -22,10 +22,9 @@ e2e/
 ## Prerequisites
 
 - Node.js 20+ installed
-- Backend server running (FastAPI on port 8000)
-- Frontend server running (Next.js on port 3000)
-
-**Note:** Playwright config will automatically start both servers before running tests.
+- Python 3.13+ with virtual environment
+- Backend virtual environment set up (`backend/.venv`)
+- Frontend dependencies installed (`frontend/node_modules`)
 
 ## Installation
 
@@ -36,6 +35,30 @@ npx playwright install
 ```
 
 ## Running Tests
+
+**Important:** Tests require servers to be started manually using the provided scripts.
+
+### Quick Start
+
+```bash
+# From the e2e directory:
+
+# 1. Setup test database
+./scripts/setup-test-database.sh
+
+# 2. Start servers
+./scripts/start-backend.sh
+./scripts/start-frontend.sh
+
+# 3. Run tests
+npm test
+
+# 4. Cleanup (optional)
+./scripts/kill-backend.sh
+./scripts/kill-frontend.sh
+```
+
+For more details on server management scripts, see [scripts/README.md](scripts/README.md).
 
 ### Run all tests
 
