@@ -88,6 +88,35 @@ Use for:
    - Review labels, milestones, and assignments
    - **Why GitHub First**: Issues are the authoritative source of truth for current project status
 
+   **⚠️ CRITICAL: Verifying Epic Sub-Task Status**
+   
+   When reviewing epics, their body text may contain outdated sub-task status. ALWAYS:
+   
+   1. **Read the epic's sub-task list** from the issue body
+   2. **Cross-reference each issue number** with your CLOSED issues list
+   3. **Trust actual issue state over epic body text**:
+      - If epic says "IN PROGRESS" but issue is CLOSED → **Report as CLOSED**
+      - If epic says "PENDING" but issue is CLOSED → **Report as CLOSED**
+      - If epic says "BLOCKED" but issue is CLOSED → **Report as CLOSED**
+   4. **Report any discrepancies** to the user immediately
+   5. **Offer to update the epic** with accurate status
+   
+   **Anti-Pattern** ❌:
+   ```
+   1. Read epic body → See "Issue #12 - PENDING"
+   2. Trust epic text → Report as pending
+   3. Miss that #12 is actually CLOSED
+   ```
+   
+   **Correct Pattern** ✅:
+   ```
+   1. Read epic body → See "Issue #12 - PENDING"
+   2. Check closed issues list → Find #12 closed on Oct 25
+   3. Detect discrepancy → Epic body is stale
+   4. Report truth → "#12 is CLOSED, epic needs updating"
+   5. Calculate accurate completion percentage
+   ```
+
 2. **Review Code Structure**:
    - Examine implementation status
    - Check for feature branches
@@ -513,13 +542,18 @@ User: "How's the project management feature coming?"
 1. **List GitHub issues for Epic #2 (OPEN)**
 2. **List recently closed GitHub issues (last 30 days)** to see what's just completed
 3. Check issue comments for latest updates
-4. Review feature branches and recent commits
-5. Query Chroma DB: "What's the status of project management work?" (supplementary context)
-6. Calculate completion percentage based on GitHub data
-7. Identify blockers from issue comments
-8. Update Epic with current status
-9. Store retrospective notes in Chroma DB
-10. Provide next steps
+4. **CRITICAL: Cross-reference epic sub-tasks with actual issue states**
+   - Read epic body's sub-task list
+   - For each issue number mentioned, check if it appears in closed issues list
+   - If epic says "PENDING" but issue is CLOSED → Report as CLOSED
+   - If discrepancy found → Note that epic needs updating
+5. Review feature branches and recent commits
+6. Query Chroma DB: "What's the status of project management work?" (supplementary context)
+7. Calculate completion percentage based on ACTUAL GitHub issue states (not epic body text)
+8. Identify blockers from issue comments
+9. Update Epic with current status (or recommend update)
+10. Store retrospective notes in Chroma DB
+11. Provide next steps
 ```
 
 ### Example 3: Sprint Planning
