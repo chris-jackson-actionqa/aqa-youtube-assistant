@@ -494,15 +494,26 @@ Create a new project.
 
 ### 5. Testing Strategy
 
+**CRITICAL**: Follow the **[Unit Testing Checklist](./unit-testing-checklist.md)** for comprehensive testing guidance.
+
 #### Unit Tests (Required: 95%+ Coverage)
 
+**Key principles from the Unit Testing Checklist:**
+- ✅ **NEW CODE MUST HAVE 100% COVERAGE** - Aim for 100%, not just the 95% minimum
+- ✅ **TRY MULTIPLE APPROACHES** - If you can't get 100% on first tries, try again
+- ✅ **REFACTOR FOR TESTABILITY** - Make code easier to test
+- ✅ **REMOVE UNREACHABLE CODE** - Delete untestable code paths
+- ❌ **NEVER lower coverage thresholds**
+- ❌ **NEVER use `--no-verify`**
+- ❌ **NEVER exclude files from coverage**
+
 **Test all code paths:**
-- ✅ Successful operations
+- ✅ Successful operations (happy path)
 - ✅ Validation failures
 - ✅ Not found errors (404)
 - ✅ Database errors
-- ✅ Edge cases (empty data, null values, etc.)
-- ✅ Boundary conditions
+- ✅ Edge cases (empty data, null values, boundaries)
+- ✅ Bad inputs (negative testing)
 
 **Test structure:**
 ```python
@@ -524,7 +535,18 @@ class TestFeatureName:
     def test_edge_case_empty_data(self, client):
         """Test with empty/null data."""
         pass
+    
+    def test_bad_input_invalid_type(self, client):
+        """Test handling of invalid input types."""
+        pass
 ```
+
+**See the [Unit Testing Checklist](./unit-testing-checklist.md) for:**
+- Detailed coverage goals and strategies
+- Testing workflow (before, during, after)
+- Common problems and solutions
+- Best practices checklist
+- What to do if you can't reach 100% coverage
 
 #### Integration Tests
 

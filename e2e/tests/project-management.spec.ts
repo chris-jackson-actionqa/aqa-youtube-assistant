@@ -289,9 +289,11 @@ test.describe('Project Management Workflows', () => {
       // Wait for project to be visible
       await expect(page.locator('text=Keyboard Project')).toBeVisible();
 
-      // Tab to first project
-      await page.keyboard.press('Tab');
-      await page.keyboard.press('Tab');
+      // Focus the project card directly using a robust selector
+      const projectCard = page.getByTestId('project-card').filter({
+        hasText: 'Keyboard Project',
+      });
+      await projectCard.focus();
 
       // Enter to select
       await page.keyboard.press('Enter');

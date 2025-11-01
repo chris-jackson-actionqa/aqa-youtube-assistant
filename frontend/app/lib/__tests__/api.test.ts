@@ -547,4 +547,33 @@ describe("API Client", () => {
       );
     });
   });
+
+  describe("Server-Side Rendering (SSR)", () => {
+    it("should return default workspace ID 1 during SSR (no window object)", async () => {
+      // Temporarily delete the window object to simulate SSR environment
+      const originalWindow = global.window;
+      // @ts-expect-error - Deleting window for SSR test
+      delete global.window;
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],
+      });
+
+      await getProjects();
+
+      // Restore window object
+      global.window = originalWindow;
+
+      // Should use default workspace ID 1 when window is undefined (SSR)
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            "X-Workspace-Id": "1",
+          }),
+        })
+      );
+    });
+  });
 });

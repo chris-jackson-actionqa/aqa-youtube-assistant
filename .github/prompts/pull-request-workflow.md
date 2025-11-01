@@ -37,15 +37,62 @@ Please help me complete the pull request workflow for my current branch:
      1. Read and understand the requested change
      2. Implement the code modification
      3. Verify the change is correct
-     4. Only AFTER implementing, resolve the thread using GitHub CLI/GraphQL
+     4. Test that the changes work
    - Make necessary code modifications
    - Commit and push the changes with `git commit` and `git push`
    - Respond to review comments using GitHub MCP server tools to explain changes
    - **NEVER resolve a comment without implementing the requested change**
    - Re-check workflow status with `gh pr checks <PR_NUMBER>`
-   - Use GraphQL to resolve threads: `gh api graphql -f query='mutation { resolveReviewThread(input: {threadId: "THREAD_ID"}) { thread { isResolved } } }'`
 
-6. **Verify all checks passed before merging** (use GitHub CLI)
+6. **Resolve PR review threads using GitHub CLI with GraphQL**
+   - First, get all review thread IDs for the pull request:
+     ```bash
+     gh api graphql -f query='query { 
+       repository(owner: "OWNER", name: "REPO") { 
+         pullRequest(number: PR_NUMBER) { 
+           reviewThreads(first: 20) { 
+             nodes { 
+               id 
+               isResolved 
+               comments(first: 1) { 
+                 nodes { body } 
+               } 
+             } 
+           } 
+         } 
+       } 
+     }'
+     ```
+   - Then resolve each thread using its ID (only AFTER implementing the requested changes):
+     ```bash
+     gh api graphql -f query='mutation { 
+       resolveReviewThread(input: {threadId: "THREAD_ID"}) { 
+         thread { isResolved } 
+       } 
+     }'
+     ```
+   - You can resolve multiple threads in one command using aliases:
+     ```bash
+     gh api graphql -f query='mutation { 
+       t1: resolveReviewThread(input: {threadId: "THREAD_ID_1"}) { thread { isResolved } }
+       t2: resolveReviewThread(input: {threadId: "THREAD_ID_2"}) { thread { isResolved } }
+       t3: resolveReviewThread(input: {threadId: "THREAD_ID_3"}) { thread { isResolved } }
+     }'
+     ```
+   - Verify all threads are resolved:
+     ```bash
+     gh api graphql -f query='query { 
+       repository(owner: "OWNER", name: "REPO") { 
+         pullRequest(number: PR_NUMBER) { 
+           reviewThreads(first: 20) { 
+             nodes { isResolved } 
+           } 
+         } 
+       } 
+     }' | jq '.data.repository.pullRequest.reviewThreads.nodes | map(.isResolved) | all'
+     ```
+
+7. **Verify all checks passed before merging** (use GitHub CLI)
    - Run `gh pr checks <PR_NUMBER>` to confirm all checks are green ✓
    - Verify workflow runs completed successfully:
      - ✓ Backend tests (95% coverage)
@@ -56,15 +103,15 @@ Please help me complete the pull request workflow for my current branch:
    - **CRITICAL**: All checks MUST pass - never merge with failing checks
    - **NEVER lower coverage thresholds to make checks pass**
 
-7. **Merge the pull request** using the GitHub MCP server
+8. **Merge the pull request** using the GitHub MCP server
    - Use `mcp_github_github_merge_pull_request` tool
    - Confirm that all checks have passed
    - Choose merge strategy (squash, merge commit, or rebase)
 
-8. **Wait for merge to complete**
+9. **Wait for merge to complete**
    - Verify the PR was successfully merged to main
 
-9. **Clean up local repository** using Git commands
+10. **Clean up local repository** using Git commands
    - `git checkout main`
    - `git pull origin main`
    - Delete local branch: `git branch -d <branch-name>`
@@ -130,9 +177,10 @@ I'm ready to create a pull request. Please follow the pull request workflow:
 - Check PR status and wait for all workflow checks to complete
 - Verify all CI/CD checks pass (backend tests, frontend tests, E2E tests)
 - Request and wait for Copilot code review
-- Help me address any review comments
+- Help me address any review comments by implementing the requested changes
+- Resolve all PR review threads using GitHub CLI with GraphQL
 - Re-check all status checks after any changes
-- Merge the PR only when all checks are green and approved
+- Merge the PR only when all checks are green and all threads are resolved
 - Switch to main, pull latest changes, and clean up the feature branch
 ```
 

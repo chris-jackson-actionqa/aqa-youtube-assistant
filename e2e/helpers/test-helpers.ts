@@ -23,6 +23,9 @@ export interface Project {
  * and reduce duplication across test files.
  */
 export class ProjectHelpers {
+  /** Default workspace ID used for test projects */
+  private static readonly DEFAULT_WORKSPACE_ID = 1;
+
   private readonly baseURL: string;
 
   constructor(
@@ -203,19 +206,58 @@ export class ProjectHelpers {
   }
 
   /**
+   * Ensure default workspace exists (workspace_id=1)
+   */
+  async ensureDefaultWorkspace(): Promise<void> {
+    const context = this.request || this.page.request;
+
+    // Try to get workspace 1
+    const getResponse = await context.get(
+      `${this.baseURL}/api/workspaces/${ProjectHelpers.DEFAULT_WORKSPACE_ID}`
+    );
+
+    if (getResponse.ok()) {
+      return; // Workspace already exists
+    }
+
+    // Create default workspace
+    const createResponse = await context.post(`${this.baseURL}/api/workspaces`, {
+      data: {
+        name: 'Default Workspace',
+        description: 'Default workspace for testing',
+      },
+    });
+
+    if (!createResponse.ok()) {
+      const errorText = await createResponse.text();
+      throw new Error(
+        `Failed to create default workspace: ${createResponse.status()} - ${errorText}`
+      );
+    }
+  }
+
+  /**
    * Create a project via API (faster than UI for test setup)
    */
   async createProjectViaAPI(
     name: string,
     description: string = '',
-    status: string = 'planned'
+    status: string = 'planned',
+    workspace_id: number = ProjectHelpers.DEFAULT_WORKSPACE_ID
   ): Promise<Project> {
+    // Ensure default workspace exists
+    await this.ensureDefaultWorkspace();
+
     const context = this.request || this.page.request;
     const response = await context.post(`${this.baseURL}/api/projects`, {
       data: {
         name,
         description,
         status,
+        workspace_id,
+      },
+      headers: {
+        'X-Workspace-Id': String(workspace_id),
       },
     });
 

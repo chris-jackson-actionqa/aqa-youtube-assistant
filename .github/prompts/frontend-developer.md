@@ -480,17 +480,22 @@ const handleAction = async () => {
 
 ## Testing Standards
 
+**CRITICAL**: Follow the **[Unit Testing Checklist](./unit-testing-checklist.md)** for comprehensive testing guidance.
+
 ### Target: 98-100% Coverage
 
-**CRITICAL RULES**:
-- ❌ **NEVER reduce coverage thresholds without explicit permission** - Thresholds are quality standards
-- ❌ **NEVER modify jest.config.mjs to lower coverage values** - If struggling, ASK first
-- ✅ **Ask for guidance** if you can't achieve the required coverage
-- ✅ **Find creative test approaches** to cover edge cases
-- ✅ **Explain coverage gaps** and propose solutions before giving up
-- ✅ **Request permission** if you believe a threshold reduction is necessary
+**Key principles from the Unit Testing Checklist:**
+- ✅ **NEW CODE MUST HAVE 100% COVERAGE** - All new changes should be as close to 100% as possible
+- ✅ **AIM FOR 100% REGARDLESS OF THRESHOLDS** - Don't settle for meeting minimums (98%)
+- ✅ **TRY MULTIPLE APPROACHES** - If you can't get 100% on first tries, try again
+- ✅ **REFACTOR FOR TESTABILITY** - Think of ways to make code more testable
+- ✅ **REMOVE UNREACHABLE CODE** - Delete code that cannot be tested
+- ❌ **NEVER reduce coverage thresholds without explicit permission**
+- ❌ **NEVER modify jest.config.mjs to lower coverage values**
+- ❌ **NEVER use `--no-verify` to bypass pre-commit hooks**
+- ❌ **NEVER exclude files from coverage**
 
-**If you're having trouble meeting coverage thresholds**:
+**If you're having trouble meeting coverage thresholds:**
 ```
 "I'm having difficulty achieving 98% coverage for [component/file]:
 - Current coverage: [X%]
@@ -508,14 +513,25 @@ a testing solution. What approach would you prefer?"
 **⚠️ NEVER modify coverage thresholds in `jest.config.mjs` or any test configuration 
 without explicit approval from the project maintainer.**
 
+### Test Coverage Requirements
+
 Every component must have comprehensive tests covering:
 
 1. **Rendering**: Component renders correctly with various props
 2. **Interactions**: User actions trigger expected behavior
 3. **States**: Loading, error, success states display correctly
-4. **Edge Cases**: Empty data, long strings, null values, etc.
-5. **Accessibility**: ARIA attributes present, keyboard navigation works
-6. **Integration**: API calls mocked and tested
+4. **Edge Cases**: Empty data, long strings, null values, boundaries
+5. **Error Handling**: Null, undefined, empty strings/arrays/objects
+6. **Bad Inputs**: Inputs that should cause failures
+7. **Accessibility**: ARIA attributes present, keyboard navigation works
+8. **Integration**: API calls mocked and tested
+
+**See the [Unit Testing Checklist](./unit-testing-checklist.md) for:**
+- Detailed testing workflow (before, during, after writing tests)
+- Common coverage problems and solutions
+- Best practices checklist
+- Quick reference commands
+- When and how to ask for help
 
 ### Invoking Jest Unit Tester
 
