@@ -22,6 +22,12 @@ cd "$BACKEND_DIR"
 if [ "$CI" = "true" ]; then
     PYTHON_CMD="python"
     echo "🔍 CI environment detected - using system Python"
+    
+    # Install dependencies in CI mode
+    echo "📦 Installing Python dependencies..."
+    pip install --upgrade pip -q
+    pip install -r requirements.txt -q
+    echo "✓ Dependencies installed"
 else
     PYTHON_CMD=".venv/bin/python"
     echo "🔍 Local environment detected - using virtual environment"
