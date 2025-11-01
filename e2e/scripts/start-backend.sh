@@ -2,7 +2,8 @@
 #
 # Start Backend Server Script
 # Starts the FastAPI backend server with the test database
-# - Activates virtual environment
+# - In CI: Uses system Python with installed dependencies
+# - Locally: Uses virtual environment
 # - Sets DATABASE_URL to test database
 # - Starts uvicorn on port 8000 in background
 #
@@ -20,32 +21,46 @@ echo "🚀 Starting backend server with test database..."
 # Navigate to backend directory
 cd "$BACKEND_DIR"
 
-# Check if virtual environment exists
-if [ ! -d ".venv" ]; then
-    echo "❌ Error: Virtual environment not found at $BACKEND_DIR/.venv"
-    exit 1
+# Determine Python command based on environment
+if [ "$CI" = "true" ]; then
+    echo "🏭 Running in CI mode - using system Python"
+    PYTHON_CMD="python"
+    UVICORN_CMD="python -m uvicorn"
+else
+    echo "💻 Running in local mode - using virtual environment"
+    # Check if virtual environment exists
+    if [ ! -d ".venv" ]; then
+        echo "❌ Error: Virtual environment not found at $BACKEND_DIR/.venv"
+        exit 1
+    fi
+    
+    echo "📦 Using virtual environment: $BACKEND_DIR/.venv"
+    source .venv/bin/activate
+    
+    PYTHON_CMD="python"
+    UVICORN_CMD=".venv/bin/uvicorn"
 fi
 
-echo "📦 Using virtual environment: $BACKEND_DIR/.venv"
-
-# Activate virtual environment and check Python version
-source .venv/bin/activate
-
 echo "🔍 Checking Python version..."
-PYTHON_VERSION=$(python --version)
+PYTHON_VERSION=$($PYTHON_CMD --version)
 echo "   Python version: $PYTHON_VERSION"
 
-# Install dependencies
+# Install dependencies (CI uses pip cache, local installs if needed)
 echo "📦 Installing backend dependencies..."
-pip install -q -r requirements.txt
+if [ "$CI" = "true" ]; then
+    $PYTHON_CMD -m pip install --upgrade pip --quiet
+    pip install -r requirements.txt --quiet
+else
+    pip install -q -r requirements.txt
+fi
 
 # Start server in background with test database
 echo "🗄️  Using test database: youtube_assistant_test.db"
 echo "🎯 Starting uvicorn server..."
 
 DATABASE_URL='sqlite:///./youtube_assistant_test.db' \
-    .venv/bin/uvicorn app.main:app \
-    --host 127.0.0.1 \
+    $UVICORN_CMD app.main:app \
+    --host 0.0.0.0 \
     --port 8000 \
     > /tmp/e2e-backend.log 2>&1 &
 

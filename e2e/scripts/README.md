@@ -26,11 +26,13 @@ Instead of letting Playwright manage the servers (which caused database connecti
 ### Backend Server Management
 
 **`start-backend.sh`**
-- Activates Python virtual environment
-- Checks Python version
+- **Local Mode**: Activates Python virtual environment (`.venv`)
+- **CI Mode**: Uses system Python with installed dependencies
+- Checks Python version and displays it
 - Installs dependencies from `requirements.txt`
 - Starts FastAPI server on port 8000 with test database
 - Runs in background, logs to `/tmp/e2e-backend.log`
+- Detects environment automatically via `$CI` variable
 
 ```bash
 ./scripts/start-backend.sh
@@ -48,10 +50,13 @@ Instead of letting Playwright manage the servers (which caused database connecti
 ### Frontend Server Management
 
 **`start-frontend.sh`**
-- Checks Node.js version
-- Installs dependencies with `npm install`
-- Starts Next.js dev server on port 3000
+- **Local Mode**: Uses `npm install` and `npm run dev` (development server)
+- **CI Mode**: Uses `npm ci`, builds production bundle, runs `npm run start`
+- Checks Node.js version and displays it
+- Installs dependencies automatically
+- Starts Next.js server on port 3000
 - Runs in background, logs to `/tmp/e2e-frontend.log`
+- Detects environment automatically via `$CI` variable
 
 ```bash
 ./scripts/start-frontend.sh
@@ -102,31 +107,57 @@ npm test && \
 
 ### CI/CD Usage
 
-In GitHub Actions or other CI environments, the scripts automatically:
-- Check and display software versions
-- Install all dependencies
-- Start servers with proper configuration
+The scripts automatically detect CI environments via the `CI` environment variable and adapt:
+- **Backend**: Uses system Python instead of virtual environment
+- **Frontend**: Builds production bundle and uses `npm ci` for faster, deterministic installs
+- **Both**: Display version information for debugging
 
 Example GitHub Actions workflow:
 ```yaml
+- name: Set up Python
+  uses: actions/setup-python@v5
+  with:
+    python-version: '3.13'
+
+- name: Set up Node.js
+  uses: actions/setup-node@v4
+  with:
+    node-version: '20'
+
+- name: Make scripts executable
+  working-directory: e2e/scripts
+  run: chmod +x *.sh
+
 - name: Setup test database
-  run: cd e2e && ./scripts/setup-test-database.sh
+  working-directory: e2e/scripts
+  run: |
+    cd ../../backend
+    ../e2e/scripts/setup-test-database.sh
 
-- name: Start backend
-  run: cd e2e && ./scripts/start-backend.sh
+- name: Start backend server
+  working-directory: e2e/scripts
+  run: |
+    cd ../../backend
+    ../e2e/scripts/start-backend.sh
 
-- name: Start frontend
-  run: cd e2e && ./scripts/start-frontend.sh
+- name: Start frontend server
+  working-directory: e2e/scripts
+  run: |
+    cd ../../frontend
+    ../e2e/scripts/start-frontend.sh
 
 - name: Run E2E tests
-  run: cd e2e && npm test
+  working-directory: e2e
+  run: npm test
 
 - name: Cleanup
   if: always()
+  working-directory: e2e/scripts
   run: |
-    cd e2e
-    ./scripts/kill-backend.sh || true
-    ./scripts/kill-frontend.sh || true
+    cd ../../backend
+    ../e2e/scripts/kill-backend.sh || true
+    cd ../frontend
+    ../e2e/scripts/kill-frontend.sh || true
 ```
 
 ## Architecture Details

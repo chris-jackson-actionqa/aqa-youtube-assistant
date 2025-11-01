@@ -1,8 +1,9 @@
 #!/bin/bash
 #
 # Start Frontend Server Script
-# Starts the Next.js frontend development server
-# - Starts on port 3000 in background
+# Starts the Next.js frontend server
+# - In CI: Uses production build (npm run start)
+# - Locally: Uses dev server (npm run dev)
 #
 
 set -e
@@ -25,12 +26,30 @@ echo "   Node version: $NODE_VERSION"
 
 # Install dependencies
 echo "📦 Installing frontend dependencies..."
-npm install --quiet
+if [ "$CI" = "true" ]; then
+    npm ci --quiet
+else
+    npm install --quiet
+fi
+
+# Determine which command to use
+if [ "$CI" = "true" ]; then
+    echo "🏭 Running in CI mode - using production build"
+    # Build if not already built
+    if [ ! -d .next ]; then
+        echo "📦 Building frontend..."
+        NEXT_TELEMETRY_DISABLED=1 npm run build
+    fi
+    START_CMD="npm run start"
+else
+    echo "💻 Running in local mode - using dev server"
+    START_CMD="npm run dev"
+fi
 
 # Start server in background
-echo "🎯 Starting Next.js dev server..."
+echo "🎯 Starting Next.js server with: $START_CMD"
 
-npm run dev > /tmp/e2e-frontend.log 2>&1 &
+$START_CMD > /tmp/e2e-frontend.log 2>&1 &
 
 FRONTEND_PID=$!
 
