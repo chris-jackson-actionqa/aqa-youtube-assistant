@@ -87,13 +87,13 @@ export default defineConfig({
     // },
   ],
 
-  /* 
+  /*
    * Servers are managed externally via scripts in e2e/scripts/
    * - start-backend.sh: Starts backend with test database on port 8000
    * - start-frontend.sh: Starts frontend on port 3000
    * - kill-backend.sh: Stops backend server
    * - kill-frontend.sh: Stops frontend server
-   * 
+   *
    * Run scripts before tests:
    *   ./scripts/start-backend.sh && ./scripts/start-frontend.sh && npm test
    */

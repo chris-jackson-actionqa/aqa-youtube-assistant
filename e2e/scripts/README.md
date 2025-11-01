@@ -5,6 +5,7 @@ This directory contains scripts to manage the frontend and backend servers for E
 ## Overview
 
 Instead of letting Playwright manage the servers (which caused database connection issues), we use dedicated scripts to:
+
 1. Setup the test database
 2. Start the backend and frontend servers with proper configuration
 3. Clean up servers after testing
@@ -14,6 +15,7 @@ Instead of letting Playwright manage the servers (which caused database connecti
 ### Database Setup
 
 **`setup-test-database.sh`**
+
 - Creates/resets the test database (`youtube_assistant_test.db`)
 - Runs database migrations
 - Creates default workspace (id=1)
@@ -29,6 +31,7 @@ Instead of letting Playwright manage the servers (which caused database connecti
 ### Backend Server Management
 
 **`start-backend.sh`**
+
 - **Local Mode**: Activates Python virtual environment (`.venv`)
 - **CI Mode**: Uses system Python with installed dependencies
 - Checks Python version and displays it
@@ -42,6 +45,7 @@ Instead of letting Playwright manage the servers (which caused database connecti
 ```
 
 **`kill-backend.sh`**
+
 - Finds and kills process on port 8000
 - Uses `lsof` and `ss` to find the PID
 - Graceful shutdown with fallback to force kill
@@ -53,6 +57,7 @@ Instead of letting Playwright manage the servers (which caused database connecti
 ### Frontend Server Management
 
 **`start-frontend.sh`**
+
 - **Local Mode**: Uses `npm install` and `npm run dev` (development server)
 - **CI Mode**: Uses `npm ci`, builds production bundle, runs `npm run start`
 - Checks Node.js version and displays it
@@ -66,6 +71,7 @@ Instead of letting Playwright manage the servers (which caused database connecti
 ```
 
 **`kill-frontend.sh`**
+
 - Finds and kills process on port 3000
 - Uses `lsof` and `ss` to find the PID
 - Graceful shutdown with fallback to force kill
@@ -111,11 +117,13 @@ npm test && \
 ### CI/CD Usage
 
 The scripts automatically detect CI environments via the `CI` environment variable and adapt:
+
 - **Backend**: Uses system Python instead of virtual environment
 - **Frontend**: Builds production bundle and uses `npm ci` for faster, deterministic installs
 - **Both**: Display version information for debugging
 
 Example GitHub Actions workflow:
+
 ```yaml
 - name: Set up Python
   uses: actions/setup-python@v5
@@ -168,11 +176,13 @@ Example GitHub Actions workflow:
 ### Why External Server Management?
 
 Previously, Playwright's `webServer` configuration managed servers, but this caused issues:
+
 - Database connection problems (readonly database errors)
 - The backend would connect to a database, then global-setup would delete it
 - Difficult to debug server startup failures
 
 With external scripts:
+
 - ✅ Database is set up BEFORE servers start
 - ✅ Servers maintain stable database connections
 - ✅ Better visibility into server logs
@@ -182,6 +192,7 @@ With external scripts:
 ### Database Configuration
 
 The backend server uses `DATABASE_URL` environment variable:
+
 - **Test database**: `sqlite:///./youtube_assistant_test.db`
 - **Development database**: `sqlite:///./youtube_assistant.db`
 
@@ -190,6 +201,7 @@ The test database is isolated from development data and is reset before each tes
 ### Port Detection
 
 Scripts use both `lsof` and `ss` for robust port detection:
+
 - `lsof -ti :PORT` - Standard method, works on most systems
 - `ss -tlnp | grep :PORT` - Fallback method, more reliable in some environments
 
@@ -198,6 +210,7 @@ Scripts use both `lsof` and `ss` for robust port detection:
 ### Server Won't Start
 
 Check the log files:
+
 ```bash
 # Backend logs
 tail -f /tmp/e2e-backend.log
@@ -209,12 +222,14 @@ tail -f /tmp/e2e-frontend.log
 ### Port Already in Use
 
 Kill existing servers:
+
 ```bash
 ./scripts/kill-backend.sh
 ./scripts/kill-frontend.sh
 ```
 
 Or manually find and kill processes:
+
 ```bash
 # Find process on port 8000
 lsof -ti :8000 | xargs kill -9
@@ -226,6 +241,7 @@ lsof -ti :3000 | xargs kill -9
 ### Database Connection Errors
 
 Reset the test database:
+
 ```bash
 ./scripts/setup-test-database.sh
 ```
@@ -233,6 +249,7 @@ Reset the test database:
 ### Virtual Environment Not Found
 
 Create the backend virtual environment:
+
 ```bash
 cd ../backend
 python -m venv .venv
