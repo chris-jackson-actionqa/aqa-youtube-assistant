@@ -3,8 +3,7 @@
 # Setup Test Database Script
 # Prepares the test database before starting servers
 # - Deletes existing test database
-# - Runs migrations to create tables
-# - Creates default workspace
+# - Runs Alembic migrations to create schema and seed data
 #
 
 set -e
@@ -39,35 +38,13 @@ if [ -f "youtube_assistant_test.db" ]; then
     echo "✓ Deleted existing test database"
 fi
 
-# Run database migration
-echo "📊 Running database migrations..."
-DATABASE_URL='sqlite:///./youtube_assistant_test.db' $PYTHON_CMD -c "
-from app.database import SessionLocal, engine, Base
-from app.models import Project, Workspace
-
-# Create all tables
-Base.metadata.create_all(bind=engine)
-print('✓ Database tables created')
-"
-
-# Create default workspace
-echo "🏢 Creating default workspace..."
-DATABASE_URL='sqlite:///./youtube_assistant_test.db' $PYTHON_CMD -c "
-from app.database import SessionLocal
-from app.models import Workspace
-
-db = SessionLocal()
-
-# Check if default workspace exists
-if not db.query(Workspace).filter(Workspace.id == 1).first():
-    workspace = Workspace(id=1, name='Default Workspace', description='Default workspace for all projects')
-    db.add(workspace)
-    db.commit()
-    print('✓ Created default workspace')
-else:
-    print('✓ Default workspace already exists')
-
-db.close()
-"
+# Run Alembic migrations
+echo "📊 Running Alembic migrations..."
+if [ "$CI" = "true" ]; then
+    DATABASE_URL='sqlite:///./youtube_assistant_test.db' alembic upgrade head
+else
+    DATABASE_URL='sqlite:///./youtube_assistant_test.db' .venv/bin/alembic upgrade head
+fi
+echo "✓ Database migrations complete"
 
 echo "✅ Test database ready"
