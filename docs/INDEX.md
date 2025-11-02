@@ -11,6 +11,11 @@ This document provides a quick reference to all project documentation.
 - **[Planning Summary](PLANNING_SUMMARY.md)** - Summary of completed planning work
 - **[Project Management](PROJECT_MANAGEMENT.md)** - Feature specification for project management
 
+## Deployment & Operations
+- **[Deployment Guide](DEPLOYMENT_GUIDE.md)** - Complete deployment instructions for development and production
+- **[Deployment Checklist](DEPLOYMENT_CHECKLIST.md)** - Step-by-step deployment verification checklist
+- **[Migration Workflow](MIGRATION_WORKFLOW.md)** - Database migration procedures and best practices
+
 ## Architecture Decisions
 - **[ADR-001: Project-Based Organization](adr/ADR-001-project-based-organization.md)** - Why we chose projects as the primary organizational structure
 
@@ -45,7 +50,6 @@ This document provides a quick reference to all project documentation.
 As the project grows, we'll add:
 - API Reference
 - Component Library
-- Deployment Guide
 - Contributing Guidelines
 - Testing Strategy
 - Security Policies
