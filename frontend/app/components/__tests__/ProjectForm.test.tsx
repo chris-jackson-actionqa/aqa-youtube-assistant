@@ -487,9 +487,7 @@ describe("ProjectForm", () => {
 
       await waitFor(() => {
         expect(screen.getByRole("alert")).toBeInTheDocument();
-        expect(
-          screen.getByText(/invalid input data/i)
-        ).toBeInTheDocument();
+        expect(screen.getByText(/invalid input data/i)).toBeInTheDocument();
       });
     });
 
