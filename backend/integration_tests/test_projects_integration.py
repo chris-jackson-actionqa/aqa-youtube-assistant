@@ -79,7 +79,7 @@ class TestDatabaseConstraints:
 
         # Attempt to create duplicate via API
         response = client.post("/api/projects", json={"name": "Unique Title"})
-        assert response.status_code == 400
+        assert response.status_code == 409
         assert "already exists" in response.json()["detail"].lower()
 
     def test_case_insensitive_uniqueness(self, client):
@@ -92,9 +92,9 @@ class TestDatabaseConstraints:
         response2 = client.post("/api/projects", json={"name": "TEST PROJECT"})
         response3 = client.post("/api/projects", json={"name": "TeSt PrOjEcT"})
 
-        assert response1.status_code == 400
-        assert response2.status_code == 400
-        assert response3.status_code == 400
+        assert response1.status_code == 409
+        assert response2.status_code == 409
+        assert response3.status_code == 409
 
     def test_database_constraint_direct_enforcement(self, client, db_session):
         """
@@ -147,7 +147,7 @@ class TestDatabaseConstraints:
 
         for test_name in test_cases:
             response = client.post("/api/projects", json={"name": test_name})
-            assert response.status_code == 400, f"Failed for name: '{test_name}'"
+            assert response.status_code == 409, f"Failed for name: '{test_name}'"
             assert "already exists" in response.json()["detail"].lower()
 
 
@@ -181,7 +181,7 @@ class TestDatabaseTransactions:
         response = client.put(
             f"/api/projects/{project2.id}", json={"name": "Project 1"}
         )
-        assert response.status_code == 400
+        assert response.status_code == 409
 
         # Verify project2 unchanged
         get_response = client.get(f"/api/projects/{project2.id}")
