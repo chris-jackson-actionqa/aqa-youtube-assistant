@@ -385,7 +385,7 @@ pip install -r requirements.txt
 
 ```dockerfile
 # Example Dockerfile structure for future use
-FROM python:3.11-slim
+FROM python:3.13-slim
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install -r requirements.txt
