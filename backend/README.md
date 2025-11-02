@@ -148,54 +148,28 @@ This ensures your database schema is always up-to-date without manual interventi
 
 ⚠️ **Critical:** The backend uses **separate SQLite files** for development (`youtube_assistant.db`) and E2E tests (`youtube_assistant_test.db`). When making schema changes, ensure migrations run on **both** databases. See the Database Management Guide for details.
 
-### Alembic Migrations
+## Database Migrations
 
-The project uses Alembic for database schema migrations. Alembic allows you to version control your database schema and automatically generate migrations based on model changes.
+We use Alembic for schema migrations.
 
-**Configuration:**
-- Database URL is configured via the `DATABASE_URL` environment variable
-- Default: `sqlite:///./youtube_assistant.db`
-- Future: Will support PostgreSQL connection strings
+**Migrations run automatically** when you start the app - no manual steps needed!
 
-**Common Alembic Commands:**
+### Creating Migrations
 
-```bash
-# Create a new migration (auto-generate from model changes)
-alembic revision --autogenerate -m "Description of changes"
-
-# Apply all pending migrations
-alembic upgrade head
-
-# Rollback to previous version
-alembic downgrade -1
-
-# Rollback all migrations
-alembic downgrade base
-
-# Show current version
-alembic current
-
-# Show migration history
-alembic history
-
-# Show SQL that would be executed (without running)
-alembic upgrade head --sql
-```
-
-**Migration Workflow:**
-1. Modify models in `app/models.py`
+1. Update models in `app/models.py`
 2. Generate migration: `alembic revision --autogenerate -m "description"`
-3. Review the generated migration file in `alembic/versions/`
-4. Test migration: `alembic upgrade head`
-5. Test rollback: `alembic downgrade -1` then `alembic upgrade head`
-6. Commit both model changes and migration file
+3. Review generated file in `alembic/versions/`
+4. Test: `alembic upgrade head`
+5. Commit both model and migration files
 
-**Important Notes:**
-- Always review auto-generated migrations before applying
-- Some changes (like expression-based indexes) require manual migration edits
-- Keep test suite using `Base.metadata.create_all()` for speed
-- Only integration tests should use Alembic migrations
-- The `alembic_version` table tracks the current database version
+See [Migration Workflow Guide](../docs/MIGRATION_WORKFLOW.md) for details.
+
+### Useful Commands
+
+- `alembic current` - Show current schema version
+- `alembic history` - Show migration history
+- `alembic upgrade head` - Apply all pending migrations
+- `alembic downgrade -1` - Rollback one migration
 
 ## API Endpoints
 
