@@ -7,6 +7,7 @@ import {
   ProjectStatus,
 } from "../types/project";
 import { createProject, ApiError } from "../lib/api";
+import Spinner from "./Spinner";
 
 interface FormErrors {
   name?: string; // Field-specific errors (validation, duplicate)
@@ -139,7 +140,11 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
       )}
 
       {successMessage && (
-        <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg">
+        <div 
+          role="status"
+          aria-live="polite"
+          className="mb-4 p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg"
+        >
           <p className="text-green-600 dark:text-green-400 text-sm font-medium">
             {successMessage}
           </p>
@@ -241,9 +246,11 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
             disabled={isSubmitting || !name.trim()}
             className="flex-1 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg
                      disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed
-                     transition-colors duration-200"
+                     transition-colors duration-200 flex items-center justify-center gap-2"
+            aria-busy={isSubmitting}
           >
-            {isSubmitting ? "Creating..." : "Create Project"}
+            {isSubmitting && <Spinner size={20} color="text-white" label="Creating project" />}
+            <span>{isSubmitting ? "Creating..." : "Create Project"}</span>
           </button>
 
           {onCancel && (
