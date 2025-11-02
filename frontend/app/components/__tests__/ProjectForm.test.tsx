@@ -738,6 +738,29 @@ describe("ProjectForm", () => {
       });
     });
 
+    it("should show default validation message for 400 error without custom message", async () => {
+      const user = userEvent.setup();
+
+      const apiError = Object.create(api.ApiError.prototype);
+      apiError.message = "";
+      apiError.status = 400;
+      apiError.name = "ApiError";
+      (api.createProject as jest.Mock).mockRejectedValue(apiError);
+
+      render(<ProjectForm />);
+
+      await user.type(screen.getByLabelText(/project name/i), "Test Project");
+      await user.click(screen.getByRole("button", { name: /create project/i }));
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            "Invalid input. Please check your data and try again."
+          )
+        ).toBeInTheDocument();
+      });
+    });
+
     it("should show generic error for unexpected errors", async () => {
       const user = userEvent.setup();
 
