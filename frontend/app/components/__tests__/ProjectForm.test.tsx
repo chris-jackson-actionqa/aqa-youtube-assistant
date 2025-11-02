@@ -443,6 +443,113 @@ describe("ProjectForm", () => {
   });
 
   describe("Error Handling", () => {
+    it("should display field-specific error for duplicate project name (409)", async () => {
+      const user = userEvent.setup();
+
+      // Create a proper ApiError instance for 409 error
+      const apiError = Object.create(api.ApiError.prototype);
+      apiError.message = "Conflict";
+      apiError.status = 409;
+      apiError.details = { detail: "Project already exists" };
+      apiError.name = "ApiError";
+      (api.createProject as jest.Mock).mockRejectedValue(apiError);
+
+      render(<ProjectForm />);
+
+      await user.type(screen.getByLabelText(/project name/i), "Test Project");
+      await user.click(screen.getByRole("button", { name: /create project/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole("alert")).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            /a project with this name already exists\. please choose a different name\./i
+          )
+        ).toBeInTheDocument();
+      });
+    });
+
+    it("should display field-specific error for duplicate project name (400)", async () => {
+      const user = userEvent.setup();
+
+      // Create a proper ApiError instance for 400 error (duplicate)
+      const apiError = Object.create(api.ApiError.prototype);
+      apiError.message = "Bad Request";
+      apiError.status = 400;
+      apiError.details = { detail: "Project already exists" };
+      apiError.name = "ApiError";
+      (api.createProject as jest.Mock).mockRejectedValue(apiError);
+
+      render(<ProjectForm />);
+
+      await user.type(screen.getByLabelText(/project name/i), "Test Project");
+      await user.click(screen.getByRole("button", { name: /create project/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole("alert")).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            /a project with this name already exists\. please choose a different name\./i
+          )
+        ).toBeInTheDocument();
+      });
+    });
+
+    it("should display name field error with proper ARIA attributes", async () => {
+      const user = userEvent.setup();
+
+      const apiError = Object.create(api.ApiError.prototype);
+      apiError.message = "Conflict";
+      apiError.status = 409;
+      apiError.details = { detail: "Duplicate name" };
+      apiError.name = "ApiError";
+      (api.createProject as jest.Mock).mockRejectedValue(apiError);
+
+      render(<ProjectForm />);
+
+      await user.type(screen.getByLabelText(/project name/i), "Test Project");
+      await user.click(screen.getByRole("button", { name: /create project/i }));
+
+      await waitFor(() => {
+        const nameInput = screen.getByLabelText(/project name/i);
+        expect(nameInput).toHaveAttribute("aria-invalid", "true");
+        expect(nameInput).toHaveAttribute("aria-describedby", "name-error");
+        expect(screen.getByRole("alert")).toHaveTextContent(
+          /a project with this name already exists/i
+        );
+      });
+    });
+
+    it("should clear name error when user starts typing", async () => {
+      const user = userEvent.setup();
+
+      const apiError = Object.create(api.ApiError.prototype);
+      apiError.message = "Conflict";
+      apiError.status = 409;
+      apiError.name = "ApiError";
+      (api.createProject as jest.Mock).mockRejectedValue(apiError);
+
+      render(<ProjectForm />);
+
+      await user.type(screen.getByLabelText(/project name/i), "Test Project");
+      await user.click(screen.getByRole("button", { name: /create project/i }));
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(/a project with this name already exists/i)
+        ).toBeInTheDocument();
+      });
+
+      // Start typing to clear error
+      await user.type(screen.getByLabelText(/project name/i), "2");
+
+      await waitFor(() => {
+        expect(
+          screen.queryByText(/a project with this name already exists/i)
+        ).not.toBeInTheDocument();
+      });
+    });
+
     it("should display user-friendly error message for 500 server errors", async () => {
       const user = userEvent.setup();
 
@@ -462,7 +569,7 @@ describe("ProjectForm", () => {
       await waitFor(() => {
         expect(screen.getByRole("alert")).toBeInTheDocument();
         expect(
-          screen.getByText("Failed to create project. Please try again.")
+          screen.getByText("Server error. Please try again later.")
         ).toBeInTheDocument();
       });
     });
@@ -508,7 +615,7 @@ describe("ProjectForm", () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText("Failed to create project. Please try again.")
+          screen.getByText("Server error. Please try again later.")
         ).toBeInTheDocument();
       });
 
@@ -551,7 +658,7 @@ describe("ProjectForm", () => {
       // First attempt shows error
       await waitFor(() => {
         expect(
-          screen.getByText("Failed to create project. Please try again.")
+          screen.getByText("Server error. Please try again later.")
         ).toBeInTheDocument();
       });
 
@@ -561,7 +668,7 @@ describe("ProjectForm", () => {
       // Error should clear and success message should show
       await waitFor(() => {
         expect(
-          screen.queryByText("Failed to create project. Please try again.")
+          screen.queryByText("Server error. Please try again later.")
         ).not.toBeInTheDocument();
         expect(screen.getByText(/created successfully/i)).toBeInTheDocument();
       });
@@ -587,18 +694,21 @@ describe("ProjectForm", () => {
       await user.click(screen.getByRole("button", { name: /create project/i }));
 
       await waitFor(() => {
-        expect(screen.getByText("Project already exists")).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            /a project with this name already exists\. please choose a different name\./i
+          )
+        ).toBeInTheDocument();
       });
     });
 
-    it("should display error message when details is not an object", async () => {
+    it("should display generic API error for other status codes", async () => {
       const user = userEvent.setup();
 
-      // Create ApiError with non-object details (string)
+      // Create ApiError with other status code
       const apiError = Object.create(api.ApiError.prototype);
-      apiError.message = "Invalid request";
-      apiError.status = 400;
-      apiError.details = "String error details";
+      apiError.message = "Forbidden";
+      apiError.status = 403;
       apiError.name = "ApiError";
       (api.createProject as jest.Mock).mockRejectedValue(apiError);
 
@@ -608,7 +718,7 @@ describe("ProjectForm", () => {
       await user.click(screen.getByRole("button", { name: /create project/i }));
 
       await waitFor(() => {
-        expect(screen.getByText("Invalid request")).toBeInTheDocument();
+        expect(screen.getByText("Forbidden")).toBeInTheDocument();
       });
     });
 
@@ -632,7 +742,9 @@ describe("ProjectForm", () => {
       await user.click(screen.getByRole("button", { name: /create project/i }));
 
       await waitFor(() => {
-        expect(screen.getByText(/already exists/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/a project with this name already exists/i)
+        ).toBeInTheDocument();
       });
     });
 
@@ -673,7 +785,7 @@ describe("ProjectForm", () => {
         const alertElement = screen.getByRole("alert");
         expect(alertElement).toBeInTheDocument();
         expect(alertElement).toHaveTextContent(
-          "Failed to create project. Please try again."
+          "Server error. Please try again later."
         );
       });
     });
