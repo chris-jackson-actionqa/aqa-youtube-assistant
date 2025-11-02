@@ -23,7 +23,7 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     setError(null);
     setSuccessMessage(null);
     setIsSubmitting(true);

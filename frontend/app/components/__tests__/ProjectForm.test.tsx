@@ -400,14 +400,21 @@ describe("ProjectForm", () => {
 
       // Mock API to delay response
       (api.createProject as jest.Mock).mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve({
-          id: 1,
-          name: "Test Project",
-          description: null,
-          status: "planned",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }), 100))
+        () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  id: 1,
+                  name: "Test Project",
+                  description: null,
+                  status: "planned",
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                }),
+              100
+            )
+          )
       );
 
       render(<ProjectForm />);
@@ -417,10 +424,10 @@ describe("ProjectForm", () => {
       const submitButton = screen.getByRole("button", {
         name: /create project/i,
       });
-      
+
       // Click the submit button
       await user.click(submitButton);
-      
+
       // Button should be disabled while submitting
       expect(submitButton).toBeDisabled();
       expect(submitButton).toHaveTextContent(/creating/i);
