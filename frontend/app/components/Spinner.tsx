@@ -22,7 +22,7 @@ export default function Spinner({
   label = "Loading",
 }: SpinnerProps) {
   return (
-    <div className="inline-flex items-center" role="status" aria-live="polite">
+    <div className="inline-flex items-center" role="status">
       <svg
         className={`animate-spin ${color}`}
         width={size}

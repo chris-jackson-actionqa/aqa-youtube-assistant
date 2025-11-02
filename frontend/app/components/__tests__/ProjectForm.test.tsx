@@ -495,9 +495,9 @@ describe("ProjectForm", () => {
         const successMessage = screen.getByText(/created successfully/i);
         expect(successMessage).toBeInTheDocument();
 
-        // Check that the success message container has proper ARIA attributes
+        // Check that the success message container has role="status" which implies aria-live="polite"
         const container = successMessage.closest('[role="status"]');
-        expect(container).toHaveAttribute("aria-live", "polite");
+        expect(container).toBeInTheDocument();
       });
     });
   });

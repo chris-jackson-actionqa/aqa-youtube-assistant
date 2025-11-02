@@ -142,7 +142,6 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
       {successMessage && (
         <div
           role="status"
-          aria-live="polite"
           className="mb-4 p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg"
         >
           <p className="text-green-600 dark:text-green-400 text-sm font-medium">

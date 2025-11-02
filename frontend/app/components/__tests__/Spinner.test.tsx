@@ -34,11 +34,12 @@ describe("Spinner", () => {
     expect(svg).toHaveClass("text-blue-500");
   });
 
-  it("has aria-live attribute for accessibility", () => {
+  it("has role status which implies aria-live polite for accessibility", () => {
     render(<Spinner />);
 
     const spinner = screen.getByRole("status");
-    expect(spinner).toHaveAttribute("aria-live", "polite");
+    // role="status" implicitly has aria-live="polite" per ARIA spec
+    expect(spinner).toBeInTheDocument();
   });
 
   it("hides SVG from screen readers", () => {
