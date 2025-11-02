@@ -1,3 +1,5 @@
+import logging
+from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 
 from fastapi import Depends, FastAPI, Header, HTTPException
@@ -5,8 +7,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from .database import engine, get_db
-from .models import Base, Project, Workspace
+from .database import get_db
+from .migrations import run_migrations
+from .models import Project, Workspace
 from .schemas import (
     ProjectCreate,
     ProjectResponse,
@@ -16,13 +19,43 @@ from .schemas import (
     WorkspaceUpdate,
 )
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
+logger = logging.getLogger(__name__)
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Application lifespan manager.
+
+    Handles startup and shutdown events.
+    Runs database migrations on startup.
+    """
+    # Startup: Run migrations
+    logger.info("🚀 Starting application...")
+    try:
+        run_migrations()
+    except Exception as e:
+        logger.error(f"Failed to run migrations: {e}")
+        # Fail fast - don't start app if migrations fail
+        raise
+
+    yield
+
+    # Shutdown: Cleanup (if needed)
+    logger.info("👋 Shutting down application...")
+
 
 app = FastAPI(
     title="YouTube Assistant API",
     description="Backend API for YouTube video planning assistant",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 # Configure CORS to allow the Next.js frontend to communicate with the backend
