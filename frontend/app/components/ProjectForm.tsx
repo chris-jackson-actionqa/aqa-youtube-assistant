@@ -8,6 +8,11 @@ import {
 } from "../types/project";
 import { createProject, ApiError } from "../lib/api";
 
+interface FormErrors {
+  name?: string; // Field-specific errors (validation, duplicate)
+  api?: string; // General API errors
+}
+
 interface ProjectFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
@@ -18,20 +23,22 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<ProjectStatus>("planned");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    setError(null);
+    setFormErrors({});
     setSuccessMessage(null);
     setIsSubmitting(true);
 
     // Trim and validate name
     const trimmedName = name.trim();
     if (!trimmedName) {
-      setError("Project name cannot be empty or contain only whitespace");
+      setFormErrors({
+        name: "Project name cannot be empty or contain only whitespace",
+      });
       setIsSubmitting(false);
       return;
     }
@@ -60,29 +67,39 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
       }
     } catch (err) {
       if (err instanceof ApiError) {
-        // Handle specific error cases with user-friendly messages
-        if (
-          err.status === 400 &&
-          err.details &&
-          typeof err.details === "object" &&
-          "detail" in err.details
-        ) {
-          // Show specific validation errors
-          setError(String(err.details.detail));
+        // Duplicate name (409 Conflict)
+        if (err.status === 409) {
+          setFormErrors({
+            name: "A project with this name already exists. Please choose a different name.",
+          });
+        } else if (err.status === 400) {
+          // Validation error - try to show a field-specific message if available
+          // If the API provides field errors, you could parse them here.
+          setFormErrors({
+            api:
+              err.message ||
+              "Invalid input. Please check your data and try again.",
+          });
         } else if (err.status >= 500) {
           // Server errors - show generic user-friendly message
-          setError("Failed to create project. Please try again.");
+          setFormErrors({
+            api: "Server error. Please try again later.",
+          });
         } else if (err.status === 0) {
           // Network error
-          setError(
-            "Failed to create project. Please check your connection and try again."
-          );
+          setFormErrors({
+            api: "Failed to create project. Please check your connection and try again.",
+          });
         } else {
           // Other API errors - show the API message
-          setError(err.message);
+          setFormErrors({
+            api: err.message,
+          });
         }
       } else {
-        setError("Failed to create project. Please try again.");
+        setFormErrors({
+          api: "Failed to create project. Please try again.",
+        });
       }
     } finally {
       setIsSubmitting(false);
@@ -93,22 +110,30 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
     setName("");
     setDescription("");
     setStatus("planned");
-    setError(null);
+    setFormErrors({});
     setSuccessMessage(null);
     onCancel?.();
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setName(e.target.value);
+    // Clear name error when user starts typing
+    if (formErrors.name) {
+      setFormErrors({ ...formErrors, name: undefined });
+    }
   };
 
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
       <h2 className="text-2xl font-bold mb-6">Create New Project</h2>
 
-      {error && (
+      {formErrors.api && (
         <div
           role="alert"
           className="mb-4 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg"
         >
           <p className="text-red-600 dark:text-red-400 text-sm font-medium">
-            {error}
+            {formErrors.api}
           </p>
         </div>
       )}
@@ -131,16 +156,31 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
             type="text"
             id="name"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={handleNameChange}
             required
             maxLength={255}
             placeholder="Enter project name"
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
+            className={`w-full px-4 py-2 border rounded-lg 
                      focus:ring-2 focus:ring-blue-500 focus:border-transparent
                      bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                     placeholder-gray-400 dark:placeholder-gray-500"
+                     placeholder-gray-400 dark:placeholder-gray-500 ${
+                       formErrors.name
+                         ? "border-red-500 dark:border-red-500"
+                         : "border-gray-300 dark:border-gray-600"
+                     }`}
             disabled={isSubmitting}
+            aria-invalid={!!formErrors.name}
+            aria-describedby={formErrors.name ? "name-error" : undefined}
           />
+          {formErrors.name && (
+            <p
+              id="name-error"
+              className="mt-1 text-sm text-red-600 dark:text-red-400"
+              role="alert"
+            >
+              {formErrors.name}
+            </p>
+          )}
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
             {name.length} / 255 characters
           </p>
