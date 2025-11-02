@@ -9,10 +9,10 @@ interface SpinnerProps {
 
 /**
  * Spinner - Accessible loading spinner component
- * 
+ *
  * Displays an animated spinner to indicate loading state.
  * Includes proper ARIA attributes for screen reader accessibility.
- * 
+ *
  * @example
  * <Spinner size={20} color="text-white" label="Creating project" />
  */

@@ -140,7 +140,7 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
       )}
 
       {successMessage && (
-        <div 
+        <div
           role="status"
           aria-live="polite"
           className="mb-4 p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg"
@@ -249,7 +249,9 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
                      transition-colors duration-200 flex items-center justify-center gap-2"
             aria-busy={isSubmitting}
           >
-            {isSubmitting && <Spinner size={20} color="text-white" label="Creating project" />}
+            {isSubmitting && (
+              <Spinner size={20} color="text-white" label="Creating project" />
+            )}
             <span>{isSubmitting ? "Creating..." : "Create Project"}</span>
           </button>
 

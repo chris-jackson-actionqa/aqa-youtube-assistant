@@ -494,7 +494,7 @@ describe("ProjectForm", () => {
       await waitFor(() => {
         const successMessage = screen.getByText(/created successfully/i);
         expect(successMessage).toBeInTheDocument();
-        
+
         // Check that the success message container has proper ARIA attributes
         const container = successMessage.closest('[role="status"]');
         expect(container).toHaveAttribute("aria-live", "polite");
