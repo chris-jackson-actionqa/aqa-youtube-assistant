@@ -229,6 +229,22 @@ describe("ProjectForm", () => {
       expect(screen.getByText("0 / 2000 characters")).toBeInTheDocument();
     });
 
+    it("should display character counter for project name", () => {
+      render(<ProjectForm />);
+
+      expect(screen.getByText("0 / 255 characters")).toBeInTheDocument();
+    });
+
+    it("should update character counter for name as user types", async () => {
+      const user = userEvent.setup();
+      render(<ProjectForm />);
+
+      const nameInput = screen.getByLabelText(/project name/i);
+      await user.type(nameInput, "Hello World");
+
+      expect(screen.getByText("11 / 255 characters")).toBeInTheDocument();
+    });
+
     it("should update character counter as user types", async () => {
       const user = userEvent.setup();
       render(<ProjectForm />);
@@ -377,6 +393,45 @@ describe("ProjectForm", () => {
       expect(
         screen.getByRole("button", { name: /creating.../i })
       ).toBeDisabled();
+    });
+
+    it("should disable submit button while submitting", async () => {
+      const user = userEvent.setup();
+
+      // Mock API to delay response
+      (api.createProject as jest.Mock).mockImplementation(
+        () => new Promise((resolve) => setTimeout(() => resolve({
+          id: 1,
+          name: "Test Project",
+          description: null,
+          status: "planned",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }), 100))
+      );
+
+      render(<ProjectForm />);
+
+      await user.type(screen.getByLabelText(/project name/i), "Test Project");
+
+      const submitButton = screen.getByRole("button", {
+        name: /create project/i,
+      });
+      
+      // Click the submit button
+      await user.click(submitButton);
+      
+      // Button should be disabled while submitting
+      expect(submitButton).toBeDisabled();
+      expect(submitButton).toHaveTextContent(/creating/i);
+
+      // Wait for submission to complete
+      await waitFor(() => {
+        expect(screen.getByText(/created successfully/i)).toBeInTheDocument();
+      });
+
+      // Form should be reset and button enabled (due to empty name field)
+      expect(screen.getByLabelText(/project name/i)).toHaveValue("");
     });
   });
 

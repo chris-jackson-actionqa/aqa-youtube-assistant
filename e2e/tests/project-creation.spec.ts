@@ -131,7 +131,7 @@ test.describe('Project Creation Workflow', () => {
       await expect(submitButton).toBeDisabled();
     });
 
-    // TODO: Unskip when project creation UI handles very long names properly (#39)
+    // ✅ ENABLED: Project creation UI handles very long names (#39)
     test('should handle very long project names', async ({ page }) => {
       // Arrange - create a long name (255 characters)
       const longName = generateUniqueProjectName('A'.repeat(200));
@@ -146,7 +146,7 @@ test.describe('Project Creation Workflow', () => {
       await expect(page.getByText(longName.substring(0, 50))).toBeVisible();
     });
 
-    // TODO: Unskip when project creation UI handles special characters (#39)
+    // ✅ ENABLED: Project creation UI handles special characters (#39)
     // eslint-disable-next-line playwright/expect-expect
     test('should handle special characters in project name', async () => {
       // Arrange
@@ -247,7 +247,7 @@ test.describe('Project Creation Workflow', () => {
   });
 
   test.describe('Edge Cases', () => {
-    // TODO: Unskip when project creation UI is fully implemented (#12, #15, #39)
+    // ✅ ENABLED: Project creation UI handles rapid submissions (#39)
     test('should handle rapid form submissions', async ({ page }) => {
       // Arrange
       const projectName = generateUniqueProjectName('Rapid Submit Test');
@@ -291,7 +291,7 @@ test.describe('Project Creation Workflow', () => {
       await expect(page.getByLabel(/description/i)).toHaveValue(description);
     });
 
-    // TODO: Unskip when project creation UI handles emoji (#39)
+    // ✅ ENABLED: Project creation UI handles emoji (#39)
     test('should handle projects with emoji in name', async ({ page }) => {
       // Arrange
       const emojiName = generateUniqueProjectName('🎬 Video Project 🎥');

@@ -23,6 +23,7 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
     setError(null);
     setSuccessMessage(null);
     setIsSubmitting(true);
@@ -141,7 +142,7 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
             disabled={isSubmitting}
           />
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Maximum 255 characters
+            {name.length} / 255 characters
           </p>
         </div>
 
