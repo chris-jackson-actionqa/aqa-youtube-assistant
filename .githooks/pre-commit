@@ -10,6 +10,16 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "🐍 Running backend checks..."
 cd backend
 
+# Activate virtual environment if it exists
+if [ -d ".venv" ]; then
+    source .venv/bin/activate
+elif [ -d "venv" ]; then
+    source venv/bin/activate
+else
+    echo "⚠️  No virtual environment found (.venv or venv)"
+    echo "Tools will use system-level installations"
+fi
+
 # Check if ruff is installed
 if ! command -v ruff &> /dev/null; then
     echo "⚠️  Ruff not installed. Run 'pip install -r requirements-dev.txt'"
