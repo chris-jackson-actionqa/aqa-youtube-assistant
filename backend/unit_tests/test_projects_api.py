@@ -66,7 +66,7 @@ class TestCreateProject:
         }
         response = client.post("/api/projects", json=duplicate_data)
 
-        assert response.status_code == 400
+        assert response.status_code == 409
         assert "already exists" in response.json()["detail"].lower()
 
     def test_create_project_duplicate_name_different_case(
@@ -84,7 +84,7 @@ class TestCreateProject:
         }
         response = client.post("/api/projects", json=duplicate_data)
 
-        assert response.status_code == 400
+        assert response.status_code == 409
         assert "already exists" in response.json()["detail"].lower()
 
     def test_create_project_missing_name(self, client):
@@ -234,7 +234,7 @@ class TestUpdateProject:
         update_data = {"name": "Project 1"}
         response = client.put(f"/api/projects/{project2.id}", json=update_data)
 
-        assert response.status_code == 400
+        assert response.status_code == 409
         assert "already exists" in response.json()["detail"].lower()
 
     def test_update_project_duplicate_name_different_case(
@@ -248,7 +248,7 @@ class TestUpdateProject:
         update_data = {"name": "test project"}
         response = client.put(f"/api/projects/{project2.id}", json=update_data)
 
-        assert response.status_code == 400
+        assert response.status_code == 409
         assert "already exists" in response.json()["detail"].lower()
 
     def test_update_project_not_found(self, client):
@@ -384,7 +384,7 @@ class TestValidationEnhancements:
             },
         )
 
-        assert response.status_code == 400
+        assert response.status_code == 409
         assert "already exists" in response.json()["detail"].lower()
 
     def test_update_project_with_leading_trailing_spaces(
@@ -413,7 +413,7 @@ class TestValidationEnhancements:
             f"/api/projects/{project2.id}", json={"name": "  First Project  "}
         )
 
-        assert response.status_code == 400
+        assert response.status_code == 409
         assert "already exists" in response.json()["detail"].lower()
 
     def test_create_project_description_max_length_valid(self, client):
@@ -600,8 +600,8 @@ class TestValidationEnhancements:
                 "/api/projects", json={"name": "Test Project", "status": "planned"}
             )
 
-            # Should catch IntegrityError and return 400
-            assert response.status_code == 400
+            # Should catch IntegrityError and return 409
+            assert response.status_code == 409
             assert "already exists" in response.json()["detail"].lower()
 
     def test_update_integrity_error_handling(self, client, create_sample_project):
@@ -628,8 +628,8 @@ class TestValidationEnhancements:
                 f"/api/projects/{project.id}", json={"name": "Updated Name"}
             )
 
-            # Should catch IntegrityError and return 400
-            assert response.status_code == 400
+            # Should catch IntegrityError and return 409
+            assert response.status_code == 409
             assert "already exists" in response.json()["detail"].lower()
 
 

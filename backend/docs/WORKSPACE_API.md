@@ -222,7 +222,7 @@ Create a new project in a specific workspace.
 
 **Error Responses:**
 - `404 Not Found` - Workspace doesn't exist
-- `400 Bad Request` - Duplicate project name
+- `409 Conflict` - Duplicate project name (case-insensitive)
 - `422 Unprocessable Entity` - Validation error
 
 ---
@@ -328,7 +328,7 @@ Update an existing project.
 
 **Error Responses:**
 - `404 Not Found` - Project doesn't exist OR belongs to different workspace
-- `400 Bad Request` - Duplicate project name
+- `409 Conflict` - Duplicate project name (case-insensitive)
 - `422 Unprocessable Entity` - Validation error
 
 ---

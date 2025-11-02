@@ -416,10 +416,10 @@ async def create_project(
         ProjectResponse: Created project object
 
     Raises:
-        HTTPException: 400 if project with same name already exists
+        HTTPException: 409 if project with same name already exists
         HTTPException: 404 if workspace doesn't exist
 
-    Related: Issue #27, Issue #30, Issue #92
+    Related: Issue #27, Issue #30, Issue #92, Issue #118
     """
     # Validate workspace exists
     workspace = db.query(Workspace).filter(Workspace.id == workspace_id).first()
@@ -440,7 +440,7 @@ async def create_project(
     )
     if existing_project:
         raise HTTPException(
-            status_code=400, detail=f"A project named '{project.name}' already exists"
+            status_code=409, detail=f"A project named '{project.name}' already exists"
         )
 
     db_project = Project(
@@ -462,7 +462,7 @@ async def create_project(
         # (e.g., race condition)
         # Suppress exception chain to hide SQLAlchemy internals from API response
         raise HTTPException(
-            status_code=400,
+            status_code=409,
             detail=f"A project named '{project.name}' already exists",
         ) from None
 
@@ -564,9 +564,9 @@ async def update_project(
 
     Raises:
         HTTPException: 404 if project not found or belongs to different workspace
-        HTTPException: 400 if updating to a name that already exists
+        HTTPException: 409 if updating to a name that already exists
 
-    Related: Issue #27, Issue #30, Issue #92
+    Related: Issue #27, Issue #30, Issue #92, Issue #118
     """
     db_project = (
         db.query(Project)
@@ -594,7 +594,7 @@ async def update_project(
         )
         if existing_project:
             raise HTTPException(
-                status_code=400,
+                status_code=409,
                 detail=f"A project named '{update_data['name']}' already exists",
             )
 
@@ -615,7 +615,7 @@ async def update_project(
         project_name = update_data.get("name", "unknown")
         # Suppress exception chain to hide SQLAlchemy internals from API response
         raise HTTPException(
-            status_code=400,
+            status_code=409,
             detail=f"A project named '{project_name}' already exists",
         ) from None
 
