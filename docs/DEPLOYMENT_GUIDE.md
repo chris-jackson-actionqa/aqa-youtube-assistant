@@ -173,6 +173,13 @@ WantedBy=multi-user.target
 
 Create `/etc/systemd/system/youtube-assistant-frontend.service`:
 
+**Note**: Adjust the Node.js PATH to match your installed version. Find your nvm Node path with:
+```bash
+nvm which current
+# Example output: /home/username/.nvm/versions/node/v20.0.0/bin/node
+# Use the directory path in the PATH environment variable
+```
+
 ```ini
 [Unit]
 Description=YouTube Assistant Frontend
@@ -183,6 +190,7 @@ Type=simple
 User=YOUR_USERNAME
 WorkingDirectory=/home/YOUR_USERNAME/production/youtube-assistant/frontend
 Environment="PORT=3001"
+# Adjust Node.js version path to match your nvm installation
 Environment="PATH=/home/YOUR_USERNAME/.nvm/versions/node/v20.0.0/bin:/usr/bin"
 ExecStart=/usr/bin/npm start
 Restart=always

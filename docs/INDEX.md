@@ -50,7 +50,6 @@ This document provides a quick reference to all project documentation.
 As the project grows, we'll add:
 - API Reference
 - Component Library
-- Deployment Guide
 - Contributing Guidelines
 - Testing Strategy
 - Security Policies
