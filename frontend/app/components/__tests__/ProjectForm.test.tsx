@@ -440,6 +440,66 @@ describe("ProjectForm", () => {
       // Form should be reset and button enabled (due to empty name field)
       expect(screen.getByLabelText(/project name/i)).toHaveValue("");
     });
+
+    it("should show loading spinner during submission", async () => {
+      const user = userEvent.setup();
+
+      // Mock API to delay response
+      (api.createProject as jest.Mock).mockImplementation(
+        () => new Promise((resolve) => setTimeout(resolve, 100))
+      );
+
+      render(<ProjectForm />);
+
+      await user.type(screen.getByLabelText(/project name/i), "Test Project");
+
+      const submitButton = screen.getByRole("button", {
+        name: /create project/i,
+      });
+      await user.click(submitButton);
+
+      // Check that the button shows "Creating..." text
+      expect(
+        screen.getByRole("button", { name: /creating.../i })
+      ).toBeInTheDocument();
+
+      // Check that spinner role is present (from the Spinner component)
+      expect(screen.getByRole("status")).toBeInTheDocument();
+
+      // Check that aria-busy is set on the button
+      expect(
+        screen.getByRole("button", { name: /creating.../i })
+      ).toHaveAttribute("aria-busy", "true");
+    });
+
+    it("should have aria-live region for success message", async () => {
+      const user = userEvent.setup();
+
+      const mockProject = {
+        id: 1,
+        name: "Test Project",
+        description: null,
+        status: "planned",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      (api.createProject as jest.Mock).mockResolvedValue(mockProject);
+
+      render(<ProjectForm />);
+
+      await user.type(screen.getByLabelText(/project name/i), "Test Project");
+      await user.click(screen.getByRole("button", { name: /create project/i }));
+
+      await waitFor(() => {
+        const successMessage = screen.getByText(/created successfully/i);
+        expect(successMessage).toBeInTheDocument();
+
+        // Check that the success message container has role="status" which implies aria-live="polite"
+        const container = successMessage.closest('[role="status"]');
+        expect(container).toBeInTheDocument();
+      });
+    });
   });
 
   describe("Error Handling", () => {
