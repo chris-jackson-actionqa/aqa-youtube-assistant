@@ -21,33 +21,33 @@ from .schemas import (
 
 logger = logging.getLogger(__name__)
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Application lifespan manager.
+    Lifespan context manager for FastAPI application.
 
-    Handles startup and shutdown events.
-    Runs database migrations on startup.
+    Runs migrations on startup and handles cleanup on shutdown.
     """
-    # Startup: Run migrations
+    # Configure logging at startup (not at module level)
+    # This avoids interfering with test framework logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
+
     logger.info("🚀 Starting application...")
+
     try:
+        # Run database migrations on startup
         run_migrations()
     except Exception as e:
         logger.error(f"Failed to run migrations: {e}")
-        # Fail fast - don't start app if migrations fail
         raise
 
     yield
 
-    # Shutdown: Cleanup (if needed)
+    # Cleanup code would go here if needed
     logger.info("👋 Shutting down application...")
 
 
