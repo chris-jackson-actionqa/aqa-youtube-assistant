@@ -33,26 +33,33 @@ The backend uses the `DATABASE_URL` environment variable to determine which data
 - **Not set:** Uses `youtube_assistant.db` (development database)
 - **Set:** Uses the specified database URL
 
-### Migration Script (`migrate_add_workspaces.py`)
+### Alembic Configuration
+Alembic is configured in `alembic/env.py` and `alembic.ini` to respect the `DATABASE_URL` environment variable:
 ```python
-database_url = os.getenv("DATABASE_URL", "sqlite:///./youtube_assistant.db")
+# In alembic/env.py
+config.set_main_option(
+    'sqlalchemy.url',
+    os.getenv('DATABASE_URL', 'sqlite:///./youtube_assistant.db')
+)
 ```
 
-The migration script **also** respects `DATABASE_URL`, so it will migrate whichever database you specify.
+This allows Alembic to migrate whichever database you specify via the environment variable.
 
 ## Migrating Databases
+
+The project uses **Alembic** for database migrations. All schema changes are managed through Alembic migration scripts.
 
 ### Development Database (Local)
 ```bash
 cd backend
-python migrate_add_workspaces.py
+alembic upgrade head
 ```
 This migrates `youtube_assistant.db` (the default).
 
 ### Test Database (E2E CI)
 ```bash
 cd backend
-DATABASE_URL="sqlite:///./youtube_assistant_test.db" python migrate_add_workspaces.py
+DATABASE_URL="sqlite:///./youtube_assistant_test.db" alembic upgrade head
 ```
 This migrates the E2E test database.
 
@@ -60,22 +67,33 @@ This migrates the E2E test database.
 ```bash
 cd backend
 # Migrate development database
-python migrate_add_workspaces.py
+alembic upgrade head
 # Migrate E2E test database
-DATABASE_URL="sqlite:///./youtube_assistant_test.db" python migrate_add_workspaces.py
+DATABASE_URL="sqlite:///./youtube_assistant_test.db" alembic upgrade head
 ```
+
+### Creating New Migrations
+
+When you make changes to models in `app/models.py`:
+
+```bash
+cd backend
+alembic revision --autogenerate -m "Description of changes"
+```
+
+Review the generated migration file in `alembic/versions/` before applying it.
 
 ## E2E Tests in CI/CD
 
 The GitHub Actions E2E workflow (`.github/workflows/e2e-tests.yml`) handles database setup:
 
 ```yaml
-- name: Initialize database
+- name: Run database migrations
   working-directory: backend
   env:
     DATABASE_URL: "sqlite:///./youtube_assistant_test.db"
   run: |
-    python migrate_add_workspaces.py
+    alembic upgrade head
 
 - name: Start backend server
   working-directory: backend
@@ -87,7 +105,7 @@ The GitHub Actions E2E workflow (`.github/workflows/e2e-tests.yml`) handles data
 
 **Key Points:**
 1. E2E tests set `DATABASE_URL` to `youtube_assistant_test.db`
-2. Migration script runs **first** to initialize the test database
+2. Alembic migration runs **first** to initialize the test database
 3. Backend server starts **with the same `DATABASE_URL`**
 4. This ensures migration and server use the **same test database**
 
@@ -95,8 +113,9 @@ The GitHub Actions E2E workflow (`.github/workflows/e2e-tests.yml`) handles data
 
 ### Checklist for Schema Changes
 - [ ] Update models in `app/models.py`
-- [ ] Update/create migration script
-- [ ] Run migration on **development database** (`python migrate_add_workspaces.py`)
+- [ ] Generate Alembic migration: `alembic revision --autogenerate -m "description"`
+- [ ] Review generated migration file in `alembic/versions/`
+- [ ] Run migration on **development database** (`alembic upgrade head`)
 - [ ] Verify migration runs successfully
 - [ ] Update E2E workflow if migration step needs changes
 - [ ] Commit migration script changes
@@ -133,19 +152,24 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./youtube_assistant.db")
 engine = create_engine(DATABASE_URL)
 ```
 
-### 3. Migration Scripts Must Respect DATABASE_URL
-All migration scripts should:
-```python
-def get_engine():
-    database_url = os.getenv("DATABASE_URL", "sqlite:///./youtube_assistant.db")
-    return create_engine(database_url)
+### 3. Use Alembic for All Schema Changes
+```bash
+# Create a new migration
+alembic revision --autogenerate -m "Add new column"
+
+# Apply migrations
+alembic upgrade head
+
+# Rollback if needed
+alembic downgrade -1
 ```
 
 ### 4. Document Database Requirements in PR
 When making schema changes, add to PR description:
 ```markdown
 ## Database Changes
-- ⚠️ Migration required: `python migrate_add_workspaces.py`
+- ⚠️ Migration required: `alembic upgrade head`
+- New migration file: `alembic/versions/xxx_description.py`
 - Updated E2E workflow to run migration
 ```
 
@@ -164,27 +188,38 @@ When making schema changes, add to PR description:
 
 **Solution:**
 ```bash
-DATABASE_URL="sqlite:///./youtube_assistant_test.db" python migrate_add_workspaces.py
+DATABASE_URL="sqlite:///./youtube_assistant_test.db" alembic upgrade head
 ```
 
 ### Schema Mismatch Errors
 **Cause:** Database file has old schema, needs migration
 
 **Solution:**
-- Delete old database file: `rm youtube_assistant.db youtube_assistant_test.db`
-- Run migrations fresh
-- Or update migration script to handle existing schemas
+- Run migrations: `alembic upgrade head`
+- Or start fresh: `rm youtube_assistant.db && alembic upgrade head`
+
+### Check Current Migration Status
+```bash
+alembic current    # Show current revision
+alembic history    # Show all migrations
+alembic heads      # Show latest available revision
+```
 
 ## File Structure
 ```
 backend/
 ├── youtube_assistant.db              # Development database (gitignored)
 ├── youtube_assistant_test.db         # E2E test database (gitignored)
+├── alembic/                          # Alembic migration system
+│   ├── versions/                     # Migration scripts
+│   │   └── 71bc71cb8fac_*.py        # Initial schema migration
+│   ├── env.py                        # Alembic environment config
+│   └── script.py.mako                # Migration template
+├── alembic.ini                       # Alembic configuration
 ├── app/
 │   ├── database.py                   # Database configuration
 │   ├── models.py                     # ORM models
 │   └── main.py                       # FastAPI app
-├── migrate_add_workspaces.py         # Migration script
 ├── integration_tests/
 │   ├── conftest.py                   # Creates test DB per test
 │   └── youtube_assistant_test.db     # Integration test DB (gitignored)
@@ -193,9 +228,9 @@ backend/
 
 ## Summary
 
-**Key Takeaway:** The backend uses **separate SQLite files** for development and E2E testing. Both the migration script and the application respect the `DATABASE_URL` environment variable, which allows you to control which database is used. Always ensure migrations run on **both** databases when making schema changes.
+**Key Takeaway:** The backend uses **separate SQLite files** for development and E2E testing. Database schema changes are managed through **Alembic migrations**. Both the migration system and the application respect the `DATABASE_URL` environment variable, which allows you to control which database is used. Always ensure migrations run on **both** databases when making schema changes.
 
 ---
 
-**Last Updated:** October 30, 2025  
-**Related Issues:** #92 (Workspace CRUD), #91 (Multi-Workspace Support)
+**Last Updated:** November 1, 2025  
+**Related Issues:** #102 (Alembic Implementation), #91 (Multi-Workspace Support)

@@ -42,11 +42,11 @@ migrate-all: migrate-dev migrate-test
 
 migrate-dev:
 	@echo "Migrating development database (youtube_assistant.db)..."
-	python migrate_add_workspaces.py
+	alembic upgrade head
 
 migrate-test:
 	@echo "Migrating E2E test database (youtube_assistant_test.db)..."
-	DATABASE_URL="sqlite:///./youtube_assistant_test.db" python migrate_add_workspaces.py
+	DATABASE_URL="sqlite:///./youtube_assistant_test.db" alembic upgrade head
 
 # Alias for migrate-all (most common use case)
 migrate: migrate-all
