@@ -67,10 +67,18 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
       }
     } catch (err) {
       if (err instanceof ApiError) {
-        // Duplicate name (409 Conflict or 400 Bad Request)
-        if (err.status === 409 || err.status === 400) {
+        // Duplicate name (409 Conflict)
+        if (err.status === 409) {
           setFormErrors({
             name: "A project with this name already exists. Please choose a different name.",
+          });
+        } else if (err.status === 400) {
+          // Validation error - try to show a field-specific message if available
+          // If the API provides field errors, you could parse them here.
+          setFormErrors({
+            api:
+              err.message ||
+              "Invalid input. Please check your data and try again.",
           });
         } else if (err.status >= 500) {
           // Server errors - show generic user-friendly message

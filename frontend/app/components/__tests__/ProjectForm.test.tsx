@@ -469,14 +469,14 @@ describe("ProjectForm", () => {
       });
     });
 
-    it("should display field-specific error for duplicate project name (400)", async () => {
+    it("should display API-level error for validation errors (400)", async () => {
       const user = userEvent.setup();
 
-      // Create a proper ApiError instance for 400 error (duplicate)
+      // Create a proper ApiError instance for 400 error (validation)
       const apiError = Object.create(api.ApiError.prototype);
-      apiError.message = "Bad Request";
+      apiError.message = "Invalid input data";
       apiError.status = 400;
-      apiError.details = { detail: "Project already exists" };
+      apiError.details = { detail: "Validation failed" };
       apiError.name = "ApiError";
       (api.createProject as jest.Mock).mockRejectedValue(apiError);
 
@@ -488,9 +488,7 @@ describe("ProjectForm", () => {
       await waitFor(() => {
         expect(screen.getByRole("alert")).toBeInTheDocument();
         expect(
-          screen.getByText(
-            /a project with this name already exists\. please choose a different name\./i
-          )
+          screen.getByText(/invalid input data/i)
         ).toBeInTheDocument();
       });
     });
@@ -694,11 +692,7 @@ describe("ProjectForm", () => {
       await user.click(screen.getByRole("button", { name: /create project/i }));
 
       await waitFor(() => {
-        expect(
-          screen.getByText(
-            /a project with this name already exists\. please choose a different name\./i
-          )
-        ).toBeInTheDocument();
+        expect(screen.getByText("Bad Request")).toBeInTheDocument();
       });
     });
 
@@ -742,9 +736,7 @@ describe("ProjectForm", () => {
       await user.click(screen.getByRole("button", { name: /create project/i }));
 
       await waitFor(() => {
-        expect(
-          screen.getByText(/a project with this name already exists/i)
-        ).toBeInTheDocument();
+        expect(screen.getByText("Bad Request")).toBeInTheDocument();
       });
     });
 
