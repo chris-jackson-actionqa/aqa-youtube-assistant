@@ -34,11 +34,12 @@ def upgrade() -> None:
 
     # Data migration: Create default workspace
     # This ensures workspace id=1 always exists for projects to reference
+    # Using CURRENT_TIMESTAMP for database-agnostic compatibility (SQLite & PostgreSQL)
     op.execute(
         """
         INSERT INTO workspaces (id, name, description, created_at, updated_at)
         VALUES (1, 'Default Workspace', 'Your personal workspace for all projects',
-                datetime('now'), datetime('now'))
+                CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         """
     )
 
@@ -71,16 +72,6 @@ def upgrade() -> None:
         "projects",
         [sa.text("lower(name)")],
         unique=True,
-    )
-
-    # Data migration: Update any existing projects to default workspace
-    # This handles the case where projects table existed before workspaces
-    op.execute(
-        """
-        UPDATE projects
-        SET workspace_id = 1
-        WHERE workspace_id IS NULL
-        """
     )
     # ### end Alembic commands ###
 
