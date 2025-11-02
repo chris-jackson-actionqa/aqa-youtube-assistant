@@ -115,6 +115,28 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 The API will be available at http://localhost:8000
 
+**Automatic Database Migrations:**
+
+The application automatically runs database migrations on startup using FastAPI's lifespan events. You'll see log output like:
+
+```
+INFO - 🚀 Starting application...
+INFO - 🔄 Running database migrations...
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> 71bc71cb8fac, Initial schema...
+INFO - ✅ Database migrations complete
+INFO:     Application startup complete.
+```
+
+**Key Behaviors:**
+- **Fresh Database**: Automatically creates tables on first run
+- **Schema Upgrades**: Automatically upgrades to latest schema version
+- **No-Op**: Safe to run multiple times - no changes if already current
+- **Fail-Fast**: Application startup fails if migrations encounter errors
+
+This ensures your database schema is always up-to-date without manual intervention.
+
 ## API Documentation
 
 - [Workspace API Documentation](docs/WORKSPACE_API.md) - Complete guide to workspace CRUD endpoints and workspace filtering
