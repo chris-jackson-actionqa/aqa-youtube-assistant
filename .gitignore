@@ -24,9 +24,14 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
-.env*.local
+# Environment files
+# Ignore actual .env files that may contain sensitive data
 .env
+.env.local
+.env.*.local
+
+# Note: .env.example and .env.production are committed as templates
+# They contain no sensitive data and serve as configuration references
 
 # vercel
 .vercel
