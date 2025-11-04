@@ -52,13 +52,6 @@ check_prerequisites() {
         exit 1
     fi
     
-    # Check if backend venv-prod exists
-    if [ ! -d "backend/venv-prod" ]; then
-        log_error "Backend venv-prod not found. Run ./scripts/build-production.sh first"
-        log_error "Expected to find backend/venv-prod directory"
-        exit 1
-    fi
-    
     # Check for production environment files
     if [ ! -f "backend/.env.production" ]; then
         log_error "Backend production environment file not found"
@@ -110,13 +103,16 @@ copy_backend() {
     log_info "Copying requirements.txt..."
     cp backend/requirements.txt "$PROD_DIR/backend/"
     
-    # Copy production virtual environment
-    log_info "Copying production virtual environment..."
-    cp -r backend/venv-prod "$PROD_DIR/backend/"
-    
     # Copy and rename production environment file
     log_info "Setting up production environment configuration..."
     cp backend/.env.production "$PROD_DIR/backend/.env"
+    
+    # Set up production virtual environment
+    log_info "Creating production virtual environment..."
+    python3 -m venv "$PROD_DIR/backend/venv-prod"
+    log_info "Installing backend requirements..."
+    "$PROD_DIR/backend/venv-prod/bin/pip" install --upgrade pip --quiet
+    "$PROD_DIR/backend/venv-prod/bin/pip" install -r "$PROD_DIR/backend/requirements.txt" --quiet
     
     log_info "✅ Backend copied successfully"
 }
@@ -136,10 +132,6 @@ copy_frontend() {
     log_info "Copying public assets..."
     cp -r frontend/public "$PROD_DIR/frontend/"
     
-    # Copy node_modules
-    log_info "Copying node_modules..."
-    cp -r frontend/node_modules "$PROD_DIR/frontend/"
-    
     # Copy configuration files
     log_info "Copying configuration files..."
     cp frontend/package.json "$PROD_DIR/frontend/"
@@ -150,6 +142,10 @@ copy_frontend() {
     log_info "Setting up production environment configuration..."
     cp frontend/.env.production "$PROD_DIR/frontend/.env"
     
+    # Install production dependencies
+    log_info "Installing frontend dependencies with npm ci..."
+    (cd "$PROD_DIR/frontend" && npm ci)
+    
     log_info "✅ Frontend copied successfully"
 }
 
@@ -157,26 +153,27 @@ copy_frontend() {
 initialize_database() {
     log_step "Initializing production database..."
     
-    # Change to backend production directory
-    cd "$PROD_DIR/backend" || { log_error "Failed to change to backend directory"; exit 1; }
-    
-    # Activate virtual environment and run migrations
-    log_info "Running database migrations..."
-    source venv-prod/bin/activate
-    
-    # Set DATABASE_URL for production
-    export DATABASE_URL="sqlite:///./youtube_assistant_prod.db"
-    
-    # Run alembic migrations
-    alembic upgrade head
-    
-    # Deactivate virtual environment
-    deactivate
+    # Use subshell to automatically return to original directory
+    (
+        cd "$PROD_DIR/backend" || { log_error "Failed to change to backend directory"; exit 1; }
+        
+        # Activate virtual environment and run migrations
+        log_info "Running database migrations..."
+        source venv-prod/bin/activate
+        
+        # Load environment variables from .env file and export them
+        set -a
+        source .env
+        set +a
+        
+        # Run alembic migrations
+        alembic upgrade head
+        
+        # Deactivate virtual environment
+        deactivate
+    )
     
     log_info "✅ Database initialized successfully"
-    
-    # Return to original directory
-    cd - > /dev/null
 }
 
 # Create directories for logs and PIDs (for future scripts)
