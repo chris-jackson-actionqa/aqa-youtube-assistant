@@ -69,7 +69,9 @@ app = FastAPI(
 # Defaults to localhost:3000 (dev) if not set
 # Production should set CORS_ORIGINS=http://localhost:3001
 cors_origins_str = os.getenv("CORS_ORIGINS", "http://localhost:3000")
-cors_origins = [origin.strip() for origin in cors_origins_str.split(",")]
+cors_origins = [
+    origin.strip() for origin in cors_origins_str.split(",") if origin.strip()
+]
 
 app.add_middleware(
     CORSMiddleware,
