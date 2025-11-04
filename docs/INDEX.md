@@ -14,6 +14,10 @@ This document provides a quick reference to all project documentation.
 ## Deployment & Operations
 - **[Deployment Guide](DEPLOYMENT_GUIDE.md)** - Complete deployment instructions for development and production
 - **[Deployment Checklist](DEPLOYMENT_CHECKLIST.md)** - Step-by-step deployment verification checklist
+- **[Desktop Deployment](deployment/)** - Production desktop deployment (Phase 1 - Simple Scripts)
+  - [Phase 1 Planning](deployment/PHASE-1-MVP.md) - Architecture and implementation plan
+  - Deployment Guide (Coming in Issue #128)
+  - Troubleshooting Guide (Coming in Issue #128)
 - **[Migration Workflow](MIGRATION_WORKFLOW.md)** - Database migration procedures and best practices
 
 ## Architecture Decisions
@@ -27,6 +31,7 @@ This document provides a quick reference to all project documentation.
 ### Active Epics
 - 🚧 **[Epic #2: Project Management](https://github.com/chris-jackson-actionqa/aqa-youtube-assistant/issues/2)** - Create, load, and delete projects (60% complete)
 - 🚧 **[Epic #96: Alembic Database Migrations](https://github.com/chris-jackson-actionqa/aqa-youtube-assistant/issues/96)** - Automated migration system (Phase 1 ready)
+- 📋 **[Epic #123: Simple Desktop Deployment (Phase 1)](https://github.com/chris-jackson-actionqa/aqa-youtube-assistant/issues/123)** - Production deployment scripts (Planning complete, ready to implement)
 
 ### Recent Completions
 - ✅ Issue #91-95 - Multi-Workspace Support (All sub-issues)
@@ -56,5 +61,5 @@ As the project grows, we'll add:
 
 ---
 
-**Last Updated**: November 1, 2025  
+**Last Updated**: November 2, 2025  
 **Maintained By**: Project Team
