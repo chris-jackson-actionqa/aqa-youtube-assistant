@@ -73,6 +73,25 @@ npm run dev
 
 The frontend will be available at http://localhost:3000
 
+## Production Deployment
+
+To deploy the application to a production environment:
+
+```bash
+# Build for production
+./scripts/build-production.sh
+
+# Deploy to ~/aqa-youtube-assistant-prod/
+./scripts/deploy-production.sh
+
+# Start production services
+./scripts/start-production.sh
+```
+
+Production runs on ports 8001 (backend) and 3001 (frontend) with a separate database.
+
+See [DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed instructions.
+
 ## Development
 
 ### Git Hooks
