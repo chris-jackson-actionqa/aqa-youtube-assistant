@@ -87,13 +87,21 @@ build_frontend() {
     (
         cd frontend || { log_error 'Failed to change to frontend directory'; exit 1; }
         
+        # Check for production environment file
+        if [ ! -f ".env.production" ]; then
+            log_error "Frontend production environment file not found"
+            log_error "Expected to find frontend/.env.production"
+            exit 1
+        fi
+        
         # Install dependencies (including dev dependencies needed for build)
         log_info "Installing frontend dependencies..."
         npm install --production=false
         
-        # Build Next.js application
-        log_info "Building Next.js application..."
-        npm run build
+        # Build Next.js application with production environment
+        # Next.js automatically loads .env.production when NODE_ENV=production
+        log_info "Building Next.js application for production..."
+        NODE_ENV=production npm run build
         
         log_info "✓ Frontend build complete"
     )
