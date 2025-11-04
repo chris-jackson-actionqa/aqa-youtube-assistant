@@ -85,7 +85,7 @@ build_frontend() {
     log_step "Building frontend for production..."
     
     (
-        cd frontend
+        cd frontend || { log_error 'Failed to change to frontend directory'; exit 1; }
         
         # Install dependencies (including dev dependencies needed for build)
         log_info "Installing frontend dependencies..."
@@ -104,7 +104,7 @@ prepare_backend() {
     log_step "Preparing backend for production..."
     
     (
-        cd backend
+        cd backend || { log_error 'Failed to change to backend directory'; exit 1; }
         
         # Create production virtual environment if it doesn't exist
         if [ ! -d "venv-prod" ]; then
@@ -149,6 +149,7 @@ main() {
     echo "Next steps:"
     echo "  1. Run: ./scripts/deploy-production.sh"
     echo "  2. Run: ./scripts/start-production.sh"
+    echo -e "${YELLOW}Note: The above scripts will be added in upcoming issues (see Epic #123).${NC}"
     echo ""
 }
 
