@@ -1,16 +1,22 @@
 import logging
+import os
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 
+from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from .database import get_db
-from .migrations import run_migrations
-from .models import Project, Workspace
-from .schemas import (
+# Load environment variables from .env file at module import time
+# CRITICAL: Must be called before importing local modules that use os.getenv()
+load_dotenv()
+
+from .database import get_db  # noqa: E402
+from .migrations import run_migrations  # noqa: E402
+from .models import Project, Workspace  # noqa: E402
+from .schemas import (  # noqa: E402
     ProjectCreate,
     ProjectResponse,
     ProjectUpdate,
@@ -59,9 +65,17 @@ app = FastAPI(
 )
 
 # Configure CORS to allow the Next.js frontend to communicate with the backend
+# Reads allowed origins from CORS_ORIGINS environment variable
+# Defaults to localhost:3000 (dev) if not set
+# Production should set CORS_ORIGINS=http://localhost:3001
+cors_origins_str = os.getenv("CORS_ORIGINS", "http://localhost:3000")
+cors_origins = [
+    origin.strip() for origin in cors_origins_str.split(",") if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Next.js default port
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
