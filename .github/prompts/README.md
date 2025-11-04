@@ -29,6 +29,19 @@ This directory contains specialized Copilot prompts that can be invoked for spec
 - 95%+ test coverage required for all backend code
 - Only implement what's requested (no extra features)
 
+### 🚀 [deployment-agent.md](./deployment-agent.md)
+**Purpose**: Deployment expert for building, packaging, and deploying to Linux Pop_OS  
+**When to use**: Creating deployment scripts, production configs, deployment docs, systemd services  
+**Invoke with**: Reference this file or use natural language like "create the build script for production"  
+**MCP Servers**: GitHub (issues, branching) + Context7 (latest docs) + Chroma DB (deployment context)  
+**Key Principles**:
+- Never guess deployment requirements - always ask for clarification
+- Work in small, testable tasks with frequent commits
+- Test all scripts manually before committing
+- Focus on Pop_OS Linux environment only
+- Document thoroughly for end users
+- NEVER use `--no-verify` or reduce coverage thresholds
+
 ## How to Use Prompts
 
 ### Method 1: Direct Reference
