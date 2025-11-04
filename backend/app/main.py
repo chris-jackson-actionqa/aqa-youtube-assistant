@@ -9,10 +9,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from .database import get_db
-from .migrations import run_migrations
-from .models import Project, Workspace
-from .schemas import (
+# Load environment variables from .env file at module import time
+# CRITICAL: Must be called before importing local modules that use os.getenv()
+load_dotenv()
+
+from .database import get_db  # noqa: E402
+from .migrations import run_migrations  # noqa: E402
+from .models import Project, Workspace  # noqa: E402
+from .schemas import (  # noqa: E402
     ProjectCreate,
     ProjectResponse,
     ProjectUpdate,
@@ -20,10 +24,6 @@ from .schemas import (
     WorkspaceResponse,
     WorkspaceUpdate,
 )
-
-# Load environment variables from .env file at module import time
-# This must happen before any code that accesses os.getenv()
-load_dotenv()
 
 logger = logging.getLogger(__name__)
 
