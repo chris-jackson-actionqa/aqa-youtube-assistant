@@ -9,9 +9,9 @@ echo "🛑 Stopping AQA YouTube Assistant (Production)..."
 # Stop Backend
 if [ -f "$PID_DIR/backend.pid" ]; then
     BACKEND_PID=$(cat "$PID_DIR/backend.pid")
-    if kill -0 $BACKEND_PID 2>/dev/null; then
+    if kill -0 "$BACKEND_PID" 2>/dev/null; then
         echo "Stopping backend (PID: $BACKEND_PID)..."
-        kill $BACKEND_PID
+        kill "$BACKEND_PID"
         rm "$PID_DIR/backend.pid"
         echo "✅ Backend stopped"
     else
@@ -25,9 +25,9 @@ fi
 # Stop Frontend
 if [ -f "$PID_DIR/frontend.pid" ]; then
     FRONTEND_PID=$(cat "$PID_DIR/frontend.pid")
-    if kill -0 $FRONTEND_PID 2>/dev/null; then
+    if kill -0 "$FRONTEND_PID" 2>/dev/null; then
         echo "Stopping frontend (PID: $FRONTEND_PID)..."
-        kill $FRONTEND_PID
+        kill "$FRONTEND_PID"
         rm "$PID_DIR/frontend.pid"
         echo "✅ Frontend stopped"
     else
