@@ -84,50 +84,49 @@ check_prerequisites() {
 build_frontend() {
     log_step "Building frontend for production..."
     
-    cd frontend
-    
-    # Install dependencies (including dev dependencies needed for build)
-    log_info "Installing frontend dependencies..."
-    npm install --production=false
-    
-    # Build Next.js application
-    log_info "Building Next.js application..."
-    npm run build
-    
-    log_info "✓ Frontend build complete"
-    
-    cd ..
+    (
+        cd frontend
+        
+        # Install dependencies (including dev dependencies needed for build)
+        log_info "Installing frontend dependencies..."
+        npm install --production=false
+        
+        # Build Next.js application
+        log_info "Building Next.js application..."
+        npm run build
+        
+        log_info "✓ Frontend build complete"
+    )
 }
 
 # Prepare backend
 prepare_backend() {
     log_step "Preparing backend for production..."
     
-    cd backend
-    
-    # Create production virtual environment if it doesn't exist
-    if [ ! -d "venv-prod" ]; then
-        log_info "Creating production virtual environment..."
-        python3 -m venv venv-prod
-    else
-        log_info "Production virtual environment already exists, using existing"
-    fi
-    
-    # Activate virtual environment
-    log_info "Activating virtual environment..."
-    source venv-prod/bin/activate
-    
-    # Upgrade pip
-    log_info "Upgrading pip..."
-    pip install --upgrade pip --quiet
-    
-    # Install production dependencies
-    log_info "Installing backend production dependencies..."
-    pip install -r requirements.txt --quiet
-    
-    log_info "✓ Backend preparation complete"
-    
-    cd ..
+    (
+        cd backend
+        
+        # Create production virtual environment if it doesn't exist
+        if [ ! -d "venv-prod" ]; then
+            log_info "Creating production virtual environment..."
+            python3 -m venv venv-prod
+        else
+            log_info "Production virtual environment already exists, using existing"
+        fi
+        
+        # Use virtual environment's pip directly (no activation needed)
+        log_info "Using virtual environment's pip to install dependencies..."
+        
+        # Upgrade pip
+        log_info "Upgrading pip..."
+        ./venv-prod/bin/pip install --upgrade pip --quiet
+        
+        # Install production dependencies
+        log_info "Installing backend production dependencies..."
+        ./venv-prod/bin/pip install -r requirements.txt --quiet
+        
+        log_info "✓ Backend preparation complete"
+    )
 }
 
 # Main script logic
