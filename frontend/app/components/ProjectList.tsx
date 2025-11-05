@@ -107,7 +107,7 @@ export default function ProjectList({
   const handleSelect = (project: Project) => {
     // Navigate to project detail page
     router.push(`/projects/${project.id}`);
-    
+
     // Also call the callback if provided (for backwards compatibility)
     if (onProjectSelect) {
       onProjectSelect(project);

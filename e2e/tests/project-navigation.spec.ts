@@ -154,7 +154,7 @@ test.describe('Project Card Navigation (Issue #138)', () => {
       // Wait for projects to load
       const projectCards = page.locator('[data-testid="project-card"]');
       await expect(projectCards.first()).toBeVisible({ timeout: 5000 });
-      
+
       const count = await projectCards.count();
       expect(count).toBeGreaterThanOrEqual(3);
 
@@ -333,7 +333,8 @@ test.describe('Project Card Navigation (Issue #138)', () => {
 
       // Assert: Navigated again
       await expect(page).toHaveURL(`/projects/${project.id}`);
-    });    test('should work with single project in list', async ({ page }) => {
+    });
+    test('should work with single project in list', async ({ page }) => {
       // Setup: Create only one project
       const project = await helpers.createProjectViaAPI('Only Project');
       await page.goto('/');
