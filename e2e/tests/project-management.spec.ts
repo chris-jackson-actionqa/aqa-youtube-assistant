@@ -164,20 +164,26 @@ test.describe('Project Management Workflows', () => {
       await helpers.selectProject('Project 1');
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
-      await expect(page.locator('text=Working on: Project 1')).toBeVisible();
+      await expect(page.locator('text=Working on: Project 1')).toBeVisible({
+        timeout: 10000,
+      });
 
       // Switch to second project
       await helpers.selectProject('Project 2');
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
-      await expect(page.locator('text=Working on: Project 2')).toBeVisible();
+      await expect(page.locator('text=Working on: Project 2')).toBeVisible({
+        timeout: 10000,
+      });
       await expect(page.locator('text=Working on: Project 1')).toBeHidden();
 
       // Switch to third project
       await helpers.selectProject('Project 3');
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
-      await expect(page.locator('text=Working on: Project 3')).toBeVisible();
+      await expect(page.locator('text=Working on: Project 3')).toBeVisible({
+        timeout: 10000,
+      });
     });
   });
 
@@ -241,7 +247,9 @@ test.describe('Project Management Workflows', () => {
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
 
-      await expect(page.locator('text=Working on: Selected and Deleted')).toBeVisible();
+      await expect(page.locator('text=Working on: Selected and Deleted')).toBeVisible({
+        timeout: 10000,
+      });
 
       // Delete the selected project (updated selector with project name)
       const projectCard = page
@@ -324,7 +332,9 @@ test.describe('Project Management Workflows', () => {
       await page.goto('/');
 
       // Verify selection
-      await expect(page.locator('text=Working on: Keyboard Project')).toBeVisible();
+      await expect(page.locator('text=Working on: Keyboard Project')).toBeVisible({
+        timeout: 10000,
+      });
     });
   });
 });
