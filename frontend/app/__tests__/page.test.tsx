@@ -19,6 +19,14 @@ import Home from "../page";
 import * as api from "../lib/api";
 import { Project } from "../types/project";
 
+// Mock next/navigation
+const mockPush = jest.fn();
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: mockPush,
+  }),
+}));
+
 // Mock the API module
 jest.mock("../lib/api");
 
@@ -72,6 +80,7 @@ describe("Home Page - Component Integration", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPush.mockReset();
     localStorageMock.clear();
     (api.getProjects as jest.Mock).mockResolvedValue(mockProjects);
     (api.getProject as jest.Mock).mockImplementation((id: number) => {
