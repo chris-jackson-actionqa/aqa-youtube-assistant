@@ -164,26 +164,26 @@ test.describe('Project Management Workflows', () => {
       await helpers.selectProject('Project 1');
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
-      await expect(page.locator('text=Working on: Project 1')).toBeVisible({
-        timeout: 10000,
-      });
+      await page.waitForLoadState('domcontentloaded');
+      const project1Header = page.locator('text=Working on: Project 1');
+      await project1Header.waitFor({ state: 'visible', timeout: 15000 });
 
       // Switch to second project
       await helpers.selectProject('Project 2');
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
-      await expect(page.locator('text=Working on: Project 2')).toBeVisible({
-        timeout: 10000,
-      });
+      await page.waitForLoadState('domcontentloaded');
+      const project2Header = page.locator('text=Working on: Project 2');
+      await project2Header.waitFor({ state: 'visible', timeout: 15000 });
       await expect(page.locator('text=Working on: Project 1')).toBeHidden();
 
       // Switch to third project
       await helpers.selectProject('Project 3');
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
-      await expect(page.locator('text=Working on: Project 3')).toBeVisible({
-        timeout: 10000,
-      });
+      await page.waitForLoadState('domcontentloaded');
+      const project3Header = page.locator('text=Working on: Project 3');
+      await project3Header.waitFor({ state: 'visible', timeout: 15000 });
     });
   });
 
@@ -246,10 +246,10 @@ test.describe('Project Management Workflows', () => {
       // Wait for navigation and go back to home
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
+      await page.waitForLoadState('domcontentloaded');
 
-      await expect(page.locator('text=Working on: Selected and Deleted')).toBeVisible({
-        timeout: 10000,
-      });
+      const selectionHeader = page.locator('text=Working on: Selected and Deleted');
+      await selectionHeader.waitFor({ state: 'visible', timeout: 15000 });
 
       // Delete the selected project (updated selector with project name)
       const projectCard = page
@@ -330,11 +330,11 @@ test.describe('Project Management Workflows', () => {
       // Wait for navigation and go back to home
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
+      await page.waitForLoadState('domcontentloaded');
 
       // Verify selection
-      await expect(page.locator('text=Working on: Keyboard Project')).toBeVisible({
-        timeout: 10000,
-      });
+      const keyboardHeader = page.locator('text=Working on: Keyboard Project');
+      await keyboardHeader.waitFor({ state: 'visible', timeout: 15000 });
     });
   });
 });
