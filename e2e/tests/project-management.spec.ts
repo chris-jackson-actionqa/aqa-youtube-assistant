@@ -111,11 +111,11 @@ test.describe('Project Management Workflows', () => {
       await page.goto('/');
 
       await helpers.selectProject('Temp Project');
-      
+
       // Wait for navigation and go back to home
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
-      
+
       await expect(page.locator('text=Working on: Temp Project')).toBeVisible();
 
       // Act: Clear selection
@@ -136,11 +136,11 @@ test.describe('Project Management Workflows', () => {
       await page.goto('/');
 
       await helpers.selectProject('Persistent Project');
-      
+
       // Wait for navigation and go back to home
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
-      
+
       await expect(page.locator('text=Working on: Persistent Project')).toBeVisible();
 
       // Reload page
@@ -236,11 +236,11 @@ test.describe('Project Management Workflows', () => {
       await page.goto('/');
 
       await helpers.selectProject('Selected and Deleted');
-      
+
       // Wait for navigation and go back to home
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
-      
+
       await expect(page.locator('text=Working on: Selected and Deleted')).toBeVisible();
 
       // Delete the selected project (updated selector with project name)
@@ -318,7 +318,7 @@ test.describe('Project Management Workflows', () => {
 
       // Enter to select
       await page.keyboard.press('Enter');
-      
+
       // Wait for navigation and go back to home
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
