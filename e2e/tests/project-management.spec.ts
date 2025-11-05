@@ -93,16 +93,14 @@ test.describe('Project Management Workflows', () => {
       await helpers.createProjectViaAPI('Selected Project');
       await page.goto('/');
 
-      // Act: Click project
+      // Act: Click project (this now navigates to /projects/{id})
       await helpers.selectProject('Selected Project');
 
-      // Assert: Project is selected (visual indicator)
-      const selectedCard = page
-        .locator('[data-testid="project-card"]')
-        .filter({ hasText: 'Selected Project' });
-      await expect(selectedCard).toHaveClass(/selected|active/);
+      // Wait for navigation and then go back to home
+      await page.waitForURL(/\/projects\/\d+/);
+      await page.goto('/');
 
-      // Assert: Header shows current project
+      // Assert: Header shows current project (selection should persist)
       await expect(page.locator('text=Working on: Selected Project')).toBeVisible();
     });
 
@@ -113,6 +111,11 @@ test.describe('Project Management Workflows', () => {
       await page.goto('/');
 
       await helpers.selectProject('Temp Project');
+      
+      // Wait for navigation and go back to home
+      await page.waitForURL(/\/projects\/\d+/);
+      await page.goto('/');
+      
       await expect(page.locator('text=Working on: Temp Project')).toBeVisible();
 
       // Act: Clear selection
@@ -133,6 +136,11 @@ test.describe('Project Management Workflows', () => {
       await page.goto('/');
 
       await helpers.selectProject('Persistent Project');
+      
+      // Wait for navigation and go back to home
+      await page.waitForURL(/\/projects\/\d+/);
+      await page.goto('/');
+      
       await expect(page.locator('text=Working on: Persistent Project')).toBeVisible();
 
       // Reload page
@@ -154,15 +162,21 @@ test.describe('Project Management Workflows', () => {
 
       // Select first project
       await helpers.selectProject('Project 1');
+      await page.waitForURL(/\/projects\/\d+/);
+      await page.goto('/');
       await expect(page.locator('text=Working on: Project 1')).toBeVisible();
 
       // Switch to second project
       await helpers.selectProject('Project 2');
+      await page.waitForURL(/\/projects\/\d+/);
+      await page.goto('/');
       await expect(page.locator('text=Working on: Project 2')).toBeVisible();
       await expect(page.locator('text=Working on: Project 1')).toBeHidden();
 
       // Switch to third project
       await helpers.selectProject('Project 3');
+      await page.waitForURL(/\/projects\/\d+/);
+      await page.goto('/');
       await expect(page.locator('text=Working on: Project 3')).toBeVisible();
     });
   });
@@ -222,6 +236,11 @@ test.describe('Project Management Workflows', () => {
       await page.goto('/');
 
       await helpers.selectProject('Selected and Deleted');
+      
+      // Wait for navigation and go back to home
+      await page.waitForURL(/\/projects\/\d+/);
+      await page.goto('/');
+      
       await expect(page.locator('text=Working on: Selected and Deleted')).toBeVisible();
 
       // Delete the selected project (updated selector with project name)
@@ -299,6 +318,10 @@ test.describe('Project Management Workflows', () => {
 
       // Enter to select
       await page.keyboard.press('Enter');
+      
+      // Wait for navigation and go back to home
+      await page.waitForURL(/\/projects\/\d+/);
+      await page.goto('/');
 
       // Verify selection
       await expect(page.locator('text=Working on: Keyboard Project')).toBeVisible();
