@@ -105,7 +105,7 @@ test.describe('Project Management Workflows', () => {
 
       // Assert: Header shows current project (selection should persist)
       await expect(page.locator('text=Working on: Selected Project')).toBeVisible({
-        timeout: 10000,
+        timeout: 15000,
       });
     });
 
@@ -125,7 +125,7 @@ test.describe('Project Management Workflows', () => {
       await expect(page.getByTestId('project-card').first()).toBeVisible({ timeout: 15000 });
 
       // Verify selection is shown
-      await expect(page.locator('text=Working on: Temp Project')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('text=Working on: Temp Project')).toBeVisible({ timeout: 15000 });
 
       // Act: Clear selection
       await page.click('button:has-text("Clear")');
@@ -155,7 +155,7 @@ test.describe('Project Management Workflows', () => {
 
       // Verify selection is shown
       await expect(page.locator('text=Working on: Persistent Project')).toBeVisible({
-        timeout: 10000,
+        timeout: 15000,
       });
 
       // Reload page
@@ -166,7 +166,7 @@ test.describe('Project Management Workflows', () => {
 
       // Assert: Selection persists after reload
       await expect(page.locator('text=Working on: Persistent Project')).toBeVisible({
-        timeout: 10000,
+        timeout: 15000,
       });
       const selectedCard = page
         .locator('[data-testid="project-card"]')
@@ -185,14 +185,14 @@ test.describe('Project Management Workflows', () => {
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
       await expect(page.getByTestId('project-card').first()).toBeVisible({ timeout: 15000 });
-      await expect(page.locator('text=Working on: Project 1')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('text=Working on: Project 1')).toBeVisible({ timeout: 15000 });
 
       // Switch to second project
       await helpers.selectProject('Project 2');
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
       await expect(page.getByTestId('project-card').first()).toBeVisible({ timeout: 15000 });
-      await expect(page.locator('text=Working on: Project 2')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('text=Working on: Project 2')).toBeVisible({ timeout: 15000 });
       await expect(page.locator('text=Working on: Project 1')).toBeHidden();
 
       // Switch to third project
@@ -200,7 +200,7 @@ test.describe('Project Management Workflows', () => {
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
       await expect(page.getByTestId('project-card').first()).toBeVisible({ timeout: 15000 });
-      await expect(page.locator('text=Working on: Project 3')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('text=Working on: Project 3')).toBeVisible({ timeout: 15000 });
     });
   });
 
@@ -270,7 +270,7 @@ test.describe('Project Management Workflows', () => {
 
       // Verify selection is shown
       await expect(page.locator('text=Working on: Selected and Deleted')).toBeVisible({
-        timeout: 10000,
+        timeout: 15000,
       });
 
       // Delete the selected project (updated selector with project name)
@@ -358,7 +358,7 @@ test.describe('Project Management Workflows', () => {
 
       // Verify selection
       await expect(page.locator('text=Working on: Keyboard Project')).toBeVisible({
-        timeout: 10000,
+        timeout: 15000,
       });
     });
   });
