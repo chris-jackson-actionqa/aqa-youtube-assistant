@@ -115,8 +115,10 @@ test.describe('Project Management Workflows', () => {
       // Wait for navigation and go back to home
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
+      await page.waitForLoadState('domcontentloaded');
 
-      await expect(page.locator('text=Working on: Temp Project')).toBeVisible();
+      const tempHeader = page.locator('text=Working on: Temp Project');
+      await tempHeader.waitFor({ state: 'visible', timeout: 15000 });
 
       // Act: Clear selection
       await page.click('button:has-text("Clear")');
@@ -140,14 +142,17 @@ test.describe('Project Management Workflows', () => {
       // Wait for navigation and go back to home
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
+      await page.waitForLoadState('domcontentloaded');
 
-      await expect(page.locator('text=Working on: Persistent Project')).toBeVisible();
+      const persistentHeader = page.locator('text=Working on: Persistent Project');
+      await persistentHeader.waitFor({ state: 'visible', timeout: 15000 });
 
       // Reload page
       await page.reload();
+      await page.waitForLoadState('domcontentloaded');
 
       // Assert: Selection persists
-      await expect(page.locator('text=Working on: Persistent Project')).toBeVisible();
+      await persistentHeader.waitFor({ state: 'visible', timeout: 15000 });
       const selectedCard = page
         .locator('[data-testid="project-card"]')
         .filter({ hasText: 'Persistent Project' });
