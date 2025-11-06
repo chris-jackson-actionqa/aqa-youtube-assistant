@@ -18,6 +18,27 @@ import { ProjectHelpers } from '../helpers/test-helpers';
 test.describe('Project Management Workflows', () => {
   let helpers: ProjectHelpers;
 
+  // Warm up backend before all tests in this suite
+  // CI environment can be slow to respond to first request
+  test.beforeAll(async () => {
+    const maxAttempts = 5;
+    for (let i = 0; i < maxAttempts; i++) {
+      try {
+        const response = await fetch('http://localhost:8000/api/health', {
+          signal: AbortSignal.timeout(10000), // 10s timeout per attempt
+        });
+        if (response.ok) {
+          console.log(`✓ Backend warmed up (attempt ${i + 1})`);
+          return;
+        }
+      } catch (error) {
+        console.log(`Backend warmup attempt ${i + 1} failed, retrying...`);
+        if (i === maxAttempts - 1) throw error;
+        await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2s before retry
+      }
+    }
+  });
+
   test.beforeEach(async ({ page }) => {
     helpers = new ProjectHelpers(page);
     await helpers.setupWorkspace();
