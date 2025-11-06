@@ -24,7 +24,8 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
 
   /* Use multiple workers for parallel execution */
-  workers: 4, // Parallel execution enabled after workspace isolation verification
+  // CI runners have 2 cores, local machines typically have more
+  workers: process.env.CI ? 2 : 4,
 
   /* Reporter to use */
   reporter: [
