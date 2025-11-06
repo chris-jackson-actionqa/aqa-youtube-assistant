@@ -98,15 +98,14 @@ test.describe('Project Management Workflows', () => {
 
       // Wait for navigation and then go back to home
       await page.waitForURL(/\/projects\/\d+/);
-      
+
       // Wait for the project details API call when page reloads
       const apiResponsePromise = page.waitForResponse(
         (response) =>
-          response.url().match(/\/api\/projects\/\d+$/) !== null &&
-          response.status() === 200,
+          response.url().match(/\/api\/projects\/\d+$/) !== null && response.status() === 200,
         { timeout: 20000 } // Give it 20 seconds to see if API is the bottleneck
       );
-      
+
       await page.goto('/');
       await apiResponsePromise;
 

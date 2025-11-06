@@ -218,15 +218,14 @@ export class ProjectHelpers {
     const projectCard = this.page
       .locator(`[data-testid="project-card"]`)
       .filter({ hasText: projectName });
-    
+
     if (waitForAPI) {
       // Wait for the GET /api/projects/{id} API call to complete
       const responsePromise = this.page.waitForResponse(
-        (response) => 
-          response.url().match(/\/api\/projects\/\d+$/) !== null && 
-          response.status() === 200
+        (response) =>
+          response.url().match(/\/api\/projects\/\d+$/) !== null && response.status() === 200
       );
-      
+
       await projectCard.click();
       await responsePromise;
     } else {
