@@ -100,8 +100,13 @@ test.describe('Project Management Workflows', () => {
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
 
+      // Wait for projects to load (which means state has been restored from localStorage)
+      await expect(page.getByTestId('project-card').first()).toBeVisible({ timeout: 15000 });
+
       // Assert: Header shows current project (selection should persist)
-      await expect(page.locator('text=Working on: Selected Project')).toBeVisible();
+      await expect(page.locator('text=Working on: Selected Project')).toBeVisible({
+        timeout: 5000,
+      });
     });
 
     // Phase 2: Clear selection test
@@ -115,10 +120,12 @@ test.describe('Project Management Workflows', () => {
       // Wait for navigation and go back to home
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
-      await page.waitForLoadState('domcontentloaded');
 
-      const tempHeader = page.locator('text=Working on: Temp Project');
-      await tempHeader.waitFor({ state: 'visible', timeout: 15000 });
+      // Wait for projects to load (which means state has been restored from localStorage)
+      await expect(page.getByTestId('project-card').first()).toBeVisible({ timeout: 15000 });
+
+      // Verify selection is shown
+      await expect(page.locator('text=Working on: Temp Project')).toBeVisible({ timeout: 5000 });
 
       // Act: Clear selection
       await page.click('button:has-text("Clear")');
@@ -142,17 +149,25 @@ test.describe('Project Management Workflows', () => {
       // Wait for navigation and go back to home
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
-      await page.waitForLoadState('domcontentloaded');
 
-      const persistentHeader = page.locator('text=Working on: Persistent Project');
-      await persistentHeader.waitFor({ state: 'visible', timeout: 15000 });
+      // Wait for projects to load (which means state has been restored from localStorage)
+      await expect(page.getByTestId('project-card').first()).toBeVisible({ timeout: 15000 });
+
+      // Verify selection is shown
+      await expect(page.locator('text=Working on: Persistent Project')).toBeVisible({
+        timeout: 5000,
+      });
 
       // Reload page
       await page.reload();
-      await page.waitForLoadState('domcontentloaded');
 
-      // Assert: Selection persists
-      await persistentHeader.waitFor({ state: 'visible', timeout: 15000 });
+      // Wait for projects to load again after reload
+      await expect(page.getByTestId('project-card').first()).toBeVisible({ timeout: 15000 });
+
+      // Assert: Selection persists after reload
+      await expect(page.locator('text=Working on: Persistent Project')).toBeVisible({
+        timeout: 5000,
+      });
       const selectedCard = page
         .locator('[data-testid="project-card"]')
         .filter({ hasText: 'Persistent Project' });
@@ -169,26 +184,23 @@ test.describe('Project Management Workflows', () => {
       await helpers.selectProject('Project 1');
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
-      await page.waitForLoadState('domcontentloaded');
-      const project1Header = page.locator('text=Working on: Project 1');
-      await project1Header.waitFor({ state: 'visible', timeout: 15000 });
+      await expect(page.getByTestId('project-card').first()).toBeVisible({ timeout: 15000 });
+      await expect(page.locator('text=Working on: Project 1')).toBeVisible({ timeout: 5000 });
 
       // Switch to second project
       await helpers.selectProject('Project 2');
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
-      await page.waitForLoadState('domcontentloaded');
-      const project2Header = page.locator('text=Working on: Project 2');
-      await project2Header.waitFor({ state: 'visible', timeout: 15000 });
+      await expect(page.getByTestId('project-card').first()).toBeVisible({ timeout: 15000 });
+      await expect(page.locator('text=Working on: Project 2')).toBeVisible({ timeout: 5000 });
       await expect(page.locator('text=Working on: Project 1')).toBeHidden();
 
       // Switch to third project
       await helpers.selectProject('Project 3');
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
-      await page.waitForLoadState('domcontentloaded');
-      const project3Header = page.locator('text=Working on: Project 3');
-      await project3Header.waitFor({ state: 'visible', timeout: 15000 });
+      await expect(page.getByTestId('project-card').first()).toBeVisible({ timeout: 15000 });
+      await expect(page.locator('text=Working on: Project 3')).toBeVisible({ timeout: 5000 });
     });
   });
 
@@ -241,6 +253,7 @@ test.describe('Project Management Workflows', () => {
     });
 
     // Phase 2: Clear selection on delete test
+    // Phase 2: Clear selection on delete test
     // ✅ PASSING - Clear on delete already implemented in issue #53 and #54
     test('should clear selection when deleting selected project', async ({ page }) => {
       await helpers.createProjectViaAPI('Selected and Deleted');
@@ -251,10 +264,14 @@ test.describe('Project Management Workflows', () => {
       // Wait for navigation and go back to home
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
-      await page.waitForLoadState('domcontentloaded');
 
-      const selectionHeader = page.locator('text=Working on: Selected and Deleted');
-      await selectionHeader.waitFor({ state: 'visible', timeout: 15000 });
+      // Wait for projects to load (which means state has been restored from localStorage)
+      await expect(page.getByTestId('project-card').first()).toBeVisible({ timeout: 15000 });
+
+      // Verify selection is shown
+      await expect(page.locator('text=Working on: Selected and Deleted')).toBeVisible({
+        timeout: 5000,
+      });
 
       // Delete the selected project (updated selector with project name)
       const projectCard = page
@@ -335,11 +352,14 @@ test.describe('Project Management Workflows', () => {
       // Wait for navigation and go back to home
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
-      await page.waitForLoadState('domcontentloaded');
+
+      // Wait for projects to load (which means state has been restored from localStorage)
+      await expect(page.getByTestId('project-card').first()).toBeVisible({ timeout: 15000 });
 
       // Verify selection
-      const keyboardHeader = page.locator('text=Working on: Keyboard Project');
-      await keyboardHeader.waitFor({ state: 'visible', timeout: 15000 });
+      await expect(page.locator('text=Working on: Keyboard Project')).toBeVisible({
+        timeout: 5000,
+      });
     });
   });
 });
