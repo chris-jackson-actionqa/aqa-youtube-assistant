@@ -98,14 +98,25 @@ test.describe('Project Management Workflows', () => {
 
       // Wait for navigation and then go back to home
       await page.waitForURL(/\/projects\/\d+/);
+      
+      // Wait for the project details API call when page reloads
+      const apiResponsePromise = page.waitForResponse(
+        (response) =>
+          response.url().match(/\/api\/projects\/\d+$/) !== null &&
+          response.status() === 200,
+        { timeout: 20000 } // Give it 20 seconds to see if API is the bottleneck
+      );
+      
       await page.goto('/');
+      await apiResponsePromise;
 
       // Wait for projects to load (which means state has been restored from localStorage)
       await expect(page.getByTestId('project-card').first()).toBeVisible({ timeout: 15000 });
 
       // Assert: Header shows current project (selection should persist)
+      // Now we can use a short timeout since we waited for the API
       await expect(page.locator('text=Working on: Selected Project')).toBeVisible({
-        timeout: 15000,
+        timeout: 3000,
       });
     });
 
