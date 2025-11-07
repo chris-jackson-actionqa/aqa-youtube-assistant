@@ -152,8 +152,7 @@ test.describe('Project Management Workflows', () => {
       await expect(page.getByTestId('project-card').first()).toBeVisible();
 
       // Verify selection is shown
-      await expect(page.locator('text=Working on: Persistent Project')).toBeVisible({
-      });
+      await expect(page.locator('text=Working on: Persistent Project')).toBeVisible({});
 
       // Reload page
       await page.reload();
@@ -162,8 +161,7 @@ test.describe('Project Management Workflows', () => {
       await expect(page.getByTestId('project-card').first()).toBeVisible();
 
       // Assert: Selection persists after reload
-      await expect(page.locator('text=Working on: Persistent Project')).toBeVisible({
-      });
+      await expect(page.locator('text=Working on: Persistent Project')).toBeVisible({});
       const selectedCard = page
         .locator('[data-testid="project-card"]')
         .filter({ hasText: 'Persistent Project' });
@@ -265,8 +263,7 @@ test.describe('Project Management Workflows', () => {
       await expect(page.getByTestId('project-card').first()).toBeVisible();
 
       // Verify selection is shown
-      await expect(page.locator('text=Working on: Selected and Deleted')).toBeVisible({
-      });
+      await expect(page.locator('text=Working on: Selected and Deleted')).toBeVisible({});
 
       // Delete the selected project (updated selector with project name)
       const projectCard = page
@@ -352,8 +349,7 @@ test.describe('Project Management Workflows', () => {
       await expect(page.getByTestId('project-card').first()).toBeVisible();
 
       // Verify selection
-      await expect(page.locator('text=Working on: Keyboard Project')).toBeVisible({
-      });
+      await expect(page.locator('text=Working on: Keyboard Project')).toBeVisible({});
     });
   });
 });
