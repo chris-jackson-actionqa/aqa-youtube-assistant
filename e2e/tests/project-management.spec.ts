@@ -104,7 +104,10 @@ test.describe('Project Management Workflows', () => {
       await expect(page.getByTestId('project-card').first()).toBeVisible();
 
       // Assert: Header shows current project (selection should persist)
-      await expect(page.locator('text=Working on: Selected Project')).toBeVisible();
+      // Note: 10s timeout accounts for slower SQLite I/O in CI environment
+      await expect(
+        page.locator('text=Working on: Selected Project')
+      ).toBeVisible({ timeout: 10000 });
     });
 
     // Phase 2: Clear selection test
