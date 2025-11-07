@@ -15,8 +15,32 @@
 import { test, expect } from '@playwright/test';
 import { ProjectHelpers } from '../helpers/test-helpers';
 
+// CI environments may have slower disk I/O, so we increase timeout for UI updates
+const CI_TIMEOUT = 10000;
+
 test.describe('Project Management Workflows', () => {
   let helpers: ProjectHelpers;
+
+  // Warm up backend before all tests in this suite
+  // Ensures SQLite database is initialized before first test runs
+  test.beforeAll(async () => {
+    const maxAttempts = 5;
+    for (let i = 0; i < maxAttempts; i++) {
+      try {
+        const response = await fetch('http://localhost:8000/api/health', {
+          signal: AbortSignal.timeout(10000), // 10s timeout per attempt
+        });
+        if (response.ok) {
+          console.log(`✓ Backend warmed up (attempt ${i + 1})`);
+          return;
+        }
+      } catch (error) {
+        console.log(`Backend warmup attempt ${i + 1} failed, retrying...`);
+        if (i === maxAttempts - 1) throw error;
+        await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2s before retry
+      }
+    }
+  });
 
   test.beforeEach(async ({ page }) => {
     helpers = new ProjectHelpers(page);
@@ -126,7 +150,9 @@ test.describe('Project Management Workflows', () => {
       await expect(page.getByTestId('project-card').first()).toBeVisible();
 
       // Verify selection is shown
-      await expect(page.locator('text=Working on: Temp Project')).toBeVisible();
+      await expect(page.locator('text=Working on: Temp Project')).toBeVisible({
+        timeout: CI_TIMEOUT,
+      });
 
       // Act: Clear selection
       await page.click('button:has-text("Clear")');
@@ -155,7 +181,9 @@ test.describe('Project Management Workflows', () => {
       await expect(page.getByTestId('project-card').first()).toBeVisible();
 
       // Verify selection is shown
-      await expect(page.locator('text=Working on: Persistent Project')).toBeVisible({});
+      await expect(page.locator('text=Working on: Selected Project')).toBeVisible({
+        timeout: CI_TIMEOUT,
+      });
 
       // Reload page
       await page.reload();
@@ -164,7 +192,9 @@ test.describe('Project Management Workflows', () => {
       await expect(page.getByTestId('project-card').first()).toBeVisible();
 
       // Assert: Selection persists after reload
-      await expect(page.locator('text=Working on: Persistent Project')).toBeVisible({});
+      await expect(page.locator('text=Working on: Persistent Project')).toBeVisible({
+        timeout: CI_TIMEOUT,
+      });
       const selectedCard = page
         .locator('[data-testid="project-card"]')
         .filter({ hasText: 'Persistent Project' });
@@ -182,14 +212,18 @@ test.describe('Project Management Workflows', () => {
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
       await expect(page.getByTestId('project-card').first()).toBeVisible();
-      await expect(page.locator('text=Working on: Project 1')).toBeVisible();
+      await expect(page.locator('text=Working on: Project 1')).toBeVisible({
+        timeout: CI_TIMEOUT,
+      });
 
       // Switch to second project
       await helpers.selectProject('Project 2');
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
       await expect(page.getByTestId('project-card').first()).toBeVisible();
-      await expect(page.locator('text=Working on: Project 2')).toBeVisible();
+      await expect(page.locator('text=Working on: Project 2')).toBeVisible({
+        timeout: CI_TIMEOUT,
+      });
       await expect(page.locator('text=Working on: Project 1')).toBeHidden();
 
       // Switch to third project
@@ -197,7 +231,9 @@ test.describe('Project Management Workflows', () => {
       await page.waitForURL(/\/projects\/\d+/);
       await page.goto('/');
       await expect(page.getByTestId('project-card').first()).toBeVisible();
-      await expect(page.locator('text=Working on: Project 3')).toBeVisible();
+      await expect(page.locator('text=Working on: Project 3')).toBeVisible({
+        timeout: CI_TIMEOUT,
+      });
     });
   });
 
@@ -266,7 +302,9 @@ test.describe('Project Management Workflows', () => {
       await expect(page.getByTestId('project-card').first()).toBeVisible();
 
       // Verify selection is shown
-      await expect(page.locator('text=Working on: Selected and Deleted')).toBeVisible({});
+      await expect(page.locator('text=Working on: Selected and Deleted')).toBeVisible({
+        timeout: CI_TIMEOUT,
+      });
 
       // Delete the selected project (updated selector with project name)
       const projectCard = page
@@ -352,7 +390,9 @@ test.describe('Project Management Workflows', () => {
       await expect(page.getByTestId('project-card').first()).toBeVisible();
 
       // Verify selection
-      await expect(page.locator('text=Working on: Keyboard Project')).toBeVisible({});
+      await expect(page.locator('text=Working on: Keyboard Project')).toBeVisible({
+        timeout: CI_TIMEOUT,
+      });
     });
   });
 });
