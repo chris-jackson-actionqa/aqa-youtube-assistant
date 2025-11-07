@@ -15,8 +15,9 @@
 import { test, expect } from '@playwright/test';
 import { ProjectHelpers } from '../helpers/test-helpers';
 
-// CI environments may have slower disk I/O, so we increase timeout for UI updates
-const CI_TIMEOUT = 10000;
+// CI environments have significantly slower disk I/O (SQLite on GitHub Actions)
+// Even with database warmup, header updates can take 10-15s vs <1s locally
+const CI_TIMEOUT = 15000;
 
 test.describe('Project Management Workflows', () => {
   let helpers: ProjectHelpers;
