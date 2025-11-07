@@ -24,8 +24,10 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
 
   /* Use multiple workers for parallel execution */
-  // CI runners have 2 cores, local machines typically have more
-  workers: process.env.CI ? 2 : 4,
+  // NOTE: Set to 1 worker in CI due to SQLite write lock contention
+  // SQLite only allows one write at a time, causing 20+ second delays
+  // See issue #146 for PostgreSQL migration plan
+  workers: process.env.CI ? 1 : 4,
 
   /* Reporter to use */
   reporter: [
