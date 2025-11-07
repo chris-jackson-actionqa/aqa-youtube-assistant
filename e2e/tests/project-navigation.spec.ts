@@ -334,6 +334,7 @@ test.describe('Project Card Navigation (Issue #138)', () => {
       // Assert: Navigated again
       await expect(page).toHaveURL(`/projects/${project.id}`);
     });
+
     test('should work with single project in list', async ({ page }) => {
       // Setup: Create only one project
       const project = await helpers.createProjectViaAPI('Only Project');
