@@ -19,6 +19,20 @@ jest.mock("next/navigation", () => ({
   }),
 }));
 
+// Mock ProjectContext
+const mockSelectProject = jest.fn();
+jest.mock("../../contexts/ProjectContext", () => ({
+  useProject: () => ({
+    selectProject: mockSelectProject,
+    currentProject: null,
+    isLoading: false,
+    error: null,
+    clearSelection: jest.fn(),
+    refreshCurrentProject: jest.fn(),
+    updateCurrentProject: jest.fn(),
+  }),
+}));
+
 // Mock only the API functions, not the ApiError class
 jest.mock("../../lib/api", () => {
   const actualApi = jest.requireActual("../../lib/api");
@@ -64,6 +78,8 @@ describe("ProjectList", () => {
     mockedApi.getProjects.mockReset();
     mockedApi.deleteProject.mockReset();
     mockPush.mockReset();
+    mockSelectProject.mockReset();
+    mockSelectProject.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -302,6 +318,20 @@ describe("ProjectList", () => {
   });
 
   describe("Project Selection", () => {
+    it("calls selectProject from context when card is clicked", async () => {
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
+      render(<ProjectList />);
+
+      // Wait for project to appear
+      const projectCard = await screen.findByText("Test Project 1");
+      fireEvent.click(projectCard.closest('div[role="button"]')!);
+
+      await waitFor(() => {
+        expect(mockSelectProject).toHaveBeenCalledWith(1);
+        expect(mockPush).toHaveBeenCalledWith("/projects/1");
+      });
+    });
+
     it("navigates to project detail page when card is clicked", async () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
@@ -310,7 +340,9 @@ describe("ProjectList", () => {
       const projectCard = await screen.findByText("Test Project 1");
       fireEvent.click(projectCard.closest('div[role="button"]')!);
 
-      expect(mockPush).toHaveBeenCalledWith("/projects/1");
+      await waitFor(() => {
+        expect(mockPush).toHaveBeenCalledWith("/projects/1");
+      });
     });
 
     it("navigates without onProjectSelect callback", async () => {
@@ -322,7 +354,9 @@ describe("ProjectList", () => {
       fireEvent.click(projectCard.closest('div[role="button"]')!);
 
       // Should still navigate
-      expect(mockPush).toHaveBeenCalledWith("/projects/2");
+      await waitFor(() => {
+        expect(mockPush).toHaveBeenCalledWith("/projects/2");
+      });
     });
 
     it("calls onProjectSelect callback when card is clicked", async () => {
@@ -334,8 +368,10 @@ describe("ProjectList", () => {
       const projectCard = await screen.findByText("Test Project 1");
       fireEvent.click(projectCard.closest('div[role="button"]')!);
 
-      expect(onProjectSelect).toHaveBeenCalledWith(mockProjects[0]);
-      expect(mockPush).toHaveBeenCalledWith("/projects/1");
+      await waitFor(() => {
+        expect(onProjectSelect).toHaveBeenCalledWith(mockProjects[0]);
+        expect(mockPush).toHaveBeenCalledWith("/projects/1");
+      });
     });
 
     it("highlights selected project", async () => {
@@ -370,8 +406,11 @@ describe("ProjectList", () => {
         key: "Enter",
       });
 
-      expect(onProjectSelect).toHaveBeenCalledWith(mockProjects[0]);
-      expect(mockPush).toHaveBeenCalledWith("/projects/1");
+      await waitFor(() => {
+        expect(mockSelectProject).toHaveBeenCalledWith(1);
+        expect(onProjectSelect).toHaveBeenCalledWith(mockProjects[0]);
+        expect(mockPush).toHaveBeenCalledWith("/projects/1");
+      });
     });
 
     it("supports space key for selection", async () => {
@@ -385,8 +424,10 @@ describe("ProjectList", () => {
         key: " ",
       });
 
-      expect(onProjectSelect).toHaveBeenCalledWith(mockProjects[0]);
-      expect(mockPush).toHaveBeenCalledWith("/projects/1");
+      await waitFor(() => {
+        expect(onProjectSelect).toHaveBeenCalledWith(mockProjects[0]);
+        expect(mockPush).toHaveBeenCalledWith("/projects/1");
+      });
     });
 
     it("supports keyboard navigation without callback", async () => {
@@ -400,7 +441,9 @@ describe("ProjectList", () => {
       });
 
       // Should still navigate
-      expect(mockPush).toHaveBeenCalledWith("/projects/3");
+      await waitFor(() => {
+        expect(mockPush).toHaveBeenCalledWith("/projects/3");
+      });
     });
 
     it("does not trigger selection on other keys", async () => {

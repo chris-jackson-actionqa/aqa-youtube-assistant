@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Project } from "../types/project";
 import { getProjects, deleteProject, ApiError } from "../lib/api";
 import ProjectDeleteConfirmation from "./ProjectDeleteConfirmation";
+import { useProject } from "../contexts/ProjectContext";
 
 interface ProjectListProps {
   onProjectSelect?: (project: Project) => void;
@@ -35,6 +36,7 @@ export default function ProjectList({
   selectedProjectId,
 }: ProjectListProps) {
   const router = useRouter();
+  const { selectProject: selectCurrentProject } = useProject();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -104,7 +106,10 @@ export default function ProjectList({
     setError(null);
   };
 
-  const handleSelect = (project: Project) => {
+  const handleSelect = async (project: Project) => {
+    // Set current project in context (saves to localStorage, updates state)
+    await selectCurrentProject(project.id);
+
     // Navigate to project detail page
     router.push(`/projects/${project.id}`);
 
