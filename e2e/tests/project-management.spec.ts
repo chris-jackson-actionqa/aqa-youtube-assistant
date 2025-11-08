@@ -119,7 +119,16 @@ test.describe('Project Management Workflows', () => {
 
       // Wait for navigation and then go back to home
       await page.waitForURL(/\/projects\/\d+/);
+
+      // Wait for ProjectContext to restore from localStorage (it fetches project details)
+      const projectDetailsPromise = page.waitForResponse(
+        (response) =>
+          response.url().match(/\/api\/projects\/\d+$/) !== null && response.status() === 200,
+        { timeout: 10000 }
+      );
+
       await page.goto('/');
+      await projectDetailsPromise;
 
       // Wait for projects to load (which means state has been restored from localStorage)
       await expect(page.getByTestId('project-card').first()).toBeVisible();
@@ -141,7 +150,16 @@ test.describe('Project Management Workflows', () => {
 
       // Wait for navigation and go back to home
       await page.waitForURL(/\/projects\/\d+/);
+
+      // Wait for ProjectContext to restore from localStorage
+      const projectDetailsPromise = page.waitForResponse(
+        (response) =>
+          response.url().match(/\/api\/projects\/\d+$/) !== null && response.status() === 200,
+        { timeout: 10000 }
+      );
+
       await page.goto('/');
+      await projectDetailsPromise;
 
       // Wait for projects to load (which means state has been restored from localStorage)
       await expect(page.getByTestId('project-card').first()).toBeVisible();
@@ -174,7 +192,16 @@ test.describe('Project Management Workflows', () => {
 
       // Wait for navigation and go back to home
       await page.waitForURL(/\/projects\/\d+/);
+
+      // Wait for ProjectContext to restore from localStorage
+      let projectDetailsPromise = page.waitForResponse(
+        (response) =>
+          response.url().match(/\/api\/projects\/\d+$/) !== null && response.status() === 200,
+        { timeout: 10000 }
+      );
+
       await page.goto('/');
+      await projectDetailsPromise;
 
       // Wait for projects to load (which means state has been restored from localStorage)
       await expect(page.getByTestId('project-card').first()).toBeVisible();
@@ -186,7 +213,14 @@ test.describe('Project Management Workflows', () => {
       await expect(headerAfterNav).toBeVisible();
 
       // Reload page
+      projectDetailsPromise = page.waitForResponse(
+        (response) =>
+          response.url().match(/\/api\/projects\/\d+$/) !== null && response.status() === 200,
+        { timeout: 10000 }
+      );
+
       await page.reload();
+      await projectDetailsPromise;
 
       // Wait for projects to load again after reload
       await expect(page.getByTestId('project-card').first()).toBeVisible();
@@ -213,7 +247,16 @@ test.describe('Project Management Workflows', () => {
       // Select first project
       await helpers.selectProject('Project 1');
       await page.waitForURL(/\/projects\/\d+/);
+
+      let projectDetailsPromise = page.waitForResponse(
+        (response) =>
+          response.url().match(/\/api\/projects\/\d+$/) !== null && response.status() === 200,
+        { timeout: 10000 }
+      );
+
       await page.goto('/');
+      await projectDetailsPromise;
+
       await expect(page.getByTestId('project-card').first()).toBeVisible();
       const header1 = page.locator('text=Working on:').locator('strong', { hasText: 'Project 1' });
       await expect(header1).toBeVisible();
@@ -221,7 +264,16 @@ test.describe('Project Management Workflows', () => {
       // Switch to second project
       await helpers.selectProject('Project 2');
       await page.waitForURL(/\/projects\/\d+/);
+
+      projectDetailsPromise = page.waitForResponse(
+        (response) =>
+          response.url().match(/\/api\/projects\/\d+$/) !== null && response.status() === 200,
+        { timeout: 10000 }
+      );
+
       await page.goto('/');
+      await projectDetailsPromise;
+
       await expect(page.getByTestId('project-card').first()).toBeVisible();
       const header2 = page.locator('text=Working on:').locator('strong', { hasText: 'Project 2' });
       await expect(header2).toBeVisible();
@@ -232,7 +284,16 @@ test.describe('Project Management Workflows', () => {
       // Switch to third project
       await helpers.selectProject('Project 3');
       await page.waitForURL(/\/projects\/\d+/);
+
+      projectDetailsPromise = page.waitForResponse(
+        (response) =>
+          response.url().match(/\/api\/projects\/\d+$/) !== null && response.status() === 200,
+        { timeout: 10000 }
+      );
+
       await page.goto('/');
+      await projectDetailsPromise;
+
       await expect(page.getByTestId('project-card').first()).toBeVisible();
       const header3 = page.locator('text=Working on:').locator('strong', { hasText: 'Project 3' });
       await expect(header3).toBeVisible();
@@ -298,7 +359,15 @@ test.describe('Project Management Workflows', () => {
 
       // Wait for navigation and go back to home
       await page.waitForURL(/\/projects\/\d+/);
+
+      const projectDetailsPromise = page.waitForResponse(
+        (response) =>
+          response.url().match(/\/api\/projects\/\d+$/) !== null && response.status() === 200,
+        { timeout: 10000 }
+      );
+
       await page.goto('/');
+      await projectDetailsPromise;
 
       // Wait for projects to load (which means state has been restored from localStorage)
       await expect(page.getByTestId('project-card').first()).toBeVisible();
@@ -388,7 +457,15 @@ test.describe('Project Management Workflows', () => {
 
       // Wait for navigation and go back to home
       await page.waitForURL(/\/projects\/\d+/);
+
+      const projectDetailsPromise = page.waitForResponse(
+        (response) =>
+          response.url().match(/\/api\/projects\/\d+$/) !== null && response.status() === 200,
+        { timeout: 10000 }
+      );
+
       await page.goto('/');
+      await projectDetailsPromise;
 
       // Wait for projects to load (which means state has been restored from localStorage)
       await expect(page.getByTestId('project-card').first()).toBeVisible();
