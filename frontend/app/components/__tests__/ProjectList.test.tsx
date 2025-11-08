@@ -11,6 +11,14 @@ import ProjectList from "../ProjectList";
 import * as api from "../../lib/api";
 import { Project } from "../../types/project";
 
+// Mock next/navigation
+const mockPush = jest.fn();
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: mockPush,
+  }),
+}));
+
 // Mock only the API functions, not the ApiError class
 jest.mock("../../lib/api", () => {
   const actualApi = jest.requireActual("../../lib/api");
@@ -55,6 +63,7 @@ describe("ProjectList", () => {
     // Reset implementations before each test to ensure clean slate
     mockedApi.getProjects.mockReset();
     mockedApi.deleteProject.mockReset();
+    mockPush.mockReset();
   });
 
   afterEach(() => {
@@ -293,7 +302,30 @@ describe("ProjectList", () => {
   });
 
   describe("Project Selection", () => {
-    it("calls onProjectSelect when card is clicked", async () => {
+    it("navigates to project detail page when card is clicked", async () => {
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
+      render(<ProjectList />);
+
+      // Wait for project to appear
+      const projectCard = await screen.findByText("Test Project 1");
+      fireEvent.click(projectCard.closest('div[role="button"]')!);
+
+      expect(mockPush).toHaveBeenCalledWith("/projects/1");
+    });
+
+    it("navigates without onProjectSelect callback", async () => {
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
+      render(<ProjectList />); // No onProjectSelect provided
+
+      // Wait for project to appear
+      const projectCard = await screen.findByText("Test Project 2");
+      fireEvent.click(projectCard.closest('div[role="button"]')!);
+
+      // Should still navigate
+      expect(mockPush).toHaveBeenCalledWith("/projects/2");
+    });
+
+    it("calls onProjectSelect callback when card is clicked", async () => {
       const onProjectSelect = jest.fn();
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList onProjectSelect={onProjectSelect} />);
@@ -303,6 +335,7 @@ describe("ProjectList", () => {
       fireEvent.click(projectCard.closest('div[role="button"]')!);
 
       expect(onProjectSelect).toHaveBeenCalledWith(mockProjects[0]);
+      expect(mockPush).toHaveBeenCalledWith("/projects/1");
     });
 
     it("highlights selected project", async () => {
@@ -338,6 +371,7 @@ describe("ProjectList", () => {
       });
 
       expect(onProjectSelect).toHaveBeenCalledWith(mockProjects[0]);
+      expect(mockPush).toHaveBeenCalledWith("/projects/1");
     });
 
     it("supports space key for selection", async () => {
@@ -352,6 +386,21 @@ describe("ProjectList", () => {
       });
 
       expect(onProjectSelect).toHaveBeenCalledWith(mockProjects[0]);
+      expect(mockPush).toHaveBeenCalledWith("/projects/1");
+    });
+
+    it("supports keyboard navigation without callback", async () => {
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
+      render(<ProjectList />); // No callback provided
+
+      // Wait for project to appear
+      const projectCard = await screen.findByText("Test Project 3");
+      fireEvent.keyDown(projectCard.closest('div[role="button"]')!, {
+        key: "Enter",
+      });
+
+      // Should still navigate
+      expect(mockPush).toHaveBeenCalledWith("/projects/3");
     });
 
     it("does not trigger selection on other keys", async () => {
@@ -366,10 +415,54 @@ describe("ProjectList", () => {
       });
 
       expect(onProjectSelect).not.toHaveBeenCalled();
+      expect(mockPush).not.toHaveBeenCalled();
+    });
+
+    it("applies cursor-pointer class to project cards", async () => {
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
+      render(<ProjectList />);
+
+      // Wait for project to load
+      const projectName = await screen.findByText("Test Project 1");
+      const projectCard = projectName.closest('div[role="button"]');
+      expect(projectCard).toHaveClass("cursor-pointer");
+    });
+
+    it("applies hover styles to project cards", async () => {
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
+      render(<ProjectList />);
+
+      // Wait for project to load
+      const projectName = await screen.findByText("Test Project 1");
+      const projectCard = projectName.closest('div[role="button"]');
+      expect(projectCard).toHaveClass("hover:bg-gray-50");
+      expect(projectCard).toHaveClass("dark:hover:bg-gray-700");
     });
   });
 
   describe("Project Deletion", () => {
+    it("does not navigate when delete button is clicked", async () => {
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
+      render(<ProjectList />);
+
+      // Wait for projects to load
+      await screen.findByText("Test Project 1");
+
+      // Click delete button to open modal
+      const deleteButton = screen.getAllByRole("button", {
+        name: /delete project/i,
+      })[0];
+      fireEvent.click(deleteButton);
+
+      // Wait for modal
+      await waitFor(() => {
+        expect(screen.getByText("Delete Project?")).toBeInTheDocument();
+      });
+
+      // Verify navigation was NOT called
+      expect(mockPush).not.toHaveBeenCalled();
+    });
+
     it("calls deleteProject API when delete button is clicked", async () => {
       mockedApi.deleteProject.mockResolvedValueOnce({ message: "Deleted" });
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
@@ -946,6 +1039,22 @@ describe("ProjectList", () => {
 
       // Use findBy to wait for content
       expect(await screen.findByText("Short text")).toBeInTheDocument();
+    });
+
+    it("does not truncate description exactly at 100 characters", async () => {
+      const exactLength = "a".repeat(100);
+      const project: Project = {
+        ...mockProjects[0],
+        description: exactLength,
+      };
+      mockedApi.getProjects.mockResolvedValueOnce([project]);
+
+      render(<ProjectList />);
+
+      // Text should not be truncated
+      const displayedText = await screen.findByText(exactLength);
+      expect(displayedText.textContent).toHaveLength(100);
+      expect(displayedText.textContent).not.toContain("...");
     });
 
     it("handles missing callbacks gracefully", async () => {

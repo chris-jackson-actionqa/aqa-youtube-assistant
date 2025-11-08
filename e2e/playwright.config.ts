@@ -24,7 +24,10 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
 
   /* Use multiple workers for parallel execution */
-  workers: 4, // Parallel execution enabled after workspace isolation verification
+  // NOTE: Set to 1 worker in CI due to SQLite write lock contention
+  // SQLite only allows one write at a time, causing 20+ second delays
+  // See issue #146 for PostgreSQL migration plan
+  workers: process.env.CI ? 1 : 4,
 
   /* Reporter to use */
   reporter: [

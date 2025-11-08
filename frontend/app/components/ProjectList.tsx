@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Project } from "../types/project";
 import { getProjects, deleteProject, ApiError } from "../lib/api";
 import ProjectDeleteConfirmation from "./ProjectDeleteConfirmation";
@@ -33,6 +34,7 @@ export default function ProjectList({
   onProjectDelete,
   selectedProjectId,
 }: ProjectListProps) {
+  const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -103,6 +105,10 @@ export default function ProjectList({
   };
 
   const handleSelect = (project: Project) => {
+    // Navigate to project detail page
+    router.push(`/projects/${project.id}`);
+
+    // Also call the callback if provided (for backwards compatibility)
     if (onProjectSelect) {
       onProjectSelect(project);
     }
@@ -267,6 +273,7 @@ export default function ProjectList({
               tabIndex={0}
               className={`
                 bg-white dark:bg-gray-800 p-6 rounded-lg border-2 transition-all duration-200 cursor-pointer
+                hover:bg-gray-50 dark:hover:bg-gray-700
                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
                 ${
                   isSelected
