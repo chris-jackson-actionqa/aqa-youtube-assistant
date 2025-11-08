@@ -59,12 +59,12 @@ export class ProjectHelpers {
     // eslint-disable-next-line playwright/no-networkidle
     await this.page.waitForLoadState('networkidle');
 
-    // Set workspace in localStorage for UI and clear any previous project selection
+    // Set workspace in localStorage and clear any stale project selection
+    // This prevents cross-test contamination where previous workspace's project IDs cause 404s
     const workspaceIdToSet = this.workspaceId;
     await this.page.evaluate((wsId) => {
       // @ts-expect-error - localStorage is available in browser context
       localStorage.setItem('aqa-youtube-assistant:selected-workspace-id', String(wsId));
-      // Clear any previous project selection to avoid cross-test contamination
       // @ts-expect-error - localStorage is available in browser context
       localStorage.removeItem('currentProjectId');
     }, workspaceIdToSet);
