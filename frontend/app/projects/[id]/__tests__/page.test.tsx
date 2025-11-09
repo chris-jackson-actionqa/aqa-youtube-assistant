@@ -258,7 +258,7 @@ describe("ProjectDetailPage", () => {
       render(component);
 
       const backLink = screen.getByRole("link", { name: /back to projects/i });
-      expect(backLink).toHaveAttribute("href", "/projects");
+      expect(backLink).toHaveAttribute("href", "/");
     });
 
     it("back link has visible text 'Back to Projects'", async () => {

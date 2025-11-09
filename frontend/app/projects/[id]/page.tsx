@@ -52,7 +52,7 @@ export default async function ProjectDetailPage({
     <main className="container mx-auto max-w-4xl p-6">
       {/* Back Navigation */}
       <Link
-        href="/projects"
+        href="/"
         className="mb-4 inline-flex items-center text-blue-600 hover:text-blue-800 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded transition-colors duration-200"
         aria-label="Back to projects list"
       >
