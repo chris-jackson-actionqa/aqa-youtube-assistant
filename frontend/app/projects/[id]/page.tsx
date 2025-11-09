@@ -48,7 +48,7 @@ export default function ProjectDetailPage() {
     const fetchProject = async () => {
       setIsLoading(true);
       setError(null);
-      
+
       try {
         const data = await getProject(projectId);
         setProject(data);
@@ -78,8 +78,8 @@ export default function ProjectDetailPage() {
   if (error === "not-found" || !project) {
     return (
       <main className="container mx-auto max-w-4xl p-6">
-        <div 
-          role="alert" 
+        <div
+          role="alert"
           aria-live="polite"
           className="rounded-lg border border-red-200 bg-red-50 p-8"
         >
@@ -88,7 +88,8 @@ export default function ProjectDetailPage() {
             Project Not Found
           </h2>
           <p className="mb-6 text-red-700">
-            The project you&apos;re looking for doesn&apos;t exist or may have been deleted.
+            The project you&apos;re looking for doesn&apos;t exist or may have
+            been deleted.
           </p>
           <Link
             href="/projects"

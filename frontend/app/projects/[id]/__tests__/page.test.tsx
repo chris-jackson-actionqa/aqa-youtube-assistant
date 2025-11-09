@@ -75,7 +75,9 @@ describe("ProjectDetailPage", () => {
 
       render(<ProjectDetailPage />);
 
-      expect(screen.getByText("Loading project details...")).toBeInTheDocument();
+      expect(
+        screen.getByText("Loading project details...")
+      ).toBeInTheDocument();
     });
   });
 
@@ -108,7 +110,9 @@ describe("ProjectDetailPage", () => {
       render(<ProjectDetailPage />);
 
       await waitFor(() => {
-        expect(screen.getByText("Test project description")).toBeInTheDocument();
+        expect(
+          screen.getByText("Test project description")
+        ).toBeInTheDocument();
       });
     });
 
@@ -256,7 +260,9 @@ describe("ProjectDetailPage", () => {
       render(<ProjectDetailPage />);
 
       await waitFor(() => {
-        const backLink = screen.getByRole("link", { name: /back to projects/i });
+        const backLink = screen.getByRole("link", {
+          name: /back to projects/i,
+        });
         expect(backLink).toBeInTheDocument();
       });
     });
@@ -265,7 +271,9 @@ describe("ProjectDetailPage", () => {
       render(<ProjectDetailPage />);
 
       await waitFor(() => {
-        const backLink = screen.getByRole("link", { name: /back to projects/i });
+        const backLink = screen.getByRole("link", {
+          name: /back to projects/i,
+        });
         expect(backLink).toHaveAttribute("href", "/");
       });
     });
@@ -282,7 +290,9 @@ describe("ProjectDetailPage", () => {
       const { container } = render(<ProjectDetailPage />);
 
       await waitFor(() => {
-        const backLink = screen.getByRole("link", { name: /back to projects/i });
+        const backLink = screen.getByRole("link", {
+          name: /back to projects/i,
+        });
         expect(backLink.textContent).toContain("←");
 
         const arrowSpan = container.querySelector('span[aria-hidden="true"]');
@@ -304,7 +314,9 @@ describe("ProjectDetailPage", () => {
       render(<ProjectDetailPage />);
 
       await waitFor(() => {
-        const backLink = screen.getByRole("link", { name: /back to projects/i });
+        const backLink = screen.getByRole("link", {
+          name: /back to projects/i,
+        });
         expect(backLink).toHaveClass(
           "text-blue-600",
           "hover:text-blue-800",
@@ -317,7 +329,9 @@ describe("ProjectDetailPage", () => {
       render(<ProjectDetailPage />);
 
       await waitFor(() => {
-        const backLink = screen.getByRole("link", { name: /back to projects/i });
+        const backLink = screen.getByRole("link", {
+          name: /back to projects/i,
+        });
         expect(backLink).toHaveClass(
           "focus:outline-none",
           "focus:ring-2",
@@ -331,7 +345,9 @@ describe("ProjectDetailPage", () => {
       render(<ProjectDetailPage />);
 
       await waitFor(() => {
-        const backLink = screen.getByRole("link", { name: /back to projects/i });
+        const backLink = screen.getByRole("link", {
+          name: /back to projects/i,
+        });
         expect(backLink).toHaveClass("transition-colors", "duration-200");
       });
     });
@@ -340,7 +356,9 @@ describe("ProjectDetailPage", () => {
       const { container } = render(<ProjectDetailPage />);
 
       await waitFor(() => {
-        const backLink = screen.getByRole("link", { name: /back to projects/i });
+        const backLink = screen.getByRole("link", {
+          name: /back to projects/i,
+        });
         const article = container.querySelector("article");
 
         expect(backLink).toHaveClass("mb-4");
@@ -353,7 +371,9 @@ describe("ProjectDetailPage", () => {
       render(<ProjectDetailPage />);
 
       await waitFor(() => {
-        const backLink = screen.getByRole("link", { name: /back to projects/i });
+        const backLink = screen.getByRole("link", {
+          name: /back to projects/i,
+        });
         expect(backLink).toHaveClass("inline-flex", "items-center");
       });
     });
@@ -479,8 +499,12 @@ describe("ProjectDetailPage", () => {
       render(<ProjectDetailPage />);
 
       await waitFor(() => {
-        expect(screen.getByRole("heading", { name: "404", level: 1 })).toBeInTheDocument();
-        expect(screen.getByRole("heading", { name: "Project Not Found", level: 2 })).toBeInTheDocument();
+        expect(
+          screen.getByRole("heading", { name: "404", level: 1 })
+        ).toBeInTheDocument();
+        expect(
+          screen.getByRole("heading", { name: "Project Not Found", level: 2 })
+        ).toBeInTheDocument();
       });
     });
 
@@ -490,7 +514,9 @@ describe("ProjectDetailPage", () => {
       render(<ProjectDetailPage />);
 
       await waitFor(() => {
-        expect(screen.getByRole("heading", { name: "404", level: 1 })).toBeInTheDocument();
+        expect(
+          screen.getByRole("heading", { name: "404", level: 1 })
+        ).toBeInTheDocument();
       });
     });
 
@@ -500,7 +526,9 @@ describe("ProjectDetailPage", () => {
       render(<ProjectDetailPage />);
 
       await waitFor(() => {
-        expect(screen.getByRole("heading", { name: "404", level: 1 })).toBeInTheDocument();
+        expect(
+          screen.getByRole("heading", { name: "404", level: 1 })
+        ).toBeInTheDocument();
       });
     });
 
@@ -510,7 +538,9 @@ describe("ProjectDetailPage", () => {
       render(<ProjectDetailPage />);
 
       await waitFor(() => {
-        expect(screen.getByRole("heading", { name: "404", level: 1 })).toBeInTheDocument();
+        expect(
+          screen.getByRole("heading", { name: "404", level: 1 })
+        ).toBeInTheDocument();
       });
     });
 
@@ -520,7 +550,9 @@ describe("ProjectDetailPage", () => {
       render(<ProjectDetailPage />);
 
       await waitFor(() => {
-        expect(screen.getByRole("heading", { name: "404", level: 1 })).toBeInTheDocument();
+        expect(
+          screen.getByRole("heading", { name: "404", level: 1 })
+        ).toBeInTheDocument();
       });
     });
 
@@ -530,7 +562,9 @@ describe("ProjectDetailPage", () => {
       render(<ProjectDetailPage />);
 
       await waitFor(() => {
-        expect(screen.getByRole("heading", { name: "404", level: 1 })).toBeInTheDocument();
+        expect(
+          screen.getByRole("heading", { name: "404", level: 1 })
+        ).toBeInTheDocument();
       });
     });
 
@@ -552,7 +586,9 @@ describe("ProjectDetailPage", () => {
       render(<ProjectDetailPage />);
 
       await waitFor(() => {
-        const backLink = screen.getByRole("link", { name: /back to projects/i });
+        const backLink = screen.getByRole("link", {
+          name: /back to projects/i,
+        });
         expect(backLink).toHaveAttribute("href", "/projects");
       });
     });
@@ -565,8 +601,12 @@ describe("ProjectDetailPage", () => {
       render(<ProjectDetailPage />);
 
       await waitFor(() => {
-        expect(screen.getByRole("heading", { name: "404", level: 1 })).toBeInTheDocument();
-        expect(screen.getByText(/doesn't exist or may have been deleted/)).toBeInTheDocument();
+        expect(
+          screen.getByRole("heading", { name: "404", level: 1 })
+        ).toBeInTheDocument();
+        expect(
+          screen.getByText(/doesn't exist or may have been deleted/)
+        ).toBeInTheDocument();
       });
     });
 
@@ -577,7 +617,9 @@ describe("ProjectDetailPage", () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText(/The project you're looking for doesn't exist or may have been deleted./)
+          screen.getByText(
+            /The project you're looking for doesn't exist or may have been deleted./
+          )
         ).toBeInTheDocument();
       });
     });
