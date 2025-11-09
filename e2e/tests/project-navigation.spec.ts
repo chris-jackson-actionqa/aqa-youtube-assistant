@@ -1,25 +1,22 @@
 /**
- * E2E Tests: Project Card Navigation (Issue #138)
+ * E2E Tests: Project Card Navigation (Issue #138, #141)
  *
- * TEMPORARILY DISABLED: Navigation feature removed as part of issue #148 fix.
- * The /projects/{id} route does not exist, so navigation was causing 404 errors.
- * These tests can be re-enabled when project detail pages are implemented (Epic #137).
- *
- * Original Feature Requirements:
+ * Tests for project card navigation and back navigation features:
  * - Entire project card is clickable
  * - Clicking navigates to /projects/{id}
  * - URL updates correctly
  * - Visual feedback on hover (cursor pointer, subtle background)
  * - Delete button works WITHOUT triggering navigation
  * - Delete button stops event propagation
+ * - Back navigation link returns user to projects list
  *
- * Related: Issue #138 - Make project cards clickable with navigation
- * Epic: Issue #137 - Project detail page
+ * Related Issues:
+ * - Issue #138 - Make project cards clickable with navigation
+ * - Issue #141 - Add back navigation to project list
+ * - Epic #137 - Project detail page
  *
- * TO RE-ENABLE: Remove the /* and star-slash comment markers wrapping the test code below
+ * Status: ENABLED - Navigation feature fully implemented
  */
-
-/* TESTS TEMPORARILY DISABLED - See comment above
 
 import { test, expect } from '@playwright/test';
 import { ProjectHelpers } from '../helpers/test-helpers';
@@ -455,5 +452,3 @@ test.describe('Project Card Navigation (Issue #138)', () => {
     });
   });
 });
-
-*/ // END OF TEMPORARILY DISABLED TESTS
