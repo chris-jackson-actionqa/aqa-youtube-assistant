@@ -80,8 +80,8 @@ test.describe('Project Detail Page', () => {
       await page.goto('/projects/999999');
 
       // Assert: Page has proper semantic structure
-      // Use locator for nested main element (404 page has its own main)
-      const mainElement = page.locator('main');
+      // Use locator for nested main element (404 page has its own main) - use .last() since there are 2 mains
+      const mainElement = page.locator('main').last();
       await expect(mainElement).toBeVisible();
 
       // Assert: Alert role for error message (be specific to avoid Next.js route announcer)
@@ -125,8 +125,8 @@ test.describe('Project Detail Page', () => {
       // Act: Navigate to 404 page
       await page.goto(`/projects/999999`);
 
-      // Assert: Main element exists (use locator to be specific about the 404 page's main)
-      const mainElement = page.locator('main');
+      // Assert: Main element exists (use locator to be specific about the 404 page's main) - use .last() since there are 2 mains
+      const mainElement = page.locator('main').last();
       await expect(mainElement).toBeVisible();
 
       // Assert: Proper heading hierarchy
