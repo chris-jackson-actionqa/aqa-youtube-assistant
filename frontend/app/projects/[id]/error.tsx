@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 /**
  * Error Boundary for Project Detail Page
  *
@@ -95,7 +97,7 @@ export default function Error({
           >
             Try Again
           </button>
-          <a
+          <Link
             href="/projects"
             className="
               rounded-lg border border-red-300 bg-white px-6 py-3 font-medium text-red-700
@@ -105,7 +107,7 @@ export default function Error({
             "
           >
             Back to Projects
-          </a>
+          </Link>
         </div>
 
         {/* Help text */}
