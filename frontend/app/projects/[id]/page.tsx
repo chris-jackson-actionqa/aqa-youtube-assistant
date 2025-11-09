@@ -9,7 +9,7 @@ import { Project } from "@/app/types/project";
  * Fetches project data on the server and renders 404 page if project doesn't exist.
  *
  * Features:
- * - Server-side data fetching using Next.js 14 App Router
+ * - Server-side data fetching using Next.js 15 App Router
  * - Automatic 404 handling via notFound()
  * - Direct URL access support (deep linking)
  * - Page refresh persistence
@@ -25,11 +25,16 @@ import { Project } from "@/app/types/project";
 export default async function ProjectDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  // Validate ID is a number
-  const projectId = parseInt(params.id, 10);
-  if (isNaN(projectId)) {
+  // In Next.js 15, params is a Promise
+  const { id } = await params;
+  
+  // Validate ID is a positive integer
+  // Check both that it's a valid number and matches the original string
+  // to prevent accepting values like "12.5", "12abc", etc.
+  const projectId = parseInt(id, 10);
+  if (isNaN(projectId) || projectId <= 0 || id !== projectId.toString()) {
     notFound();
   }
 
@@ -55,7 +60,7 @@ export default async function ProjectDetailPage({
               className={`inline-flex rounded-full px-3 py-1 text-sm font-medium ${getStatusStyles(
                 project.status
               )}`}
-              aria-label={`Project status: ${project.status}`}
+              aria-label={`Project status: ${formatStatus(project.status)}`}
             >
               {formatStatus(project.status)}
             </span>
