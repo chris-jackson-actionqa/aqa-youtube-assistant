@@ -103,6 +103,8 @@ jobs:
         run: npx playwright install ${{ matrix.browser }}
       
       # Run E2E Tests
+      # NOTE: Playwright config restricts CI to 1 worker per shard due to SQLite write lock contention.
+      #       Sharding distributes tests across separate database instances, but each shard runs tests serially.
       - name: Run Playwright tests
         working-directory: e2e
         run: npx playwright test --project=${{ matrix.browser }} --shard=${{ matrix.shard }}/4
