@@ -6,12 +6,22 @@
  * - Custom 404 page rendering and navigation
  * - Accessibility of 404 page
  *
- * Note: Full detail page rendering tests with project data are limited due to
- * SSR workspace context limitations. The SSR page defaults to workspace 1 while
- * E2E tests use isolated workspaces. This is a known limitation to be addressed.
+ * Note: Full E2E tests for successful data display are pending because:
+ * 1. SSR workspace context limitation: The SSR page defaults to workspace 1 while
+ *    E2E tests use isolated workspaces. Direct URL navigation to /projects/[id]
+ *    will always query workspace 1.
+ * 2. No navigation link: The projects list page doesn't yet have links to detail pages.
+ *    Navigation to detail pages needs to be added in a future issue.
  *
- * Related: Issue #139
- * Feature: Dynamic route /projects/[id] with server-side rendering
+ * When navigation is added and SSR workspace issue is resolved, add tests for:
+ * - Project data display (name, description, status, dates)
+ * - Loading states (if measurable)
+ * - Error boundary behavior
+ *
+ * Related: Issue #139, #140
+ * Features:
+ * - Dynamic route /projects/[id] with server-side rendering
+ * - Loading and error states for project detail page
  */
 
 import { test, expect } from '@playwright/test';
