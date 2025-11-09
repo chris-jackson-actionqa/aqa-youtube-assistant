@@ -277,7 +277,7 @@ test.describe('Project Detail Page', () => {
       // Assert: Back to Projects link is present
       const backLink = page.getByRole('link', { name: /back to projects/i });
       await expect(backLink).toBeVisible();
-      await expect(backLink).toHaveAttribute('href', '/projects');
+      await expect(backLink).toHaveAttribute('href', '/');
     });
 
     test('should show 404 for invalid project ID format', async ({ page }) => {
@@ -300,7 +300,7 @@ test.describe('Project Detail Page', () => {
       await page.getByRole('link', { name: /back to projects/i }).click();
 
       // Assert: User is redirected to projects list
-      await expect(page).toHaveURL('/projects');
+      await expect(page).toHaveURL('/');
       // Wait for page to load
       // eslint-disable-next-line playwright/no-networkidle
       await page.waitForLoadState('networkidle');
@@ -384,7 +384,7 @@ test.describe('Project Detail Page', () => {
       await backLink.press('Enter');
 
       // Assert: Navigation occurred to projects list page
-      await expect(page).toHaveURL('/projects');
+      await expect(page).toHaveURL('/');
     });
   });
 });
