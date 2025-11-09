@@ -39,7 +39,9 @@ describe("ProjectDetailPage", () => {
     });
 
     it("renders main element with role", async () => {
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       render(component);
 
       const main = screen.getByRole("main");
@@ -47,7 +49,9 @@ describe("ProjectDetailPage", () => {
     });
 
     it("renders project name as h1", async () => {
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       render(component);
 
       const heading = screen.getByRole("heading", {
@@ -58,14 +62,18 @@ describe("ProjectDetailPage", () => {
     });
 
     it("renders project description", async () => {
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       render(component);
 
       expect(screen.getByText("Test project description")).toBeInTheDocument();
     });
 
     it("renders status badge with proper styling", async () => {
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       render(component);
 
       const status = screen.getByText("In Progress");
@@ -74,7 +82,9 @@ describe("ProjectDetailPage", () => {
     });
 
     it("status badge has accessibility label", async () => {
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       render(component);
 
       const status = screen.getByLabelText("Project status: In Progress");
@@ -82,7 +92,9 @@ describe("ProjectDetailPage", () => {
     });
 
     it("renders formatted created date", async () => {
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       render(component);
 
       expect(screen.getByText("Created")).toBeInTheDocument();
@@ -94,14 +106,18 @@ describe("ProjectDetailPage", () => {
     });
 
     it("renders formatted updated date", async () => {
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       render(component);
 
       expect(screen.getByText("Last Updated")).toBeInTheDocument();
     });
 
     it("renders project ID", async () => {
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       render(component);
 
       expect(screen.getByText("Project ID")).toBeInTheDocument();
@@ -114,7 +130,9 @@ describe("ProjectDetailPage", () => {
     });
 
     it("uses semantic HTML structure", async () => {
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       const { container } = render(component);
 
       expect(container.querySelector("main")).toBeInTheDocument();
@@ -124,7 +142,9 @@ describe("ProjectDetailPage", () => {
     });
 
     it("renders description section heading", async () => {
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       render(component);
 
       const heading = screen.getByRole("heading", {
@@ -135,7 +155,9 @@ describe("ProjectDetailPage", () => {
     });
 
     it("renders details section heading", async () => {
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       render(component);
 
       const heading = screen.getByRole("heading", {
@@ -146,7 +168,9 @@ describe("ProjectDetailPage", () => {
     });
 
     it("renders with container and max-width styling", async () => {
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       const { container } = render(component);
 
       const main = container.querySelector("main");
@@ -154,7 +178,9 @@ describe("ProjectDetailPage", () => {
     });
 
     it("article has card styling", async () => {
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       const { container } = render(component);
 
       const article = container.querySelector("article");
@@ -167,7 +193,9 @@ describe("ProjectDetailPage", () => {
     });
 
     it("uses definition list for metadata", async () => {
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       const { container } = render(component);
 
       const dl = container.querySelector("dl");
@@ -177,7 +205,9 @@ describe("ProjectDetailPage", () => {
     });
 
     it("renders responsive grid for details", async () => {
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       const { container } = render(component);
 
       const dl = container.querySelector("dl");
@@ -192,7 +222,9 @@ describe("ProjectDetailPage", () => {
         description: null,
       });
 
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       render(component);
 
       const placeholder = screen.getByText("No description provided");
@@ -206,7 +238,9 @@ describe("ProjectDetailPage", () => {
         description: "",
       });
 
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       render(component);
 
       const placeholder = screen.getByText("No description provided");
@@ -221,7 +255,9 @@ describe("ProjectDetailPage", () => {
         status: "planned",
       });
 
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       render(component);
 
       const status = screen.getByText("Planned");
@@ -234,7 +270,9 @@ describe("ProjectDetailPage", () => {
         status: "in_progress",
       });
 
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       render(component);
 
       const status = screen.getByText("In Progress");
@@ -247,7 +285,9 @@ describe("ProjectDetailPage", () => {
         status: "completed",
       });
 
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       render(component);
 
       const status = screen.getByText("Completed");
@@ -260,7 +300,9 @@ describe("ProjectDetailPage", () => {
         status: "archived",
       });
 
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       render(component);
 
       const status = screen.getByText("Archived");
@@ -273,7 +315,9 @@ describe("ProjectDetailPage", () => {
         status: "unknown_status",
       });
 
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       render(component);
 
       const status = screen.getByText("Unknown Status");
@@ -310,9 +354,9 @@ describe("ProjectDetailPage", () => {
         throw new Error("NEXT_NOT_FOUND");
       });
 
-      await expect(ProjectDetailPage({ params: Promise.resolve({ id: "-1" }) })).rejects.toThrow(
-        "NEXT_NOT_FOUND"
-      );
+      await expect(
+        ProjectDetailPage({ params: Promise.resolve({ id: "-1" }) })
+      ).rejects.toThrow("NEXT_NOT_FOUND");
       expect(mockNotFound).toHaveBeenCalled();
     });
 
@@ -321,9 +365,9 @@ describe("ProjectDetailPage", () => {
         throw new Error("NEXT_NOT_FOUND");
       });
 
-      await expect(ProjectDetailPage({ params: Promise.resolve({ id: "" }) })).rejects.toThrow(
-        "NEXT_NOT_FOUND"
-      );
+      await expect(
+        ProjectDetailPage({ params: Promise.resolve({ id: "" }) })
+      ).rejects.toThrow("NEXT_NOT_FOUND");
       expect(mockNotFound).toHaveBeenCalled();
     });
 
@@ -356,7 +400,9 @@ describe("ProjectDetailPage", () => {
     });
 
     it("formats date with month name", async () => {
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       const { container } = render(component);
 
       // Check that formatted dates appear (month names are a good indicator)
@@ -369,7 +415,9 @@ describe("ProjectDetailPage", () => {
     });
 
     it("formats date with year", async () => {
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       const { container } = render(component);
 
       const text = container.textContent || "";
@@ -377,7 +425,9 @@ describe("ProjectDetailPage", () => {
     });
 
     it("formats date with time", async () => {
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       const { container } = render(component);
 
       const text = container.textContent || "";
@@ -392,7 +442,9 @@ describe("ProjectDetailPage", () => {
     });
 
     it("has proper heading hierarchy", async () => {
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       render(component);
 
       const h1 = screen.getAllByRole("heading", { level: 1 });
@@ -403,7 +455,9 @@ describe("ProjectDetailPage", () => {
     });
 
     it("uses semantic HTML elements", async () => {
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       const { container } = render(component);
 
       expect(container.querySelector("main")).toBeInTheDocument();
@@ -413,7 +467,9 @@ describe("ProjectDetailPage", () => {
     });
 
     it("uses dl/dt/dd for metadata", async () => {
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       const { container } = render(component);
 
       expect(container.querySelector("dl")).toBeInTheDocument();
@@ -443,7 +499,9 @@ describe("ProjectDetailPage", () => {
         name: longName,
       });
 
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       render(component);
 
       expect(screen.getByText(longName)).toBeInTheDocument();
@@ -456,7 +514,9 @@ describe("ProjectDetailPage", () => {
         description: longDescription,
       });
 
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       render(component);
 
       expect(screen.getByText(longDescription)).toBeInTheDocument();
@@ -469,7 +529,9 @@ describe("ProjectDetailPage", () => {
         name: specialName,
       });
 
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       render(component);
 
       expect(screen.getByText(specialName)).toBeInTheDocument();
@@ -483,7 +545,9 @@ describe("ProjectDetailPage", () => {
         description: specialDesc,
       });
 
-      const component = await ProjectDetailPage({ params: Promise.resolve({ id: "1" }) });
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
       render(component);
 
       expect(screen.getByText(specialDesc)).toBeInTheDocument();

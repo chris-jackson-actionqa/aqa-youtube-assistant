@@ -29,7 +29,7 @@ export default async function ProjectDetailPage({
 }) {
   // In Next.js 15, params is a Promise
   const { id } = await params;
-  
+
   // Validate ID is a positive integer
   // Check both that it's a valid number and matches the original string
   // to prevent accepting values like "12.5", "12abc", etc.
