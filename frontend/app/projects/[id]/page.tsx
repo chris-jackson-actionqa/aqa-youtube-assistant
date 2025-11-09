@@ -52,9 +52,8 @@ export default function ProjectDetailPage() {
       try {
         const data = await getProject(projectId);
         setProject(data);
-      } catch (err) {
+      } catch {
         // If project doesn't exist (404), show 404 page
-        console.error("Failed to fetch project:", err);
         setError("not-found");
       } finally {
         setIsLoading(false);
