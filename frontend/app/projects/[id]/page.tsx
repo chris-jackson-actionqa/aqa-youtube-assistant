@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { getProject } from "@/app/lib/api";
 import { Project } from "@/app/types/project";
 
@@ -49,6 +50,16 @@ export default async function ProjectDetailPage({
 
   return (
     <main className="container mx-auto max-w-4xl p-6">
+      {/* Back Navigation */}
+      <Link
+        href="/projects"
+        className="mb-4 inline-flex items-center text-blue-600 hover:text-blue-800 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded transition-colors duration-200"
+        aria-label="Back to projects list"
+      >
+        <span aria-hidden="true">← </span>
+        Back to Projects
+      </Link>
+
       <article className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
         {/* Header */}
         <header className="mb-6 border-b border-gray-200 pb-4">

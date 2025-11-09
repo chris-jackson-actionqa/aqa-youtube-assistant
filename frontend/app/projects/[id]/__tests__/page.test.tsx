@@ -9,6 +9,27 @@ jest.mock("next/navigation", () => ({
   notFound: jest.fn(),
 }));
 
+// Mock Next.js Link component
+jest.mock("next/link", () => {
+  const MockLink = ({
+    children,
+    href,
+    ...props
+  }: {
+    children: React.ReactNode;
+    href: string;
+    [key: string]: unknown;
+  }) => {
+    return (
+      <a href={href} {...props}>
+        {children}
+      </a>
+    );
+  };
+  MockLink.displayName = "Link";
+  return MockLink;
+});
+
 // Mock API functions
 jest.mock("@/app/lib/api", () => ({
   getProject: jest.fn(),
@@ -212,6 +233,145 @@ describe("ProjectDetailPage", () => {
 
       const dl = container.querySelector("dl");
       expect(dl).toHaveClass("grid", "grid-cols-1", "sm:grid-cols-2");
+    });
+  });
+
+  describe("back navigation", () => {
+    beforeEach(() => {
+      mockGetProject.mockResolvedValue(mockProject);
+    });
+
+    it("renders back to projects link", async () => {
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
+      render(component);
+
+      const backLink = screen.getByRole("link", { name: /back to projects/i });
+      expect(backLink).toBeInTheDocument();
+    });
+
+    it("back link has correct href", async () => {
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
+      render(component);
+
+      const backLink = screen.getByRole("link", { name: /back to projects/i });
+      expect(backLink).toHaveAttribute("href", "/projects");
+    });
+
+    it("back link has visible text 'Back to Projects'", async () => {
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
+      render(component);
+
+      expect(screen.getByText("Back to Projects")).toBeInTheDocument();
+    });
+
+    it("back link has arrow icon", async () => {
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
+      const { container } = render(component);
+
+      const backLink = screen.getByRole("link", { name: /back to projects/i });
+      expect(backLink.textContent).toContain("←");
+      
+      // Verify arrow is in a span with aria-hidden
+      const arrowSpan = container.querySelector('span[aria-hidden="true"]');
+      expect(arrowSpan).toBeInTheDocument();
+      expect(arrowSpan?.textContent).toBe("← ");
+    });
+
+    it("back link has proper accessibility label", async () => {
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
+      render(component);
+
+      const backLink = screen.getByLabelText("Back to projects list");
+      expect(backLink).toBeInTheDocument();
+    });
+
+    it("back link has hover styles", async () => {
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
+      render(component);
+
+      const backLink = screen.getByRole("link", { name: /back to projects/i });
+      expect(backLink).toHaveClass(
+        "text-blue-600",
+        "hover:text-blue-800",
+        "hover:underline"
+      );
+    });
+
+    it("back link has focus styles", async () => {
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
+      render(component);
+
+      const backLink = screen.getByRole("link", { name: /back to projects/i });
+      expect(backLink).toHaveClass(
+        "focus:outline-none",
+        "focus:ring-2",
+        "focus:ring-blue-500",
+        "focus:ring-offset-2"
+      );
+    });
+
+    it("back link has transition for smooth hover effect", async () => {
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
+      render(component);
+
+      const backLink = screen.getByRole("link", { name: /back to projects/i });
+      expect(backLink).toHaveClass("transition-colors", "duration-200");
+    });
+
+    it("back link is positioned above project article", async () => {
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
+      const { container } = render(component);
+
+      const backLink = screen.getByRole("link", { name: /back to projects/i });
+      const article = container.querySelector("article");
+
+      // Check that back link has margin-bottom
+      expect(backLink).toHaveClass("mb-4");
+
+      // Verify both elements exist
+      expect(backLink).toBeInTheDocument();
+      expect(article).toBeInTheDocument();
+    });
+
+    it("back link uses inline-flex for proper icon alignment", async () => {
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
+      render(component);
+
+      const backLink = screen.getByRole("link", { name: /back to projects/i });
+      expect(backLink).toHaveClass("inline-flex", "items-center");
+    });
+
+    it("back link is rendered before project details", async () => {
+      const component = await ProjectDetailPage({
+        params: Promise.resolve({ id: "1" }),
+      });
+      const { container } = render(component);
+
+      const main = container.querySelector("main");
+      const firstChild = main?.firstChild;
+
+      // The back link should be the first child (before the article)
+      expect(firstChild?.nodeName).toBe("A");
     });
   });
 
@@ -486,7 +646,9 @@ describe("ProjectDetailPage", () => {
         id: largeId,
       });
 
-      await ProjectDetailPage({ params: { id: largeId.toString() } });
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: largeId.toString() }),
+      });
       expect(mockGetProject).toHaveBeenCalledWith(largeId);
     });
   });
