@@ -19,6 +19,20 @@ jest.mock("next/navigation", () => ({
   }),
 }));
 
+// Mock ProjectContext
+const mockSelectProject = jest.fn();
+jest.mock("../../contexts/ProjectContext", () => ({
+  useProject: () => ({
+    selectProject: mockSelectProject,
+    currentProject: null,
+    isLoading: false,
+    error: null,
+    clearSelection: jest.fn(),
+    refreshCurrentProject: jest.fn(),
+    updateCurrentProject: jest.fn(),
+  }),
+}));
+
 // Mock only the API functions, not the ApiError class
 jest.mock("../../lib/api", () => {
   const actualApi = jest.requireActual("../../lib/api");
@@ -64,6 +78,8 @@ describe("ProjectList", () => {
     mockedApi.getProjects.mockReset();
     mockedApi.deleteProject.mockReset();
     mockPush.mockReset();
+    mockSelectProject.mockReset();
+    mockSelectProject.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -302,7 +318,7 @@ describe("ProjectList", () => {
   });
 
   describe("Project Selection", () => {
-    it("navigates to project detail page when card is clicked", async () => {
+    it("calls selectProject from context when card is clicked", async () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />);
 
@@ -310,10 +326,28 @@ describe("ProjectList", () => {
       const projectCard = await screen.findByText("Test Project 1");
       fireEvent.click(projectCard.closest('div[role="button"]')!);
 
-      expect(mockPush).toHaveBeenCalledWith("/projects/1");
+      await waitFor(() => {
+        expect(mockSelectProject).toHaveBeenCalledWith(1);
+        // Navigation removed - stays on current page
+        expect(mockPush).not.toHaveBeenCalled();
+      });
     });
 
-    it("navigates without onProjectSelect callback", async () => {
+    it("does not navigate when card is clicked (stays on current page)", async () => {
+      mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
+      render(<ProjectList />);
+
+      // Wait for project to appear
+      const projectCard = await screen.findByText("Test Project 1");
+      fireEvent.click(projectCard.closest('div[role="button"]')!);
+
+      await waitFor(() => {
+        // Should not navigate - stays on current page
+        expect(mockPush).not.toHaveBeenCalled();
+      });
+    });
+
+    it("selects project without onProjectSelect callback", async () => {
       mockedApi.getProjects.mockResolvedValueOnce(mockProjects);
       render(<ProjectList />); // No onProjectSelect provided
 
@@ -321,8 +355,11 @@ describe("ProjectList", () => {
       const projectCard = await screen.findByText("Test Project 2");
       fireEvent.click(projectCard.closest('div[role="button"]')!);
 
-      // Should still navigate
-      expect(mockPush).toHaveBeenCalledWith("/projects/2");
+      // Should still call context selectProject, no navigation
+      await waitFor(() => {
+        expect(mockSelectProject).toHaveBeenCalledWith(2);
+        expect(mockPush).not.toHaveBeenCalled();
+      });
     });
 
     it("calls onProjectSelect callback when card is clicked", async () => {
@@ -334,8 +371,11 @@ describe("ProjectList", () => {
       const projectCard = await screen.findByText("Test Project 1");
       fireEvent.click(projectCard.closest('div[role="button"]')!);
 
-      expect(onProjectSelect).toHaveBeenCalledWith(mockProjects[0]);
-      expect(mockPush).toHaveBeenCalledWith("/projects/1");
+      await waitFor(() => {
+        expect(onProjectSelect).toHaveBeenCalledWith(mockProjects[0]);
+        // Navigation removed
+        expect(mockPush).not.toHaveBeenCalled();
+      });
     });
 
     it("highlights selected project", async () => {
@@ -370,8 +410,12 @@ describe("ProjectList", () => {
         key: "Enter",
       });
 
-      expect(onProjectSelect).toHaveBeenCalledWith(mockProjects[0]);
-      expect(mockPush).toHaveBeenCalledWith("/projects/1");
+      await waitFor(() => {
+        expect(mockSelectProject).toHaveBeenCalledWith(1);
+        expect(onProjectSelect).toHaveBeenCalledWith(mockProjects[0]);
+        // Navigation removed - stays on current page
+        expect(mockPush).not.toHaveBeenCalled();
+      });
     });
 
     it("supports space key for selection", async () => {
@@ -385,8 +429,11 @@ describe("ProjectList", () => {
         key: " ",
       });
 
-      expect(onProjectSelect).toHaveBeenCalledWith(mockProjects[0]);
-      expect(mockPush).toHaveBeenCalledWith("/projects/1");
+      await waitFor(() => {
+        expect(onProjectSelect).toHaveBeenCalledWith(mockProjects[0]);
+        // Navigation removed - stays on current page
+        expect(mockPush).not.toHaveBeenCalled();
+      });
     });
 
     it("supports keyboard navigation without callback", async () => {
@@ -399,8 +446,12 @@ describe("ProjectList", () => {
         key: "Enter",
       });
 
-      // Should still navigate
-      expect(mockPush).toHaveBeenCalledWith("/projects/3");
+      // Should select project without navigation
+      await waitFor(() => {
+        expect(mockSelectProject).toHaveBeenCalledWith(3);
+        // Navigation removed - stays on current page
+        expect(mockPush).not.toHaveBeenCalled();
+      });
     });
 
     it("does not trigger selection on other keys", async () => {

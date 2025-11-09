@@ -114,21 +114,14 @@ test.describe('Project Management Workflows', () => {
       await helpers.createProjectViaAPI('Selected Project');
       await page.goto('/');
 
-      // Act: Click project (this now navigates to /projects/{id})
+      // Act: Click project (stays on home page, sets project in context)
       await helpers.selectProject('Selected Project');
 
-      // Wait for navigation and then go back to home
-      await page.waitForURL(/\/projects\/\d+/);
-      await page.goto('/');
-
-      // Wait for projects to load (which means state has been restored from localStorage)
-      await expect(page.getByTestId('project-card').first()).toBeVisible();
-
-      // TODO: Uncomment when "Working on:" header feature is implemented
-      // Assert: Header shows current project (selection should persist)
-      // await expect(page.locator('text=Working on: Selected Project')).toBeVisible({
-      //   timeout: CI_TIMEOUT,
-      // });
+      // Assert: Header shows current project on home page
+      const header = page
+        .locator('text=Working on:')
+        .locator('strong', { hasText: 'Selected Project' });
+      await expect(header).toBeVisible();
     });
 
     // Phase 2: Clear selection test
@@ -139,70 +132,52 @@ test.describe('Project Management Workflows', () => {
 
       await helpers.selectProject('Temp Project');
 
-      // Wait for navigation and go back to home
-      await page.waitForURL(/\/projects\/\d+/);
-      await page.goto('/');
+      // Verify selection is shown on home page
+      const workingOnHeader = page
+        .locator('text=Working on:')
+        .locator('strong', { hasText: 'Temp Project' });
+      await expect(workingOnHeader).toBeVisible();
 
-      // Wait for projects to load (which means state has been restored from localStorage)
-      await expect(page.getByTestId('project-card').first()).toBeVisible();
-
-      // TODO: Uncomment when "Working on:" header feature is implemented (Issue #148)
-      // Verify selection is shown
-      // await expect(page.locator('text=Working on: Temp Project')).toBeVisible({
-      //   timeout: CI_TIMEOUT,
-      // });
-
-      // TODO: Uncomment when "Working on:" header feature is implemented (Issue #148)
       // Act: Clear selection
-      // await page.click('button:has-text("Clear")');
+      await page.click('button:has-text("Clear")');
 
-      // TODO: Uncomment when "Working on:" header feature is implemented (Issue #148)
       // Assert: Selection cleared
-      // await expect(page.locator('text=Working on:')).toBeHidden();
+      const workingOnAfterClear = page.locator('text=Working on:');
+      await expect(workingOnAfterClear).toBeHidden();
 
-      // TODO: Uncomment when "Working on:" header feature is implemented (Issue #148)
       // Assert: No project has selected class
-      // const selectedCards = page.locator('[data-testid="project-card"][class*="selected"]');
-      // await expect(selectedCards).toHaveCount(0);
+      const selectedCards = page.locator('[data-testid="project-card"][class*="selected"]');
+      await expect(selectedCards).toHaveCount(0);
     });
 
     // Phase 2: Selection persistence test
-    // ✅ PASSING - localStorage persistence already implemented in issue #53
+    // NOTE: localStorage persistence DISABLED as of issue #148
+    // Test now verifies that selection is NOT persisted across page reload
     test('should persist project selection across page reload', async ({ page }) => {
       await helpers.createProjectViaAPI('Persistent Project');
       await page.goto('/');
 
       await helpers.selectProject('Persistent Project');
 
-      // Wait for navigation and go back to home
-      await page.waitForURL(/\/projects\/\d+/);
-      await page.goto('/');
+      // Verify selection is shown on home page
+      const headerBeforeReload = page
+        .locator('text=Working on:')
+        .locator('strong', { hasText: 'Persistent Project' });
+      await expect(headerBeforeReload).toBeVisible();
 
-      // Wait for projects to load (which means state has been restored from localStorage)
-      await expect(page.getByTestId('project-card').first()).toBeVisible();
-
-      // TODO: Uncomment when "Working on:" header feature is implemented
-      // Verify selection is shown
-      // await expect(page.locator('text=Working on: Selected Project')).toBeVisible({
-      //   timeout: CI_TIMEOUT,
-      // });
-
-      // Reload page
+      // Reload the page
       await page.reload();
 
-      // Wait for projects to load again after reload
+      // Wait for projects to load
       await expect(page.getByTestId('project-card').first()).toBeVisible();
 
-      // TODO: Uncomment when "Working on:" header feature is implemented
-      // Assert: Selection persists after reload
-      // await expect(page.locator('text=Working on: Persistent Project')).toBeVisible({
-      //   timeout: CI_TIMEOUT,
-      // });
-      // TODO: Uncomment when "Working on:" header feature is implemented
-      // const selectedCard = page
-      //   .locator('[data-testid="project-card"]')
-      //   .filter({ hasText: 'Persistent Project' });
-      // await expect(selectedCard).toHaveClass(/selected|active/);
+      // Assert: Selection is NOT persisted (localStorage disabled)
+      const headerAfterNav = page.locator('text=Working on:');
+      await expect(headerAfterNav).toBeHidden();
+
+      // Verify no project has selected class
+      const selectedCards = page.locator('[data-testid="project-card"][class*="selected"]');
+      await expect(selectedCards).toHaveCount(0);
     });
 
     test('should switch between multiple project selections', async ({ page }) => {
@@ -211,36 +186,20 @@ test.describe('Project Management Workflows', () => {
       await helpers.createProjectViaAPI('Project 3');
       await page.goto('/');
 
-      // Select first project
+      // Select first project and verify header on home page
       await helpers.selectProject('Project 1');
-      await page.waitForURL(/\/projects\/\d+/);
-      await page.goto('/');
-      await expect(page.getByTestId('project-card').first()).toBeVisible();
-      // TODO: Uncomment when "Working on:" header feature is implemented
-      // await expect(page.locator('text=Working on: Project 1')).toBeVisible({
-      //   timeout: CI_TIMEOUT,
-      // });
+      const header1 = page.locator('text=Working on:').locator('strong', { hasText: 'Project 1' });
+      await expect(header1).toBeVisible();
 
       // Switch to second project
       await helpers.selectProject('Project 2');
-      await page.waitForURL(/\/projects\/\d+/);
-      await page.goto('/');
-      await expect(page.getByTestId('project-card').first()).toBeVisible();
-      // TODO: Uncomment when "Working on:" header feature is implemented
-      // await expect(page.locator('text=Working on: Project 2')).toBeVisible({
-      //   timeout: CI_TIMEOUT,
-      // });
-      // await expect(page.locator('text=Working on: Project 1')).toBeHidden();
+      const header2 = page.locator('text=Working on:').locator('strong', { hasText: 'Project 2' });
+      await expect(header2).toBeVisible();
 
       // Switch to third project
       await helpers.selectProject('Project 3');
-      await page.waitForURL(/\/projects\/\d+/);
-      await page.goto('/');
-      await expect(page.getByTestId('project-card').first()).toBeVisible();
-      // TODO: Uncomment when "Working on:" header feature is implemented
-      // await expect(page.locator('text=Working on: Project 3')).toBeVisible({
-      //   timeout: CI_TIMEOUT,
-      // });
+      const header3 = page.locator('text=Working on:').locator('strong', { hasText: 'Project 3' });
+      await expect(header3).toBeVisible();
     });
   });
 
@@ -301,18 +260,11 @@ test.describe('Project Management Workflows', () => {
 
       await helpers.selectProject('Selected and Deleted');
 
-      // Wait for navigation and go back to home
-      await page.waitForURL(/\/projects\/\d+/);
-      await page.goto('/');
-
-      // Wait for projects to load (which means state has been restored from localStorage)
-      await expect(page.getByTestId('project-card').first()).toBeVisible();
-
-      // TODO: Uncomment when "Working on:" header feature is implemented
-      // Verify selection is shown
-      // await expect(page.locator('text=Working on: Selected and Deleted')).toBeVisible({
-      //   timeout: CI_TIMEOUT,
-      // });
+      // Verify selection is shown on home page
+      const workingOnHeaderOnDetails = page
+        .locator('text=Working on:')
+        .locator('strong', { hasText: 'Selected and Deleted' });
+      await expect(workingOnHeaderOnDetails).toBeVisible();
 
       // Delete the selected project (updated selector with project name)
       const projectCard = page
@@ -321,9 +273,9 @@ test.describe('Project Management Workflows', () => {
       await projectCard.locator('button[aria-label="Delete project Selected and Deleted"]').click();
       await page.getByRole('button', { name: 'Confirm delete Selected and Deleted' }).click();
 
-      // TODO: Uncomment when "Working on:" header feature is implemented
       // Assert: Selection cleared
-      // await expect(page.locator('text=Working on:')).toBeHidden();
+      const workingOnAfterDelete = page.locator('text=Working on:');
+      await expect(workingOnAfterDelete).toBeHidden();
       await expect(
         page.locator('[data-testid="project-card"]').filter({ hasText: 'Selected and Deleted' })
       ).toBeHidden();
@@ -391,18 +343,11 @@ test.describe('Project Management Workflows', () => {
       // Enter to select
       await page.keyboard.press('Enter');
 
-      // Wait for navigation and go back to home
-      await page.waitForURL(/\/projects\/\d+/);
-      await page.goto('/');
-
-      // Wait for projects to load (which means state has been restored from localStorage)
-      await expect(page.getByTestId('project-card').first()).toBeVisible();
-
-      // TODO: Uncomment when "Working on:" header feature is implemented
-      // Verify selection
-      // await expect(page.locator('text=Working on: Keyboard Project')).toBeVisible({
-      //   timeout: CI_TIMEOUT,
-      // });
+      // Verify selection on home page
+      const workingOnHeader = page
+        .locator('text=Working on:')
+        .locator('strong', { hasText: 'Keyboard Project' });
+      await expect(workingOnHeader).toBeVisible();
     });
   });
 });

@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { Project } from "../types/project";
 import { getProjects, deleteProject, ApiError } from "../lib/api";
 import ProjectDeleteConfirmation from "./ProjectDeleteConfirmation";
+import { useProject } from "../contexts/ProjectContext";
 
 interface ProjectListProps {
   onProjectSelect?: (project: Project) => void;
@@ -34,7 +34,7 @@ export default function ProjectList({
   onProjectDelete,
   selectedProjectId,
 }: ProjectListProps) {
-  const router = useRouter();
+  const { selectProject: selectCurrentProject } = useProject();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -104,9 +104,12 @@ export default function ProjectList({
     setError(null);
   };
 
-  const handleSelect = (project: Project) => {
-    // Navigate to project detail page
-    router.push(`/projects/${project.id}`);
+  const handleSelect = async (project: Project) => {
+    // Set current project in context
+    await selectCurrentProject(project.id);
+
+    // NOTE: No navigation - stay on current page with project selected
+    // The "Working on:" header will update automatically via ProjectContext
 
     // Also call the callback if provided (for backwards compatibility)
     if (onProjectSelect) {

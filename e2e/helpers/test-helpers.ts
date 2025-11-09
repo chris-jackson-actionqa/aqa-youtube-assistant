@@ -64,6 +64,8 @@ export class ProjectHelpers {
     await this.page.evaluate((wsId) => {
       // @ts-expect-error - localStorage is available in browser context
       localStorage.setItem('aqa-youtube-assistant:selected-workspace-id', String(wsId));
+      // NOTE: Project selection localStorage persistence is disabled in ProjectContext
+      // No need to clean up currentProjectId anymore
     }, workspaceIdToSet);
 
     // Reload to apply workspace
