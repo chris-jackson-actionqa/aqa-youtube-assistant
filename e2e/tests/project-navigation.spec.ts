@@ -1,10 +1,11 @@
 /**
  * E2E Tests: Project Card Navigation (Issue #138)
  *
- * Tests the clickable project cards feature that enables navigation
- * to project detail pages when clicking on a project card.
+ * TEMPORARILY DISABLED: Navigation feature removed as part of issue #148 fix.
+ * The /projects/{id} route does not exist, so navigation was causing 404 errors.
+ * These tests can be re-enabled when project detail pages are implemented (Epic #137).
  *
- * Feature Requirements:
+ * Original Feature Requirements:
  * - Entire project card is clickable
  * - Clicking navigates to /projects/{id}
  * - URL updates correctly
@@ -14,7 +15,11 @@
  *
  * Related: Issue #138 - Make project cards clickable with navigation
  * Epic: Issue #137 - Project detail page
+ *
+ * TO RE-ENABLE: Remove the /* and star-slash comment markers wrapping the test code below
  */
+
+/* TESTS TEMPORARILY DISABLED - See comment above
 
 import { test, expect } from '@playwright/test';
 import { ProjectHelpers } from '../helpers/test-helpers';
@@ -450,3 +455,5 @@ test.describe('Project Card Navigation (Issue #138)', () => {
     });
   });
 });
+
+*/ // END OF TEMPORARILY DISABLED TESTS

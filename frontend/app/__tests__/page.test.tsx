@@ -304,10 +304,18 @@ describe("Home Page - Component Integration", () => {
     });
 
     it("should show current project indicator when project is selected", async () => {
-      // Simulate project already selected in localStorage
-      localStorageMock.setItem("currentProjectId", "1");
-
+      // NOTE: localStorage restoration disabled - manually select project instead
       render(<Home />);
+
+      // Wait for projects to load
+      await waitForProjectListToLoad();
+
+      // Click on first project to select it
+      const projectCard = screen
+        .getByText("Test Project 1")
+        .closest('div[role="button"]');
+      expect(projectCard).not.toBeNull();
+      fireEvent.click(projectCard!);
 
       await waitFor(() => {
         expect(screen.getByText("Working on:")).toBeInTheDocument();
@@ -323,9 +331,15 @@ describe("Home Page - Component Integration", () => {
     });
 
     it("should hide current project indicator when clear button is clicked", async () => {
-      localStorageMock.setItem("currentProjectId", "1");
-
+      // NOTE: localStorage restoration disabled - manually select project instead
       render(<Home />);
+
+      // Wait for projects to load and click first project to select it
+      await waitForProjectListToLoad();
+      const projectCard = screen
+        .getByText("Test Project 1")
+        .closest('div[role="button"]');
+      fireEvent.click(projectCard!);
 
       await waitFor(() => {
         expect(screen.getByText("Working on:")).toBeInTheDocument();
@@ -342,9 +356,15 @@ describe("Home Page - Component Integration", () => {
     });
 
     it("should show selected project name in header", async () => {
-      localStorageMock.setItem("currentProjectId", "2");
-
+      // NOTE: localStorage restoration disabled - manually select project instead
       render(<Home />);
+
+      // Wait for projects to load and click second project
+      await waitForProjectListToLoad();
+      const projectCard = screen
+        .getByText("Test Project 2")
+        .closest('div[role="button"]');
+      fireEvent.click(projectCard!);
 
       await waitFor(() => {
         const header = screen.getByRole("banner");
@@ -419,9 +439,15 @@ describe("Home Page - Component Integration", () => {
     });
 
     it("should clear selection if deleted project was selected", async () => {
-      localStorageMock.setItem("currentProjectId", "1");
-
+      // NOTE: localStorage restoration disabled - manually select project instead
       render(<Home />);
+
+      // Wait for projects to load and select first project
+      await waitForProjectListToLoad();
+      const projectCard = screen
+        .getByText("Test Project 1")
+        .closest('div[role="button"]');
+      fireEvent.click(projectCard!);
 
       await waitFor(() => {
         expect(screen.getByText("Working on:")).toBeInTheDocument();
@@ -456,9 +482,15 @@ describe("Home Page - Component Integration", () => {
     });
 
     it("should not clear selection if different project was deleted", async () => {
-      localStorageMock.setItem("currentProjectId", "1");
-
+      // NOTE: localStorage restoration disabled - manually select project instead
       render(<Home />);
+
+      // Wait for projects to load and select first project
+      await waitForProjectListToLoad();
+      const projectCard = screen
+        .getByText("Test Project 1")
+        .closest('div[role="button"]');
+      fireEvent.click(projectCard!);
 
       await waitFor(() => {
         expect(screen.getByText("Working on:")).toBeInTheDocument();
@@ -499,9 +531,15 @@ describe("Home Page - Component Integration", () => {
 
   describe("Accessibility", () => {
     it("should have accessible header section with proper ARIA labels", async () => {
-      localStorageMock.setItem("currentProjectId", "1");
-
+      // NOTE: localStorage restoration disabled - manually select project instead
       render(<Home />);
+
+      // Wait for projects to load and select first project
+      await waitForProjectListToLoad();
+      const projectCard = screen
+        .getByText("Test Project 1")
+        .closest('div[role="button"]');
+      fireEvent.click(projectCard!);
 
       await waitFor(() => {
         const currentProjectStatus = screen.getByRole("status", {
@@ -509,9 +547,6 @@ describe("Home Page - Component Integration", () => {
         });
         expect(currentProjectStatus).toBeInTheDocument();
       });
-
-      // Wait for ProjectList to finish loading to prevent act() warnings
-      await waitForProjectListToLoad();
     });
 
     it("should have accessible create button", async () => {
@@ -527,9 +562,15 @@ describe("Home Page - Component Integration", () => {
     });
 
     it("should have accessible clear selection button", async () => {
-      localStorageMock.setItem("currentProjectId", "1");
-
+      // NOTE: localStorage restoration disabled - manually select project instead
       render(<Home />);
+
+      // Wait for projects to load and select first project
+      await waitForProjectListToLoad();
+      const projectCard = screen
+        .getByText("Test Project 1")
+        .closest('div[role="button"]');
+      fireEvent.click(projectCard!);
 
       await waitFor(() => {
         const clearButton = screen.getByRole("button", {
@@ -537,9 +578,6 @@ describe("Home Page - Component Integration", () => {
         });
         expect(clearButton).toHaveAccessibleName();
       });
-
-      // Wait for ProjectList to finish loading to prevent act() warnings
-      await waitForProjectListToLoad();
     });
 
     it("should have proper heading hierarchy", async () => {

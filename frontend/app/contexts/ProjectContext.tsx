@@ -40,6 +40,7 @@ const ProjectContext = createContext<ProjectContextValue | undefined>(
   undefined
 );
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const STORAGE_KEY = "currentProjectId";
 
 interface ProjectProviderProps {
@@ -61,14 +62,20 @@ export function ProjectProvider({ children }: ProjectProviderProps) {
 
   /**
    * Save project ID to localStorage
+   * DISABLED: localStorage persistence temporarily disabled
    */
-  const saveToStorage = useCallback((project: Project | null) => {
-    if (project) {
-      localStorage.setItem(STORAGE_KEY, String(project.id));
-    } else {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-  }, []);
+  const saveToStorage = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    (project: Project | null) => {
+      // TODO: Re-enable localStorage persistence in future iteration
+      // if (project) {
+      //   localStorage.setItem(STORAGE_KEY, String(project.id));
+      // } else {
+      //   localStorage.removeItem(STORAGE_KEY);
+      // }
+    },
+    []
+  );
 
   /**
    * Select a project by ID - fetches full details from API
@@ -86,8 +93,7 @@ export function ProjectProvider({ children }: ProjectProviderProps) {
         const errorMessage =
           err instanceof Error ? err.message : "Failed to load project";
         setError(errorMessage);
-        // Clear invalid project from storage
-        localStorage.removeItem(STORAGE_KEY);
+        // NOTE: localStorage cleanup disabled
         throw err;
       } finally {
         setIsLoading(false);
@@ -149,23 +155,24 @@ export function ProjectProvider({ children }: ProjectProviderProps) {
 
   /**
    * Load saved project from localStorage on mount
+   * DISABLED: localStorage restoration temporarily disabled
    */
   useEffect(() => {
-    const savedId = localStorage.getItem(STORAGE_KEY);
-    if (savedId) {
-      const projectId = Number(savedId);
-      if (!isNaN(projectId)) {
-        selectProject(projectId).catch(() => {
-          // Error already handled in selectProject
-          // Storage cleared automatically
-        });
-      } else {
-        // Invalid stored value
-        localStorage.removeItem(STORAGE_KEY);
-      }
-    }
+    // TODO: Re-enable localStorage restoration in future iteration
+    // const savedId = localStorage.getItem(STORAGE_KEY);
+    // if (savedId) {
+    //   const projectId = Number(savedId);
+    //   if (!isNaN(projectId)) {
+    //     selectProject(projectId).catch(() => {
+    //       // Error already handled in selectProject
+    //       // Storage cleared automatically
+    //     });
+    //   } else {
+    //     // Invalid stored value
+    //     localStorage.removeItem(STORAGE_KEY);
+    //   }
+    // }
     // Only run on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const value: ProjectContextValue = {

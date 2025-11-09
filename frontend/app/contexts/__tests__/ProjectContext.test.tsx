@@ -3,7 +3,7 @@
  * Comprehensive testing of project state management, persistence, and error handling
  */
 
-import { renderHook, act, waitFor } from "@testing-library/react";
+import { renderHook, act } from "@testing-library/react";
 import { ReactNode } from "react";
 import { ProjectProvider, useProject } from "../ProjectContext";
 import { getProject } from "../../lib/api";
@@ -61,6 +61,8 @@ describe("ProjectContext", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     localStorageMock.clear();
+    // Reset mock implementations to prevent test pollution
+    mockGetProject.mockReset();
   });
 
   describe("useProject hook", () => {
@@ -101,48 +103,45 @@ describe("ProjectContext", () => {
     it("should not load project if no saved ID in localStorage", () => {
       renderHook(() => useProject(), { wrapper });
 
-      expect(localStorageMock.getItem).toHaveBeenCalledWith("currentProjectId");
+      // NOTE: localStorage functionality temporarily disabled
+      // No automatic loading on mount
       expect(mockGetProject).not.toHaveBeenCalled();
     });
 
     it("should load project from localStorage on mount", async () => {
+      // NOTE: localStorage restoration temporarily disabled
+      // This test verifies the context initializes with null state
       localStorageMock.getItem.mockReturnValueOnce("1");
       mockGetProject.mockResolvedValueOnce(mockProject);
 
       const { result } = renderHook(() => useProject(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.currentProject).toEqual(mockProject);
-      });
-
-      expect(mockGetProject).toHaveBeenCalledWith(1);
+      // Should NOT automatically load from localStorage
+      expect(mockGetProject).not.toHaveBeenCalled();
+      expect(result.current.currentProject).toBeNull();
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBeNull();
     });
 
     it("should clear invalid project ID from localStorage on mount error", async () => {
+      // NOTE: localStorage functionality temporarily disabled
+      // No automatic cleanup needed since no automatic loading occurs
       localStorageMock.getItem.mockReturnValueOnce("999");
       mockGetProject.mockRejectedValueOnce(new Error("Project not found"));
 
       renderHook(() => useProject(), { wrapper });
 
-      await waitFor(() => {
-        expect(localStorageMock.removeItem).toHaveBeenCalledWith(
-          "currentProjectId"
-        );
-      });
-
-      expect(mockGetProject).toHaveBeenCalledWith(999);
+      // Should NOT attempt to load or clean up localStorage
+      expect(mockGetProject).not.toHaveBeenCalled();
     });
 
     it("should clear invalid stored value (non-numeric)", () => {
+      // NOTE: localStorage functionality temporarily disabled
       localStorageMock.getItem.mockReturnValueOnce("invalid");
 
       renderHook(() => useProject(), { wrapper });
 
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith(
-        "currentProjectId"
-      );
+      // Should NOT interact with localStorage
       expect(mockGetProject).not.toHaveBeenCalled();
     });
 
@@ -172,7 +171,8 @@ describe("ProjectContext", () => {
       expect(result.current.error).toBeNull();
     });
 
-    it("should save project ID to localStorage on successful selection", async () => {
+    it("should NOT save to localStorage (functionality disabled)", async () => {
+      // NOTE: localStorage persistence temporarily disabled
       mockGetProject.mockResolvedValueOnce(mockProject);
 
       const { result } = renderHook(() => useProject(), { wrapper });
@@ -181,10 +181,10 @@ describe("ProjectContext", () => {
         await result.current.selectProject(1);
       });
 
-      expect(localStorageMock.setItem).toHaveBeenCalledWith(
-        "currentProjectId",
-        "1"
-      );
+      // Should NOT save to localStorage
+      expect(localStorageMock.setItem).not.toHaveBeenCalled();
+      // But should set the project in state
+      expect(result.current.currentProject).toEqual(mockProject);
     });
 
     it("should set loading state during fetch", async () => {
@@ -227,7 +227,8 @@ describe("ProjectContext", () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    it("should clear localStorage on error", async () => {
+    it("should NOT remove from localStorage on error (functionality disabled)", async () => {
+      // NOTE: localStorage cleanup temporarily disabled
       mockGetProject.mockRejectedValueOnce(new Error("API Error"));
 
       const { result } = renderHook(() => useProject(), { wrapper });
@@ -240,9 +241,10 @@ describe("ProjectContext", () => {
         }
       });
 
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith(
-        "currentProjectId"
-      );
+      // Should NOT interact with localStorage
+      expect(localStorageMock.removeItem).not.toHaveBeenCalled();
+      // But should set error state
+      expect(result.current.error).toBe("API Error");
     });
 
     it("should clear previous error on new selection attempt", async () => {
@@ -304,7 +306,8 @@ describe("ProjectContext", () => {
       expect(result.current.currentProject).toBeNull();
     });
 
-    it("should remove project ID from localStorage", async () => {
+    it("should NOT remove from localStorage when clearing (functionality disabled)", async () => {
+      // NOTE: localStorage cleanup temporarily disabled
       mockGetProject.mockResolvedValueOnce(mockProject);
 
       const { result } = renderHook(() => useProject(), { wrapper });
@@ -319,9 +322,10 @@ describe("ProjectContext", () => {
         result.current.clearSelection();
       });
 
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith(
-        "currentProjectId"
-      );
+      // Should NOT interact with localStorage
+      expect(localStorageMock.removeItem).not.toHaveBeenCalled();
+      // But should clear the project from state
+      expect(result.current.currentProject).toBeNull();
     });
 
     it("should clear error state", async () => {
@@ -440,12 +444,12 @@ describe("ProjectContext", () => {
 
       // Note: clearSelection is called internally, which clears the error
       expect(result.current.currentProject).toBeNull();
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith(
-        "currentProjectId"
-      );
+      // localStorage cleanup temporarily disabled
+      expect(localStorageMock.removeItem).not.toHaveBeenCalled();
     });
 
-    it("should update localStorage after successful refresh", async () => {
+    it("should NOT update localStorage after refresh (functionality disabled)", async () => {
+      // NOTE: localStorage persistence temporarily disabled
       mockGetProject.mockResolvedValueOnce(mockProject);
       mockGetProject.mockResolvedValueOnce(updatedMockProject);
 
@@ -461,10 +465,10 @@ describe("ProjectContext", () => {
         await result.current.refreshCurrentProject();
       });
 
-      expect(localStorageMock.setItem).toHaveBeenCalledWith(
-        "currentProjectId",
-        "1"
-      );
+      // Should NOT save to localStorage
+      expect(localStorageMock.setItem).not.toHaveBeenCalled();
+      // But should update state
+      expect(result.current.currentProject).toEqual(updatedMockProject);
     });
 
     it("should handle non-Error exceptions in refresh", async () => {
@@ -487,9 +491,8 @@ describe("ProjectContext", () => {
 
       // Note: clearSelection is called internally, which clears the error
       expect(result.current.currentProject).toBeNull();
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith(
-        "currentProjectId"
-      );
+      // localStorage cleanup temporarily disabled
+      expect(localStorageMock.removeItem).not.toHaveBeenCalled();
     });
   });
 
@@ -523,7 +526,8 @@ describe("ProjectContext", () => {
       });
     });
 
-    it("should update localStorage with new data", async () => {
+    it("should NOT update localStorage with updates (functionality disabled)", async () => {
+      // NOTE: localStorage persistence temporarily disabled
       mockGetProject.mockResolvedValueOnce(mockProject);
 
       const { result } = renderHook(() => useProject(), { wrapper });
@@ -538,10 +542,13 @@ describe("ProjectContext", () => {
         result.current.updateCurrentProject({ status: "completed" });
       });
 
-      expect(localStorageMock.setItem).toHaveBeenCalledWith(
-        "currentProjectId",
-        "1"
-      );
+      // Should NOT save to localStorage
+      expect(localStorageMock.setItem).not.toHaveBeenCalled();
+      // But should update state
+      expect(result.current.currentProject).toEqual({
+        ...mockProject,
+        status: "completed",
+      });
     });
 
     it("should merge updates with existing project data", async () => {
