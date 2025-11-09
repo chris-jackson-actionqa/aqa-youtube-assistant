@@ -43,7 +43,7 @@ export default async function ProjectDetailPage({
   }
 
   return (
-    <main className="container mx-auto max-w-4xl p-6" role="main">
+    <main className="container mx-auto max-w-4xl p-6">
       <article className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
         {/* Header */}
         <header className="mb-6 border-b border-gray-200 pb-4">

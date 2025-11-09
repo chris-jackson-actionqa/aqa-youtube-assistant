@@ -406,7 +406,7 @@ describe("ProjectDetailPage", () => {
       const component = await ProjectDetailPage({ params: { id: "1" } });
       const { container } = render(component);
 
-      expect(container.querySelector("main[role='main']")).toBeInTheDocument();
+      expect(container.querySelector("main")).toBeInTheDocument();
       expect(container.querySelector("article")).toBeInTheDocument();
       expect(container.querySelector("header")).toBeInTheDocument();
       expect(container.querySelectorAll("section").length).toBeGreaterThan(0);
