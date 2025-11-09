@@ -58,7 +58,10 @@ describe("NotFound", () => {
     render(<NotFound />);
 
     const link = screen.getByRole("link");
-    expect(link).toHaveAttribute("aria-label", "Navigate back to projects list");
+    expect(link).toHaveAttribute(
+      "aria-label",
+      "Navigate back to projects list"
+    );
   });
 
   it("link displays back to projects text", () => {

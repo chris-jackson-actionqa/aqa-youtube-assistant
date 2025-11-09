@@ -61,9 +61,7 @@ describe("ProjectDetailPage", () => {
       const component = await ProjectDetailPage({ params: { id: "1" } });
       render(component);
 
-      expect(
-        screen.getByText("Test project description")
-      ).toBeInTheDocument();
+      expect(screen.getByText("Test project description")).toBeInTheDocument();
     });
 
     it("renders status badge with proper styling", async () => {
@@ -140,7 +138,10 @@ describe("ProjectDetailPage", () => {
       const component = await ProjectDetailPage({ params: { id: "1" } });
       render(component);
 
-      const heading = screen.getByRole("heading", { level: 2, name: "Details" });
+      const heading = screen.getByRole("heading", {
+        level: 2,
+        name: "Details",
+      });
       expect(heading).toBeInTheDocument();
     });
 
@@ -309,9 +310,9 @@ describe("ProjectDetailPage", () => {
         throw new Error("NEXT_NOT_FOUND");
       });
 
-      await expect(
-        ProjectDetailPage({ params: { id: "-1" } })
-      ).rejects.toThrow("NEXT_NOT_FOUND");
+      await expect(ProjectDetailPage({ params: { id: "-1" } })).rejects.toThrow(
+        "NEXT_NOT_FOUND"
+      );
       expect(mockNotFound).toHaveBeenCalled();
     });
 
@@ -320,9 +321,9 @@ describe("ProjectDetailPage", () => {
         throw new Error("NEXT_NOT_FOUND");
       });
 
-      await expect(
-        ProjectDetailPage({ params: { id: "" } })
-      ).rejects.toThrow("NEXT_NOT_FOUND");
+      await expect(ProjectDetailPage({ params: { id: "" } })).rejects.toThrow(
+        "NEXT_NOT_FOUND"
+      );
       expect(mockNotFound).toHaveBeenCalled();
     });
 
@@ -475,7 +476,8 @@ describe("ProjectDetailPage", () => {
     });
 
     it("handles special characters in description", async () => {
-      const specialDesc = "Description with <html> & \"quotes\" & 'apostrophes'";
+      const specialDesc =
+        "Description with <html> & \"quotes\" & 'apostrophes'";
       mockGetProject.mockResolvedValue({
         ...mockProject,
         description: specialDesc,
