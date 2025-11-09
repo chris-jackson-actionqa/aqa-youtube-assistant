@@ -114,10 +114,10 @@ test.describe('Project Management Workflows', () => {
       await helpers.createProjectViaAPI('Selected Project');
       await page.goto('/');
 
-      // Act: Click project (stays on home page, sets project in context)
+      // Act: Click project (Issue #141: now navigates to detail page)
       await helpers.selectProject('Selected Project');
 
-      // Assert: Header shows current project on home page
+      // Assert: Header shows current project on detail page
       const header = page
         .locator('text=Working on:')
         .locator('strong', { hasText: 'Selected Project' });
@@ -131,6 +131,9 @@ test.describe('Project Management Workflows', () => {
       await page.goto('/');
 
       await helpers.selectProject('Temp Project');
+
+      // Navigate back to home page (Issue #141: clicking project now navigates to detail page)
+      await page.goto('/');
 
       // Verify selection is shown on home page
       const workingOnHeader = page
@@ -186,17 +189,19 @@ test.describe('Project Management Workflows', () => {
       await helpers.createProjectViaAPI('Project 3');
       await page.goto('/');
 
-      // Select first project and verify header on home page
+      // Select first project and verify header on detail page
       await helpers.selectProject('Project 1');
       const header1 = page.locator('text=Working on:').locator('strong', { hasText: 'Project 1' });
       await expect(header1).toBeVisible();
 
-      // Switch to second project
+      // Navigate back to home and select second project
+      await page.goto('/');
       await helpers.selectProject('Project 2');
       const header2 = page.locator('text=Working on:').locator('strong', { hasText: 'Project 2' });
       await expect(header2).toBeVisible();
 
-      // Switch to third project
+      // Navigate back to home and select third project
+      await page.goto('/');
       await helpers.selectProject('Project 3');
       const header3 = page.locator('text=Working on:').locator('strong', { hasText: 'Project 3' });
       await expect(header3).toBeVisible();
@@ -259,6 +264,9 @@ test.describe('Project Management Workflows', () => {
       await page.goto('/');
 
       await helpers.selectProject('Selected and Deleted');
+
+      // Navigate back to home page (Issue #141: clicking project now navigates to detail page)
+      await page.goto('/');
 
       // Verify selection is shown on home page
       const workingOnHeaderOnDetails = page
