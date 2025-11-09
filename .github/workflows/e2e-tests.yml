@@ -15,7 +15,7 @@ env:
 
 jobs:
   e2e-tests:
-    name: Run Playwright E2E Tests
+    name: E2E Tests (Shard ${{ matrix.shard }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
     
@@ -23,6 +23,7 @@ jobs:
       fail-fast: false
       matrix:
         browser: [chromium]  # Can add firefox, webkit later
+        shard: [1, 2, 3, 4]  # 4 parallel jobs for faster CI execution
     
     steps:
       - name: Checkout code
@@ -102,9 +103,11 @@ jobs:
         run: npx playwright install ${{ matrix.browser }}
       
       # Run E2E Tests
+      # NOTE: Playwright config restricts CI to 1 worker per shard due to SQLite write lock contention.
+      #       Sharding distributes tests across separate database instances, but each shard runs tests serially.
       - name: Run Playwright tests
         working-directory: e2e
-        run: npx playwright test --project=${{ matrix.browser }}
+        run: npx playwright test --project=${{ matrix.browser }} --shard=${{ matrix.shard }}/4
         env:
           CI: true
       
@@ -113,7 +116,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: playwright-report-${{ matrix.browser }}
+          name: playwright-report-${{ matrix.browser }}-shard-${{ matrix.shard }}
           path: e2e/playwright-report/
           retention-days: 30
       
@@ -121,7 +124,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-results-${{ matrix.browser }}
+          name: test-results-${{ matrix.browser }}-shard-${{ matrix.shard }}
           path: e2e/test-results/
           retention-days: 7
       
@@ -129,7 +132,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: screenshots-${{ matrix.browser }}
+          name: screenshots-${{ matrix.browser }}-shard-${{ matrix.shard }}
           path: e2e/test-results/**/*.png
           retention-days: 7
       
@@ -137,7 +140,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: videos-${{ matrix.browser }}
+          name: videos-${{ matrix.browser }}-shard-${{ matrix.shard }}
           path: e2e/test-results/**/*.webm
           retention-days: 7
       
