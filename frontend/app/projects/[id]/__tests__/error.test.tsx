@@ -123,9 +123,7 @@ describe("Error", () => {
     });
 
     it("error icon is hidden from screen readers", () => {
-      const { container } = render(
-        <Error error={mockError} reset={mockReset} />
-      );
+      const { container } = render(<Error error={mockError} reset={mockReset} />);
 
       const iconContainer = container.querySelector('[aria-hidden="true"]');
       expect(iconContainer).toBeInTheDocument();
@@ -153,7 +151,9 @@ describe("Error", () => {
     it("displays troubleshooting suggestions", () => {
       render(<Error error={mockError} reset={mockReset} />);
 
-      expect(screen.getByText(/If the problem persists/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/If the problem persists/i)
+      ).toBeInTheDocument();
       expect(
         screen.getByText(/The backend server is running/i)
       ).toBeInTheDocument();
@@ -166,9 +166,7 @@ describe("Error", () => {
     });
 
     it("renders help text as a list", () => {
-      const { container } = render(
-        <Error error={mockError} reset={mockReset} />
-      );
+      const { container } = render(<Error error={mockError} reset={mockReset} />);
 
       const helpList = container.querySelector("ul");
       expect(helpList).toBeInTheDocument();
@@ -180,9 +178,7 @@ describe("Error", () => {
 
   describe("Visual Design", () => {
     it("uses red color scheme for error state", () => {
-      const { container } = render(
-        <Error error={mockError} reset={mockReset} />
-      );
+      const { container } = render(<Error error={mockError} reset={mockReset} />);
 
       const mainContainer = container.querySelector(".bg-red-50");
       expect(mainContainer).toBeInTheDocument();
@@ -192,9 +188,7 @@ describe("Error", () => {
     });
 
     it("renders error icon SVG", () => {
-      const { container } = render(
-        <Error error={mockError} reset={mockReset} />
-      );
+      const { container } = render(<Error error={mockError} reset={mockReset} />);
 
       const svg = container.querySelector("svg");
       expect(svg).toBeInTheDocument();
@@ -222,12 +216,12 @@ describe("Error", () => {
     });
 
     it("handles special characters in error message", () => {
-      const specialCharsError: Error & { digest?: string } = {
+      const specialCharError: Error & { digest?: string } = {
         name: "Error",
         message: 'Error: <script>alert("test")</script>',
       };
 
-      render(<Error error={specialCharsError} reset={mockReset} />);
+      render(<Error error={specialCharError} reset={mockReset} />);
 
       // React escapes HTML by default, so the script tag should be rendered as text
       expect(
@@ -236,12 +230,12 @@ describe("Error", () => {
     });
 
     it("handles error with digest containing special characters", () => {
-      const errorWithSpecialDigest: Error & { digest?: string } = {
+      const digestError: Error & { digest?: string } = {
         ...mockError,
         digest: "abc-123_xyz.456",
       };
 
-      render(<Error error={errorWithSpecialDigest} reset={mockReset} />);
+      render(<Error error={digestError} reset={mockReset} />);
 
       expect(
         screen.getByText(/Error ID: abc-123_xyz.456/i)
@@ -251,9 +245,7 @@ describe("Error", () => {
 
   describe("Layout", () => {
     it("renders within main container with proper classes", () => {
-      const { container } = render(
-        <Error error={mockError} reset={mockReset} />
-      );
+      const { container } = render(<Error error={mockError} reset={mockReset} />);
 
       const mainElement = container.querySelector("main");
       expect(mainElement).toBeInTheDocument();
@@ -261,9 +253,7 @@ describe("Error", () => {
     });
 
     it("renders action buttons in a flex container", () => {
-      const { container } = render(
-        <Error error={mockError} reset={mockReset} />
-      );
+      const { container } = render(<Error error={mockError} reset={mockReset} />);
 
       // Find the div containing both buttons
       const buttonsContainer = container.querySelector(".flex.flex-wrap.gap-3");
@@ -278,9 +268,7 @@ describe("Error", () => {
     });
 
     it("uses proper spacing classes", () => {
-      const { container } = render(
-        <Error error={mockError} reset={mockReset} />
-      );
+      const { container } = render(<Error error={mockError} reset={mockReset} />);
 
       const mainCard = container.querySelector(".p-8");
       expect(mainCard).toBeInTheDocument();
@@ -293,9 +281,7 @@ describe("Error", () => {
         name: "Error",
         message: "",
       };
-      expect(() =>
-        render(<Error error={emptyError} reset={mockReset} />)
-      ).not.toThrow();
+      expect(() => render(<Error error={emptyError} reset={mockReset} />)).not.toThrow();
     });
 
     it("handles multiple clicks on Try Again button", async () => {
@@ -312,9 +298,7 @@ describe("Error", () => {
     });
 
     it("renders consistently across multiple renders", () => {
-      const { rerender } = render(
-        <Error error={mockError} reset={mockReset} />
-      );
+      const { rerender } = render(<Error error={mockError} reset={mockReset} />);
       expect(screen.getByRole("alert")).toBeInTheDocument();
 
       rerender(<Error error={mockError} reset={mockReset} />);

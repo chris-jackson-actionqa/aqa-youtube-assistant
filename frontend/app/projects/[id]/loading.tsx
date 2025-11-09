@@ -20,7 +20,7 @@
 export default function Loading() {
   return (
     <main className="container mx-auto max-w-4xl p-6">
-      <div
+      <article
         role="status"
         aria-live="polite"
         aria-label="Loading project details"
@@ -72,7 +72,7 @@ export default function Loading() {
 
         {/* Screen reader text */}
         <span className="sr-only">Loading project details, please wait...</span>
-      </div>
+      </article>
     </main>
   );
 }

@@ -69,20 +69,22 @@ export default function Error({
           </div>
         </div>
 
-        {/* Error message */}
-        {error.message && (
-          <div className="mb-6 rounded-md bg-white p-4">
-            <h2 className="mb-2 text-sm font-semibold text-gray-900">
-              Error Details:
-            </h2>
-            <p className="text-sm text-gray-700">{error.message}</p>
-            {error.digest && (
-              <p className="mt-2 text-xs text-gray-500">
-                Error ID: {error.digest}
-              </p>
-            )}
-          </div>
-        )}
+        {/* Error message - only show in development/test mode */}
+        {(process.env.NODE_ENV === "development" ||
+          process.env.NODE_ENV === "test") &&
+          error.message && (
+            <div className="mb-6 rounded-md bg-white p-4">
+              <h2 className="mb-2 text-sm font-semibold text-gray-900">
+                Error Details:
+              </h2>
+              <p className="text-sm text-gray-700">{error.message}</p>
+              {error.digest && (
+                <p className="mt-2 text-xs text-gray-500">
+                  Error ID: {error.digest}
+                </p>
+              )}
+            </div>
+          )}
 
         {/* Action buttons */}
         <div className="flex flex-wrap gap-3">
