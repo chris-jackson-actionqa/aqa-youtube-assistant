@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { getProject } from "@/app/lib/api";
 import { Project } from "@/app/types/project";
@@ -27,7 +27,6 @@ import { Project } from "@/app/types/project";
  */
 export default function ProjectDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const [project, setProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +60,7 @@ export default function ProjectDetailPage() {
     };
 
     fetchProject();
-  }, [id, router]);
+  }, [id]);
 
   // Show loading state
   if (isLoading) {
@@ -92,7 +91,7 @@ export default function ProjectDetailPage() {
             been deleted.
           </p>
           <Link
-            href="/projects"
+            href="/"
             className="inline-flex items-center text-red-600 hover:text-red-800 hover:underline"
           >
             <span aria-hidden="true">← </span>
