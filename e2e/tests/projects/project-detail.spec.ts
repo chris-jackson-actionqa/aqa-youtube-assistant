@@ -2,26 +2,18 @@
  * E2E Tests: Project Detail Page
  *
  * Tests for the project detail page route, focusing on:
+ * - Navigation from project list to detail page (Issue #138, #141)
+ * - Back navigation link from detail page to project list (Issue #141)
+ * - Project data display (name, description, status, dates)
  * - 404 handling for non-existent projects
  * - Custom 404 page rendering and navigation
- * - Accessibility of 404 page
+ * - Accessibility of navigation and 404 page
  *
- * Note: Full E2E tests for successful data display are pending because:
- * 1. SSR workspace context limitation: The SSR page defaults to workspace 1 while
- *    E2E tests use isolated workspaces. Direct URL navigation to /projects/[id]
- *    will always query workspace 1.
- * 2. No navigation link: The projects list page doesn't yet have links to detail pages.
- *    Navigation to detail pages needs to be added in a future issue.
- *
- * When navigation is added and SSR workspace issue is resolved, add tests for:
- * - Project data display (name, description, status, dates)
- * - Loading states (if measurable)
- * - Error boundary behavior
- *
- * Related: Issue #139, #140
+ * Related: Issue #139, #140, #141
  * Features:
  * - Dynamic route /projects/[id] with server-side rendering
  * - Loading and error states for project detail page
+ * - Back navigation link with hover states and accessibility
  */
 
 import { test, expect } from '@playwright/test';
@@ -37,6 +29,235 @@ test.describe('Project Detail Page', () => {
 
   test.afterEach(async () => {
     await helpers.teardownWorkspace();
+  });
+
+  test.describe('Navigation from Project List', () => {
+    test('should navigate to project detail page when clicking project card', async ({ page }) => {
+      // Arrange: Create a project
+      const project = await helpers.createProjectViaAPI(
+        'Navigation Test Project',
+        'Test description for navigation'
+      );
+      await page.goto('/');
+
+      // Act: Click on the project card
+      const projectCard = page
+        .locator('[data-testid="project-card"]')
+        .filter({ hasText: 'Navigation Test Project' });
+      await projectCard.click();
+
+      // Assert: URL changed to project detail page
+      await expect(page).toHaveURL(`/projects/${project.id}`);
+
+      // Assert: Project details are displayed
+      await expect(
+        page.getByRole('heading', { name: 'Navigation Test Project', level: 1 })
+      ).toBeVisible();
+      await expect(page.getByText('Test description for navigation')).toBeVisible();
+    });
+
+    test('should display project data correctly on detail page', async ({ page }) => {
+      // Arrange: Create a project with specific status
+      await helpers.createProjectViaAPI('Data Display Test', 'Testing data display', 'in_progress');
+      await page.goto('/');
+
+      // Act: Navigate to detail page
+      await page
+        .locator('[data-testid="project-card"]')
+        .filter({ hasText: 'Data Display Test' })
+        .click();
+
+      // Assert: All project data is visible
+      await expect(
+        page.getByRole('heading', { name: 'Data Display Test', level: 1 })
+      ).toBeVisible();
+      await expect(page.getByText('Testing data display')).toBeVisible();
+      await expect(page.getByText(/in progress/i)).toBeVisible();
+      await expect(page.getByText(/created/i)).toBeVisible();
+      await expect(page.getByText(/last updated/i)).toBeVisible();
+    });
+  });
+
+  test.describe('Back Navigation', () => {
+    test('should show back navigation link on project detail page', async ({ page }) => {
+      // Arrange: Create a project and navigate to it
+      await helpers.createProjectViaAPI('Back Nav Test');
+      await page.goto('/');
+      await page
+        .locator('[data-testid="project-card"]')
+        .filter({ hasText: 'Back Nav Test' })
+        .click();
+
+      // Assert: Back link is visible and has correct href
+      const backLink = page.getByRole('link', { name: /back to projects/i });
+      await expect(backLink).toBeVisible();
+      await expect(backLink).toHaveAttribute('href', '/');
+    });
+
+    test('should navigate back to projects list when clicking back link', async ({ page }) => {
+      // Arrange: Create a project and navigate to detail page
+      const project = await helpers.createProjectViaAPI('Back Click Test');
+      await page.goto('/');
+      await page
+        .locator('[data-testid="project-card"]')
+        .filter({ hasText: 'Back Click Test' })
+        .click();
+      await expect(page).toHaveURL(`/projects/${project.id}`);
+
+      // Act: Click back link
+      await page.getByRole('link', { name: /back to projects/i }).click();
+
+      // Assert: Returned to projects list at root URL
+      await expect(page).toHaveURL('/');
+      await expect(page.getByRole('heading', { name: 'Your Projects' })).toBeVisible();
+      // Project should still be visible in the list
+      await expect(page.getByText('Back Click Test')).toBeVisible();
+    });
+
+    test('should have hover state on back navigation link', async ({ page }) => {
+      // Arrange: Create a project and navigate to it
+      await helpers.createProjectViaAPI('Hover State Test');
+      await page.goto('/');
+      await page
+        .locator('[data-testid="project-card"]')
+        .filter({ hasText: 'Hover State Test' })
+        .click();
+
+      // Assert: Back link has hover classes
+      const backLink = page.getByRole('link', { name: /back to projects/i });
+      await expect(backLink).toHaveClass(/hover:text-blue-800/);
+    });
+
+    test('should support keyboard navigation on back link', async ({ page }) => {
+      // Arrange: Create a project and navigate to it
+      const project = await helpers.createProjectViaAPI('Keyboard Nav Test');
+      await page.goto(`/projects/${project.id}`);
+
+      // Act: Focus on back link and press Enter
+      const backLink = page.getByRole('link', { name: /back to projects/i });
+      await backLink.focus();
+      await expect(backLink).toBeFocused();
+
+      // Act: Press Enter to navigate
+      await page.keyboard.press('Enter');
+
+      // Assert: Navigated back to projects list
+      await expect(page).toHaveURL('/');
+    });
+
+    test('should have proper accessibility attributes', async ({ page }) => {
+      // Arrange: Create a project and navigate to it
+      const project = await helpers.createProjectViaAPI('A11y Test');
+      await page.goto(`/projects/${project.id}`);
+
+      // Assert: Back link has proper ARIA label
+      const backLink = page.getByRole('link', { name: /back to projects/i });
+      await expect(backLink).toHaveAttribute('aria-label', 'Back to projects list');
+
+      // Assert: Arrow icon is hidden from screen readers
+      const arrowSpan = backLink.locator('span[aria-hidden="true"]');
+      await expect(arrowSpan).toBeVisible();
+      await expect(arrowSpan).toHaveAttribute('aria-hidden', 'true');
+    });
+  });
+
+  test.describe('Complete Navigation Flow', () => {
+    test('should support full user journey: list → detail → back → list', async ({ page }) => {
+      // Arrange: Create multiple projects
+      const project1 = await helpers.createProjectViaAPI('Journey Project 1');
+      const project2 = await helpers.createProjectViaAPI('Journey Project 2');
+      await page.goto('/');
+
+      // Assert: Starting on projects list
+      await expect(page).toHaveURL('/');
+      await expect(page.getByText('Journey Project 1')).toBeVisible();
+      await expect(page.getByText('Journey Project 2')).toBeVisible();
+
+      // Act: Click first project
+      await page
+        .locator('[data-testid="project-card"]')
+        .filter({ hasText: 'Journey Project 1' })
+        .click();
+
+      // Assert: On detail page
+      await expect(page).toHaveURL(`/projects/${project1.id}`);
+      await expect(
+        page.getByRole('heading', { name: 'Journey Project 1', level: 1 })
+      ).toBeVisible();
+
+      // Act: Click back
+      await page.getByRole('link', { name: /back to projects/i }).click();
+
+      // Assert: Back on list
+      await expect(page).toHaveURL('/');
+      await expect(page.getByRole('heading', { name: 'Your Projects' })).toBeVisible();
+
+      // Act: Click second project
+      await page
+        .locator('[data-testid="project-card"]')
+        .filter({ hasText: 'Journey Project 2' })
+        .click();
+
+      // Assert: On second project detail
+      await expect(page).toHaveURL(`/projects/${project2.id}`);
+      await expect(
+        page.getByRole('heading', { name: 'Journey Project 2', level: 1 })
+      ).toBeVisible();
+
+      // Act: Click back again
+      await page.getByRole('link', { name: /back to projects/i }).click();
+
+      // Assert: Back on list again
+      await expect(page).toHaveURL('/');
+    });
+
+    test('should maintain browser history correctly', async ({ page }) => {
+      // Arrange: Create a project
+      const project = await helpers.createProjectViaAPI('History Test');
+      await page.goto('/');
+
+      // Act: Navigate to project
+      await page
+        .locator('[data-testid="project-card"]')
+        .filter({ hasText: 'History Test' })
+        .click();
+      await expect(page).toHaveURL(`/projects/${project.id}`);
+
+      // Act: Use browser back button
+      await page.goBack();
+
+      // Assert: Returned to list
+      await expect(page).toHaveURL('/');
+
+      // Act: Use browser forward button
+      await page.goForward();
+
+      // Assert: Back on detail page
+      await expect(page).toHaveURL(`/projects/${project.id}`);
+    });
+
+    test('should work with browser refresh on detail page', async ({ page }) => {
+      // Arrange: Create a project and navigate to it
+      const project = await helpers.createProjectViaAPI('Refresh Test', 'Test refresh behavior');
+      await page.goto('/');
+      await page
+        .locator('[data-testid="project-card"]')
+        .filter({ hasText: 'Refresh Test' })
+        .click();
+      await expect(page).toHaveURL(`/projects/${project.id}`);
+
+      // Act: Refresh the page
+      await page.reload();
+
+      // Assert: Still on detail page with data loaded
+      await expect(page).toHaveURL(`/projects/${project.id}`);
+      await expect(page.getByRole('heading', { name: 'Refresh Test', level: 1 })).toBeVisible();
+      await expect(page.getByText('Test refresh behavior')).toBeVisible();
+
+      // Assert: Back link still works after refresh
+      await page.getByRole('link', { name: /back to projects/i }).click();
+      await expect(page).toHaveURL('/');
+    });
   });
 
   test.describe('404 Error Handling', () => {
@@ -56,7 +277,7 @@ test.describe('Project Detail Page', () => {
       // Assert: Back to Projects link is present
       const backLink = page.getByRole('link', { name: /back to projects/i });
       await expect(backLink).toBeVisible();
-      await expect(backLink).toHaveAttribute('href', '/projects');
+      await expect(backLink).toHaveAttribute('href', '/');
     });
 
     test('should show 404 for invalid project ID format', async ({ page }) => {
@@ -79,7 +300,7 @@ test.describe('Project Detail Page', () => {
       await page.getByRole('link', { name: /back to projects/i }).click();
 
       // Assert: User is redirected to projects list
-      await expect(page).toHaveURL('/projects');
+      await expect(page).toHaveURL('/');
       // Wait for page to load
       // eslint-disable-next-line playwright/no-networkidle
       await page.waitForLoadState('networkidle');
@@ -162,8 +383,8 @@ test.describe('Project Detail Page', () => {
       // Press Enter to activate link (simulate keyboard navigation)
       await backLink.press('Enter');
 
-      // Assert: Navigation occurred
-      await expect(page).toHaveURL('/projects');
+      // Assert: Navigation occurred to projects list page
+      await expect(page).toHaveURL('/');
     });
   });
 });

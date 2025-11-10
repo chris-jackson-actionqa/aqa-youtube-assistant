@@ -1,54 +1,119 @@
-import { notFound } from "next/navigation";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import Link from "next/link";
 import { getProject } from "@/app/lib/api";
 import { Project } from "@/app/types/project";
 
 /**
  * ProjectDetailPage Component
  *
- * Server component that displays project details for a specific project ID.
- * Fetches project data on the server and renders 404 page if project doesn't exist.
+ * Client component that displays project details for a specific project ID.
+ * Fetches project data on the client side with workspace context support.
  *
  * Features:
- * - Server-side data fetching using Next.js 15 App Router
- * - Automatic 404 handling via notFound()
+ * - Client-side data fetching with workspace isolation support
+ * - Automatic 404 handling
  * - Direct URL access support (deep linking)
  * - Page refresh persistence
  * - Semantic HTML and accessibility
- *
- * @param params - Route parameters containing project ID
+ * - Loading states
  *
  * @example
  * // Automatically rendered by Next.js for route /projects/[id]
  * // URL: /projects/1 -> Displays project with ID 1
  * // URL: /projects/99999 -> Shows 404 page
  */
-export default async function ProjectDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  // In Next.js 15, params is a Promise
-  const { id } = await params;
+export default function ProjectDetailPage() {
+  const params = useParams();
+  const [project, setProject] = useState<Project | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Validate ID is a positive integer
-  // Check both that it's a valid number and matches the original string
-  // to prevent accepting values like "12.5", "12abc", etc.
-  const projectId = parseInt(id, 10);
-  if (isNaN(projectId) || projectId <= 0 || id !== projectId.toString()) {
-    notFound();
+  const id = params.id as string;
+
+  useEffect(() => {
+    // Validate ID is a positive integer
+    const projectId = parseInt(id, 10);
+    if (isNaN(projectId) || projectId <= 0 || id !== projectId.toString()) {
+      // Invalid ID format - show 404 without redirecting
+      setError("not-found");
+      setIsLoading(false);
+      return;
+    }
+
+    // Fetch project data
+    const fetchProject = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const data = await getProject(projectId);
+        setProject(data);
+      } catch {
+        // If project doesn't exist (404), show 404 page
+        setError("not-found");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProject();
+  }, [id]);
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <main className="container mx-auto max-w-4xl p-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-gray-600">Loading project details...</div>
+        </div>
+      </main>
+    );
   }
 
-  // Fetch project data
-  let project: Project;
-  try {
-    project = await getProject(projectId);
-  } catch {
-    // If project doesn't exist (404), trigger not-found.tsx
-    notFound();
+  // Show 404 if project not found
+  if (error === "not-found" || !project) {
+    return (
+      <main className="container mx-auto max-w-4xl p-6">
+        <div
+          role="alert"
+          aria-live="polite"
+          className="rounded-lg border border-red-200 bg-red-50 p-8"
+        >
+          <h1 className="mb-2 text-2xl font-bold text-red-900">404</h1>
+          <h2 className="mb-4 text-xl font-semibold text-red-800">
+            Project Not Found
+          </h2>
+          <p className="mb-6 text-red-700">
+            The project you&apos;re looking for doesn&apos;t exist or may have
+            been deleted.
+          </p>
+          <Link
+            href="/"
+            className="inline-flex items-center text-red-600 hover:text-red-800 hover:underline"
+          >
+            <span aria-hidden="true">← </span>
+            Back to Projects
+          </Link>
+        </div>
+      </main>
+    );
   }
 
   return (
     <main className="container mx-auto max-w-4xl p-6">
+      {/* Back Navigation */}
+      <Link
+        href="/"
+        className="mb-4 inline-flex items-center text-blue-600 hover:text-blue-800 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded transition-colors duration-200"
+        aria-label="Back to projects list"
+      >
+        <span aria-hidden="true">← </span>
+        Back to Projects
+      </Link>
+
       <article className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
         {/* Header */}
         <header className="mb-6 border-b border-gray-200 pb-4">
