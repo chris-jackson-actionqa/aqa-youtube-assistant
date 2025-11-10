@@ -147,7 +147,7 @@ export default function ProjectDetailPage() {
           <h2 className="text-xl font-semibold mb-3 text-gray-900 dark:text-gray-100">
             Description
           </h2>
-          {project.description ? (
+          {project.description !== null && project.description.trim() !== "" ? (
             <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
               {project.description}
             </p>

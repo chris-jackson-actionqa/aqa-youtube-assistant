@@ -615,6 +615,19 @@ describe("ProjectDetailPage", () => {
       });
     });
 
+    it("renders fallback text when description is whitespace-only", async () => {
+      mockGetProject.mockResolvedValue({
+        ...mockProject,
+        description: "   \n\t  ",
+      });
+
+      render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("No description provided")).toBeInTheDocument();
+      });
+    });
+
     it("fallback text has italic styling", async () => {
       mockGetProject.mockResolvedValue({
         ...mockProject,
