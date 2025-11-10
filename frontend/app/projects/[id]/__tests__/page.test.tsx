@@ -562,6 +562,240 @@ describe("ProjectDetailPage", () => {
     });
   });
 
+  describe("project description", () => {
+    it("renders description heading", async () => {
+      mockGetProject.mockResolvedValue(mockProject);
+
+      render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        const descriptionHeading = screen.getByRole("heading", {
+          level: 2,
+          name: "Description",
+        });
+        expect(descriptionHeading).toBeInTheDocument();
+      });
+    });
+
+    it("renders project description when present", async () => {
+      mockGetProject.mockResolvedValue(mockProject);
+
+      render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("Test project description")
+        ).toBeInTheDocument();
+      });
+    });
+
+    it("renders fallback text when description is null", async () => {
+      mockGetProject.mockResolvedValue({
+        ...mockProject,
+        description: null,
+      });
+
+      render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("No description provided")).toBeInTheDocument();
+      });
+    });
+
+    it("renders fallback text when description is empty string", async () => {
+      mockGetProject.mockResolvedValue({
+        ...mockProject,
+        description: "",
+      });
+
+      render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("No description provided")).toBeInTheDocument();
+      });
+    });
+
+    it("renders fallback text when description is whitespace-only", async () => {
+      mockGetProject.mockResolvedValue({
+        ...mockProject,
+        description: "   \n\t  ",
+      });
+
+      render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("No description provided")).toBeInTheDocument();
+      });
+    });
+
+    it("fallback text has italic styling", async () => {
+      mockGetProject.mockResolvedValue({
+        ...mockProject,
+        description: null,
+      });
+
+      render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        const fallbackText = screen.getByText("No description provided");
+        expect(fallbackText).toHaveClass("italic");
+      });
+    });
+
+    it("fallback text has proper dark mode styling", async () => {
+      mockGetProject.mockResolvedValue({
+        ...mockProject,
+        description: null,
+      });
+
+      render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        const fallbackText = screen.getByText("No description provided");
+        expect(fallbackText).toHaveClass("text-gray-500", "dark:text-gray-400");
+      });
+    });
+
+    it("description text has proper dark mode styling", async () => {
+      mockGetProject.mockResolvedValue(mockProject);
+
+      render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        const descriptionText = screen.getByText("Test project description");
+        expect(descriptionText).toHaveClass(
+          "text-gray-700",
+          "dark:text-gray-300"
+        );
+      });
+    });
+
+    it("description text preserves whitespace with whitespace-pre-wrap", async () => {
+      mockGetProject.mockResolvedValue(mockProject);
+
+      render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        const descriptionText = screen.getByText("Test project description");
+        expect(descriptionText).toHaveClass("whitespace-pre-wrap");
+      });
+    });
+
+    it("description section is positioned after metadata", async () => {
+      mockGetProject.mockResolvedValue(mockProject);
+      const { container } = render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        const section = container.querySelector("section");
+        expect(section).toHaveClass("mt-6");
+      });
+    });
+
+    it("description heading has proper styling", async () => {
+      mockGetProject.mockResolvedValue(mockProject);
+
+      render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        const heading = screen.getByRole("heading", {
+          level: 2,
+          name: "Description",
+        });
+        expect(heading).toHaveClass(
+          "text-xl",
+          "font-semibold",
+          "mb-3",
+          "text-gray-900",
+          "dark:text-gray-100"
+        );
+      });
+    });
+
+    it("handles multi-line description", async () => {
+      const multiLineDesc = "Line 1\nLine 2\nLine 3";
+      mockGetProject.mockResolvedValue({
+        ...mockProject,
+        description: multiLineDesc,
+      });
+
+      render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        // Use a more flexible matcher that accounts for how React renders newlines
+        const descriptionText = screen.getByText((content, element) => {
+          return (
+            (element?.tagName === "P" &&
+              element?.textContent?.includes("Line 1") &&
+              element?.textContent?.includes("Line 2") &&
+              element?.textContent?.includes("Line 3")) ||
+            false
+          );
+        });
+        expect(descriptionText).toBeInTheDocument();
+        expect(descriptionText).toHaveClass("whitespace-pre-wrap");
+      });
+    });
+
+    it("handles very long description", async () => {
+      const longDesc = "A".repeat(1000);
+      mockGetProject.mockResolvedValue({
+        ...mockProject,
+        description: longDesc,
+      });
+
+      render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText(longDesc)).toBeInTheDocument();
+      });
+    });
+
+    it("handles description with special characters", async () => {
+      const specialDesc =
+        "Description with <html> & \"quotes\" & 'apostrophes'";
+      mockGetProject.mockResolvedValue({
+        ...mockProject,
+        description: specialDesc,
+      });
+
+      render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText(specialDesc)).toBeInTheDocument();
+      });
+    });
+
+    it("description section uses semantic HTML", async () => {
+      mockGetProject.mockResolvedValue(mockProject);
+      const { container } = render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        const section = container.querySelector("section");
+        expect(section).toBeInTheDocument();
+
+        const heading = section?.querySelector("h2");
+        expect(heading).toBeInTheDocument();
+        expect(heading?.textContent).toBe("Description");
+      });
+    });
+
+    it("maintains proper heading hierarchy with description", async () => {
+      mockGetProject.mockResolvedValue(mockProject);
+
+      render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        const h1 = screen.getByRole("heading", { level: 1 });
+        const h2 = screen.getByRole("heading", { level: 2 });
+
+        expect(h1).toBeInTheDocument();
+        expect(h2).toBeInTheDocument();
+        expect(h1.textContent).toBe("Test Project");
+        expect(h2.textContent).toBe("Description");
+      });
+    });
+  });
+
   describe("accessibility", () => {
     beforeEach(() => {
       mockGetProject.mockResolvedValue(mockProject);

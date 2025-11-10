@@ -141,6 +141,22 @@ export default function ProjectDetailPage() {
             </p>
           </div>
         </header>
+
+        {/* Project Description */}
+        <section className="mt-6">
+          <h2 className="text-xl font-semibold mb-3 text-gray-900 dark:text-gray-100">
+            Description
+          </h2>
+          {project.description !== null && project.description.trim() !== "" ? (
+            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+              {project.description}
+            </p>
+          ) : (
+            <p className="text-gray-500 dark:text-gray-400 italic">
+              No description provided
+            </p>
+          )}
+        </section>
       </main>
     </div>
   );
