@@ -65,132 +65,85 @@ export default function ProjectDetailPage() {
   // Show loading state
   if (isLoading) {
     return (
-      <main className="container mx-auto max-w-4xl p-6">
-        <div className="flex items-center justify-center py-12">
-          <div className="text-gray-600">Loading project details...</div>
-        </div>
-      </main>
+      <div className="min-h-screen p-8 pb-20 gap-16 sm:p-20 font-sans bg-gray-50 dark:bg-gray-900">
+        <main className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-center py-12">
+            <div className="text-gray-600 dark:text-gray-400">
+              Loading project details...
+            </div>
+          </div>
+        </main>
+      </div>
     );
   }
 
   // Show 404 if project not found
   if (error === "not-found" || !project) {
     return (
-      <main className="container mx-auto max-w-4xl p-6">
-        <div
-          role="alert"
-          aria-live="polite"
-          className="rounded-lg border border-red-200 bg-red-50 p-8"
-        >
-          <h1 className="mb-2 text-2xl font-bold text-red-900">404</h1>
-          <h2 className="mb-4 text-xl font-semibold text-red-800">
-            Project Not Found
-          </h2>
-          <p className="mb-6 text-red-700">
-            The project you&apos;re looking for doesn&apos;t exist or may have
-            been deleted.
-          </p>
-          <Link
-            href="/"
-            className="inline-flex items-center text-red-600 hover:text-red-800 hover:underline"
+      <div className="min-h-screen p-8 pb-20 gap-16 sm:p-20 font-sans bg-gray-50 dark:bg-gray-900">
+        <main className="max-w-6xl mx-auto">
+          <div
+            role="alert"
+            aria-live="polite"
+            className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30 p-8"
           >
-            <span aria-hidden="true">← </span>
-            Back to Projects
-          </Link>
-        </div>
-      </main>
+            <h1 className="mb-2 text-2xl font-bold text-red-900 dark:text-red-200">
+              404
+            </h1>
+            <h2 className="mb-4 text-xl font-semibold text-red-800 dark:text-red-300">
+              Project Not Found
+            </h2>
+            <p className="mb-6 text-red-700 dark:text-red-400">
+              The project you&apos;re looking for doesn&apos;t exist or may have
+              been deleted.
+            </p>
+            <Link
+              href="/"
+              className="inline-flex items-center text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 hover:underline"
+            >
+              <span aria-hidden="true">← </span>
+              Back to Projects
+            </Link>
+          </div>
+        </main>
+      </div>
     );
   }
 
   return (
-    <main className="container mx-auto max-w-4xl p-6">
-      {/* Back Navigation */}
-      <Link
-        href="/"
-        className="mb-4 inline-flex items-center text-blue-600 hover:text-blue-800 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded transition-colors duration-200"
-        aria-label="Back to projects list"
-      >
-        <span aria-hidden="true">← </span>
-        Back to Projects
-      </Link>
+    <div className="min-h-screen p-8 pb-20 gap-16 sm:p-20 font-sans bg-gray-50 dark:bg-gray-900">
+      <main className="max-w-6xl mx-auto">
+        {/* Back Navigation */}
+        <Link
+          href="/"
+          className="mb-6 inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded transition-colors duration-200"
+          aria-label="Back to projects list"
+        >
+          <span aria-hidden="true">← </span>
+          Back to Projects
+        </Link>
 
-      <article className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
-        {/* Header */}
-        <header className="mb-6 border-b border-gray-200 pb-4">
-          <h1 className="mb-2 text-3xl font-bold text-gray-900">
+        {/* Project Title */}
+        <header className="mb-6">
+          <h1 className="text-4xl font-bold mb-4 text-gray-900 dark:text-gray-100">
             {project.name}
           </h1>
-          <div className="flex items-center gap-2">
-            <span
-              className={`inline-flex rounded-full px-3 py-1 text-sm font-medium ${getStatusStyles(
-                project.status
-              )}`}
-              aria-label={`Project status: ${formatStatus(project.status)}`}
-            >
-              {formatStatus(project.status)}
-            </span>
+
+          {/* Metadata - Created and Updated dates */}
+          <div className="text-gray-600 dark:text-gray-400 space-y-1">
+            <p className="text-sm">
+              <span className="font-medium">Created:</span>{" "}
+              {formatDate(project.created_at)}
+            </p>
+            <p className="text-sm">
+              <span className="font-medium">Updated:</span>{" "}
+              {formatDate(project.updated_at)}
+            </p>
           </div>
         </header>
-
-        {/* Description */}
-        <section className="mb-6">
-          <h2 className="mb-3 text-lg font-semibold text-gray-800">
-            Description
-          </h2>
-          {project.description ? (
-            <p className="text-gray-700">{project.description}</p>
-          ) : (
-            <p className="italic text-gray-500">No description provided</p>
-          )}
-        </section>
-
-        {/* Metadata */}
-        <section>
-          <h2 className="mb-3 text-lg font-semibold text-gray-800">Details</h2>
-          <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <dt className="text-sm font-medium text-gray-600">Created</dt>
-              <dd className="mt-1 text-gray-900">
-                {formatDate(project.created_at)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-600">
-                Last Updated
-              </dt>
-              <dd className="mt-1 text-gray-900">
-                {formatDate(project.updated_at)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-600">Project ID</dt>
-              <dd className="mt-1 text-gray-900">{project.id}</dd>
-            </div>
-          </dl>
-        </section>
-      </article>
-    </main>
+      </main>
+    </div>
   );
-}
-
-/**
- * Get Tailwind CSS classes for status badge
- */
-function getStatusStyles(status: string): string {
-  const styles: Record<string, string> = {
-    planned: "bg-blue-100 text-blue-800",
-    in_progress: "bg-yellow-100 text-yellow-800",
-    completed: "bg-green-100 text-green-800",
-    archived: "bg-gray-100 text-gray-800",
-  };
-  return styles[status] || "bg-gray-100 text-gray-800";
-}
-
-/**
- * Format status string for display
- */
-function formatStatus(status: string): string {
-  return status.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 }
 
 /**

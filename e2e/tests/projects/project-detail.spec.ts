@@ -49,11 +49,14 @@ test.describe('Project Detail Page', () => {
       // Assert: URL changed to project detail page
       await expect(page).toHaveURL(`/projects/${project.id}`);
 
-      // Assert: Project details are displayed
+      // Assert: Project title is displayed (minimal design - no description)
       await expect(
         page.getByRole('heading', { name: 'Navigation Test Project', level: 1 })
       ).toBeVisible();
-      await expect(page.getByText('Test description for navigation')).toBeVisible();
+
+      // Assert: Created and Updated dates are visible
+      await expect(page.getByText(/created/i)).toBeVisible();
+      await expect(page.getByText(/updated/i)).toBeVisible();
     });
 
     test('should display project data correctly on detail page', async ({ page }) => {
@@ -67,14 +70,12 @@ test.describe('Project Detail Page', () => {
         .filter({ hasText: 'Data Display Test' })
         .click();
 
-      // Assert: All project data is visible
+      // Assert: Project title and metadata are visible (minimal design - no description or status)
       await expect(
         page.getByRole('heading', { name: 'Data Display Test', level: 1 })
       ).toBeVisible();
-      await expect(page.getByText('Testing data display')).toBeVisible();
-      await expect(page.getByText(/in progress/i)).toBeVisible();
       await expect(page.getByText(/created/i)).toBeVisible();
-      await expect(page.getByText(/last updated/i)).toBeVisible();
+      await expect(page.getByText(/updated/i)).toBeVisible();
     });
   });
 
@@ -249,10 +250,11 @@ test.describe('Project Detail Page', () => {
       // Act: Refresh the page
       await page.reload();
 
-      // Assert: Still on detail page with data loaded
+      // Assert: Still on detail page with title and dates loaded (minimal design - no description)
       await expect(page).toHaveURL(`/projects/${project.id}`);
       await expect(page.getByRole('heading', { name: 'Refresh Test', level: 1 })).toBeVisible();
-      await expect(page.getByText('Test refresh behavior')).toBeVisible();
+      await expect(page.getByText(/created/i)).toBeVisible();
+      await expect(page.getByText(/updated/i)).toBeVisible();
 
       // Assert: Back link still works after refresh
       await page.getByRole('link', { name: /back to projects/i }).click();

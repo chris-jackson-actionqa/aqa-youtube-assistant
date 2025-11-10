@@ -106,40 +106,11 @@ describe("ProjectDetailPage", () => {
       });
     });
 
-    it("renders project description", async () => {
-      render(<ProjectDetailPage />);
-
-      await waitFor(() => {
-        expect(
-          screen.getByText("Test project description")
-        ).toBeInTheDocument();
-      });
-    });
-
-    it("renders status badge with proper styling", async () => {
-      render(<ProjectDetailPage />);
-
-      await waitFor(() => {
-        const status = screen.getByText("In Progress");
-        expect(status).toBeInTheDocument();
-        expect(status).toHaveClass("bg-yellow-100", "text-yellow-800");
-      });
-    });
-
-    it("status badge has accessibility label", async () => {
-      render(<ProjectDetailPage />);
-
-      await waitFor(() => {
-        const status = screen.getByLabelText("Project status: In Progress");
-        expect(status).toBeInTheDocument();
-      });
-    });
-
     it("renders formatted created date", async () => {
       render(<ProjectDetailPage />);
 
       await waitFor(() => {
-        expect(screen.getByText("Created")).toBeInTheDocument();
+        expect(screen.getByText(/Created:/)).toBeInTheDocument();
         const datesWithMonths = screen.getAllByText(
           /January|February|March|April|May|June/
         );
@@ -151,16 +122,7 @@ describe("ProjectDetailPage", () => {
       render(<ProjectDetailPage />);
 
       await waitFor(() => {
-        expect(screen.getByText("Last Updated")).toBeInTheDocument();
-      });
-    });
-
-    it("renders project ID", async () => {
-      render(<ProjectDetailPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText("Project ID")).toBeInTheDocument();
-        expect(screen.getByText("1")).toBeInTheDocument();
+        expect(screen.getByText(/Updated:/)).toBeInTheDocument();
       });
     });
 
@@ -177,33 +139,7 @@ describe("ProjectDetailPage", () => {
 
       await waitFor(() => {
         expect(container.querySelector("main")).toBeInTheDocument();
-        expect(container.querySelector("article")).toBeInTheDocument();
         expect(container.querySelector("header")).toBeInTheDocument();
-        expect(container.querySelectorAll("section")).toHaveLength(2);
-      });
-    });
-
-    it("renders description section heading", async () => {
-      render(<ProjectDetailPage />);
-
-      await waitFor(() => {
-        const heading = screen.getByRole("heading", {
-          level: 2,
-          name: "Description",
-        });
-        expect(heading).toBeInTheDocument();
-      });
-    });
-
-    it("renders details section heading", async () => {
-      render(<ProjectDetailPage />);
-
-      await waitFor(() => {
-        const heading = screen.getByRole("heading", {
-          level: 2,
-          name: "Details",
-        });
-        expect(heading).toBeInTheDocument();
       });
     });
 
@@ -212,41 +148,79 @@ describe("ProjectDetailPage", () => {
 
       await waitFor(() => {
         const main = container.querySelector("main");
-        expect(main).toHaveClass("container", "mx-auto", "max-w-4xl");
+        expect(main).toHaveClass("max-w-6xl", "mx-auto");
       });
     });
 
-    it("article has card styling", async () => {
+    it("has consistent page background styling with main page", async () => {
       const { container } = render(<ProjectDetailPage />);
 
       await waitFor(() => {
-        const article = container.querySelector("article");
-        expect(article).toHaveClass(
-          "rounded-lg",
-          "border",
-          "bg-white",
-          "shadow-sm"
+        const pageWrapper = container.querySelector(".min-h-screen");
+        expect(pageWrapper).toHaveClass(
+          "bg-gray-50",
+          "dark:bg-gray-900",
+          "font-sans"
         );
       });
     });
 
-    it("uses definition list for metadata", async () => {
+    it("header has proper spacing", async () => {
       const { container } = render(<ProjectDetailPage />);
 
       await waitFor(() => {
-        const dl = container.querySelector("dl");
-        expect(dl).toBeInTheDocument();
-        expect(container.querySelectorAll("dt")).toHaveLength(3);
-        expect(container.querySelectorAll("dd")).toHaveLength(3);
+        const header = container.querySelector("header");
+        expect(header).toHaveClass("mb-6");
       });
     });
 
-    it("renders responsive grid for details", async () => {
+    it("project title has large bold styling", async () => {
+      render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        const title = screen.getByRole("heading", { level: 1 });
+        expect(title).toHaveClass(
+          "text-4xl",
+          "font-bold",
+          "mb-4",
+          "text-gray-900",
+          "dark:text-gray-100"
+        );
+      });
+    });
+
+    it("metadata section has proper text styling", async () => {
       const { container } = render(<ProjectDetailPage />);
 
       await waitFor(() => {
-        const dl = container.querySelector("dl");
-        expect(dl).toHaveClass("grid", "grid-cols-1", "sm:grid-cols-2");
+        const metadata = container.querySelector(".text-gray-600");
+        expect(metadata).toHaveClass(
+          "text-gray-600",
+          "dark:text-gray-400",
+          "space-y-1"
+        );
+      });
+    });
+
+    it("created date has font-medium emphasis", async () => {
+      const { container } = render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        const createdLabel = Array.from(
+          container.querySelectorAll(".font-medium")
+        ).find((el) => el.textContent === "Created:");
+        expect(createdLabel).toBeInTheDocument();
+      });
+    });
+
+    it("updated date has font-medium emphasis", async () => {
+      const { container } = render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        const updatedLabel = Array.from(
+          container.querySelectorAll(".font-medium")
+        ).find((el) => el.textContent === "Updated:");
+        expect(updatedLabel).toBeInTheDocument();
       });
     });
   });
@@ -310,7 +284,7 @@ describe("ProjectDetailPage", () => {
       });
     });
 
-    it("back link has hover styles", async () => {
+    it("back link has hover styles with dark mode support", async () => {
       render(<ProjectDetailPage />);
 
       await waitFor(() => {
@@ -319,7 +293,9 @@ describe("ProjectDetailPage", () => {
         });
         expect(backLink).toHaveClass(
           "text-blue-600",
+          "dark:text-blue-400",
           "hover:text-blue-800",
+          "dark:hover:text-blue-300",
           "hover:underline"
         );
       });
@@ -352,18 +328,16 @@ describe("ProjectDetailPage", () => {
       });
     });
 
-    it("back link is positioned above project article", async () => {
-      const { container } = render(<ProjectDetailPage />);
+    it("back link is positioned above project content", async () => {
+      render(<ProjectDetailPage />);
 
       await waitFor(() => {
         const backLink = screen.getByRole("link", {
           name: /back to projects/i,
         });
-        const article = container.querySelector("article");
 
-        expect(backLink).toHaveClass("mb-4");
+        expect(backLink).toHaveClass("mb-6");
         expect(backLink).toBeInTheDocument();
-        expect(article).toBeInTheDocument();
       });
     });
 
@@ -385,109 +359,6 @@ describe("ProjectDetailPage", () => {
         const main = container.querySelector("main");
         const firstChild = main?.firstChild;
         expect(firstChild?.nodeName).toBe("A");
-      });
-    });
-  });
-
-  describe("null description handling", () => {
-    it("renders placeholder when description is null", async () => {
-      mockGetProject.mockResolvedValue({
-        ...mockProject,
-        description: null,
-      });
-
-      render(<ProjectDetailPage />);
-
-      await waitFor(() => {
-        const placeholder = screen.getByText("No description provided");
-        expect(placeholder).toBeInTheDocument();
-        expect(placeholder).toHaveClass("italic", "text-gray-500");
-      });
-    });
-
-    it("renders placeholder when description is empty string", async () => {
-      mockGetProject.mockResolvedValue({
-        ...mockProject,
-        description: "",
-      });
-
-      render(<ProjectDetailPage />);
-
-      await waitFor(() => {
-        const placeholder = screen.getByText("No description provided");
-        expect(placeholder).toBeInTheDocument();
-      });
-    });
-  });
-
-  describe("status formatting", () => {
-    it("formats planned status", async () => {
-      mockGetProject.mockResolvedValue({
-        ...mockProject,
-        status: "planned",
-      });
-
-      render(<ProjectDetailPage />);
-
-      await waitFor(() => {
-        const status = screen.getByText("Planned");
-        expect(status).toHaveClass("bg-blue-100", "text-blue-800");
-      });
-    });
-
-    it("formats in_progress status", async () => {
-      mockGetProject.mockResolvedValue({
-        ...mockProject,
-        status: "in_progress",
-      });
-
-      render(<ProjectDetailPage />);
-
-      await waitFor(() => {
-        const status = screen.getByText("In Progress");
-        expect(status).toHaveClass("bg-yellow-100", "text-yellow-800");
-      });
-    });
-
-    it("formats completed status", async () => {
-      mockGetProject.mockResolvedValue({
-        ...mockProject,
-        status: "completed",
-      });
-
-      render(<ProjectDetailPage />);
-
-      await waitFor(() => {
-        const status = screen.getByText("Completed");
-        expect(status).toHaveClass("bg-green-100", "text-green-800");
-      });
-    });
-
-    it("formats archived status", async () => {
-      mockGetProject.mockResolvedValue({
-        ...mockProject,
-        status: "archived",
-      });
-
-      render(<ProjectDetailPage />);
-
-      await waitFor(() => {
-        const status = screen.getByText("Archived");
-        expect(status).toHaveClass("bg-gray-100", "text-gray-800");
-      });
-    });
-
-    it("handles unknown status with default styling", async () => {
-      mockGetProject.mockResolvedValue({
-        ...mockProject,
-        status: "unknown_status",
-      });
-
-      render(<ProjectDetailPage />);
-
-      await waitFor(() => {
-        const status = screen.getByText("Unknown Status");
-        expect(status).toHaveClass("bg-gray-100", "text-gray-800");
       });
     });
   });
@@ -623,6 +494,35 @@ describe("ProjectDetailPage", () => {
         ).toBeInTheDocument();
       });
     });
+
+    it("404 page has consistent background styling", async () => {
+      mockGetProject.mockRejectedValue(new Error("Not found"));
+      const { container } = render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        const pageWrapper = container.querySelector(".min-h-screen");
+        expect(pageWrapper).toHaveClass(
+          "bg-gray-50",
+          "dark:bg-gray-900",
+          "font-sans"
+        );
+      });
+    });
+
+    it("404 alert has dark mode styling", async () => {
+      mockGetProject.mockRejectedValue(new Error("Not found"));
+      const { container } = render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        const alert = screen.getByRole("alert");
+        expect(alert).toHaveClass(
+          "border-red-200",
+          "dark:border-red-800",
+          "bg-red-50",
+          "dark:bg-red-900/30"
+        );
+      });
+    });
   });
 
   describe("date formatting", () => {
@@ -672,10 +572,7 @@ describe("ProjectDetailPage", () => {
 
       await waitFor(() => {
         const h1 = screen.getAllByRole("heading", { level: 1 });
-        const h2 = screen.getAllByRole("heading", { level: 2 });
-
         expect(h1).toHaveLength(1);
-        expect(h2.length).toBeGreaterThan(0);
       });
     });
 
@@ -684,19 +581,19 @@ describe("ProjectDetailPage", () => {
 
       await waitFor(() => {
         expect(container.querySelector("main")).toBeInTheDocument();
-        expect(container.querySelector("article")).toBeInTheDocument();
         expect(container.querySelector("header")).toBeInTheDocument();
-        expect(container.querySelectorAll("section").length).toBeGreaterThan(0);
       });
     });
 
-    it("uses dl/dt/dd for metadata", async () => {
+    it("has sufficient color contrast for text", async () => {
       const { container } = render(<ProjectDetailPage />);
 
       await waitFor(() => {
-        expect(container.querySelector("dl")).toBeInTheDocument();
-        expect(container.querySelectorAll("dt").length).toBeGreaterThan(0);
-        expect(container.querySelectorAll("dd").length).toBeGreaterThan(0);
+        const title = screen.getByRole("heading", { level: 1 });
+        expect(title).toHaveClass("text-gray-900", "dark:text-gray-100");
+
+        const metadata = container.querySelector(".text-gray-600");
+        expect(metadata).toHaveClass("text-gray-600", "dark:text-gray-400");
       });
     });
   });
@@ -742,8 +639,9 @@ describe("ProjectDetailPage", () => {
 
       render(<ProjectDetailPage />);
 
+      // Just verify it renders without error
       await waitFor(() => {
-        expect(screen.getByText(longDescription)).toBeInTheDocument();
+        expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
       });
     });
 
@@ -771,8 +669,9 @@ describe("ProjectDetailPage", () => {
 
       render(<ProjectDetailPage />);
 
+      // Just verify it renders without error
       await waitFor(() => {
-        expect(screen.getByText(specialDesc)).toBeInTheDocument();
+        expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
       });
     });
   });
