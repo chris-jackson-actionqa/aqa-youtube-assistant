@@ -380,7 +380,7 @@ test.describe('Project Detail Page', () => {
     });
 
     test('should show fallback text when description is null', async ({ page }) => {
-      // Arrange: Create project without description (null)
+      // Arrange: Create project with default empty description (API may convert to null)
       const project = await helpers.createProjectViaAPI('No Description Project');
 
       // Act: Navigate to project detail page
