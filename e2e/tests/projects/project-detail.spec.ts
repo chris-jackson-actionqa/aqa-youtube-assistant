@@ -353,6 +353,151 @@ test.describe('Project Detail Page', () => {
     });
   });
 
+  test.describe('Project Description Display', () => {
+    test('should display project description when present', async ({ page }) => {
+      // Arrange: Create project with multi-line description
+      const project = await helpers.createProjectViaAPI(
+        'Description Test Project',
+        'This is a detailed description\nwith multiple lines\nfor testing'
+      );
+
+      // Act: Navigate to project detail page
+      await page.goto(`/projects/${project.id}`);
+
+      // Assert: Description section is visible
+      const descriptionSection = page.locator('section').filter({ hasText: 'Description' });
+      await expect(descriptionSection).toBeVisible();
+
+      // Assert: Description heading is present
+      const descriptionHeading = page.getByRole('heading', { level: 2, name: 'Description' });
+      await expect(descriptionHeading).toBeVisible();
+
+      // Assert: Description text contains all lines
+      const descriptionText = descriptionSection.locator('p').first();
+      await expect(descriptionText).toContainText('This is a detailed description');
+      await expect(descriptionText).toContainText('with multiple lines');
+      await expect(descriptionText).toContainText('for testing');
+    });
+
+    test('should show fallback text when description is null', async ({ page }) => {
+      // Arrange: Create project without description (null)
+      const project = await helpers.createProjectViaAPI('No Description Project');
+
+      // Act: Navigate to project detail page
+      await page.goto(`/projects/${project.id}`);
+
+      // Assert: Description section is visible
+      const descriptionSection = page.locator('section').filter({ hasText: 'Description' });
+      await expect(descriptionSection).toBeVisible();
+
+      // Assert: Fallback text is shown
+      await expect(descriptionSection.getByText('No description provided')).toBeVisible();
+    });
+
+    test('should show fallback text when description is empty string', async ({ page }) => {
+      // Arrange: Create project with empty description
+      const project = await helpers.createProjectViaAPI('Empty Description Project', '');
+
+      // Act: Navigate to project detail page
+      await page.goto(`/projects/${project.id}`);
+
+      // Assert: Description section is visible
+      const descriptionSection = page.locator('section').filter({ hasText: 'Description' });
+      await expect(descriptionSection).toBeVisible();
+
+      // Assert: Fallback text is shown
+      await expect(descriptionSection.getByText('No description provided')).toBeVisible();
+    });
+
+    test('should preserve line breaks in description', async ({ page }) => {
+      // Arrange: Create project with multi-line description
+      const project = await helpers.createProjectViaAPI(
+        'Multi-line Project',
+        'Line 1\nLine 2\nLine 3'
+      );
+
+      // Act: Navigate to project detail page
+      await page.goto(`/projects/${project.id}`);
+
+      // Assert: Check CSS property for whitespace preservation
+      const descriptionText = page
+        .locator('section')
+        .filter({ hasText: 'Description' })
+        .locator('p')
+        .first();
+
+      const whiteSpace = await descriptionText.evaluate((el) => {
+        const win = el.ownerDocument.defaultView;
+        return win ? win.getComputedStyle(el).whiteSpace : '';
+      });
+      expect(whiteSpace).toMatch(/pre-wrap|pre-line/);
+    });
+
+    test('should have proper heading hierarchy for accessibility', async ({ page }) => {
+      // Arrange: Create project
+      const project = await helpers.createProjectViaAPI(
+        'Accessibility Test Project',
+        'Test description for accessibility'
+      );
+
+      // Act: Navigate to project detail page
+      await page.goto(`/projects/${project.id}`);
+
+      // Assert: Check heading structure
+      const h1 = page.getByRole('heading', { level: 1, name: 'Accessibility Test Project' });
+      const h2 = page.getByRole('heading', { level: 2, name: 'Description' });
+
+      await expect(h1).toBeVisible();
+      await expect(h2).toBeVisible();
+
+      // Assert: Only one h1 on page
+      await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
+    });
+
+    test('should handle very long descriptions', async ({ page }) => {
+      // Arrange: Create project with very long description
+      const longDescription = 'A'.repeat(500) + '\n' + 'B'.repeat(500);
+      const project = await helpers.createProjectViaAPI(
+        'Long Description Project',
+        longDescription
+      );
+
+      // Act: Navigate to project detail page
+      await page.goto(`/projects/${project.id}`);
+
+      // Assert: Description section is visible
+      const descriptionSection = page.locator('section').filter({ hasText: 'Description' });
+      await expect(descriptionSection).toBeVisible();
+
+      // Assert: Long text is displayed (check for part of it)
+      const descriptionText = descriptionSection.locator('p').first();
+      await expect(descriptionText).toBeVisible();
+      await expect(descriptionText).toContainText('A'.repeat(100)); // Check first 100 chars
+    });
+
+    test('should handle special characters in description', async ({ page }) => {
+      // Arrange: Create project with special characters
+      const specialDescription = 'Description with <html> & "quotes" & \'apostrophes\'';
+      const project = await helpers.createProjectViaAPI(
+        'Special Chars Project',
+        specialDescription
+      );
+
+      // Act: Navigate to project detail page
+      await page.goto(`/projects/${project.id}`);
+
+      // Assert: Description displays special characters correctly (not as HTML)
+      const descriptionText = page
+        .locator('section')
+        .filter({ hasText: 'Description' })
+        .locator('p')
+        .first();
+      await expect(descriptionText).toContainText('<html>');
+      await expect(descriptionText).toContainText('"quotes"');
+      await expect(descriptionText).toContainText("'apostrophes'");
+    });
+  });
+
   test.describe('Accessibility and Semantic HTML', () => {
     test('should have proper semantic HTML structure on 404 page', async ({ page }) => {
       // Act: Navigate to 404 page
