@@ -66,12 +66,13 @@ class Project(Base):
         name: Project name (unique, case-insensitive)
         description: Optional project description (max 2000 chars)
         status: Project status (planned, in_progress, completed, archived)
+        video_title: YouTube video title (optional, max 500 chars)
         workspace_id: Foreign key to workspace (nullable, default=1)
         created_at: Timestamp of creation
         updated_at: Timestamp of last update
         workspace: Relationship to parent workspace
 
-    Related: Issue #27, Issue #30, Issue #91, Decision #4
+    Related: Issue #27, Issue #30, Issue #91, Issue #159, Decision #4
     """
 
     __tablename__ = "projects"
@@ -80,6 +81,7 @@ class Project(Base):
     name = Column(String(255), nullable=False, index=True)
     description = Column(Text)
     status = Column(String(50), default="planned")
+    video_title = Column(String(500), nullable=True)
     # Workspace foreign key with default=1 references "Default Workspace"
     # The migration script ensures workspace id=1 always exists
     # Future enhancement: Add DB constraint to prevent deletion of workspace id=1

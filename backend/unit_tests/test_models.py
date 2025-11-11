@@ -200,6 +200,96 @@ class TestProjectModel:
         assert project.workspace_id is None
         assert project.workspace is None
 
+    def test_project_video_title_nullable(self, db_session):
+        """Test that video_title is nullable (optional field)."""
+        workspace = Workspace(name="Test Workspace")
+        db_session.add(workspace)
+        db_session.commit()
+        db_session.refresh(workspace)
+
+        # Create project without video_title
+        project = Project(
+            name="Test Project",
+            workspace_id=workspace.id,
+        )
+        db_session.add(project)
+        db_session.commit()
+        db_session.refresh(project)
+
+        assert project.video_title is None
+
+    def test_project_video_title_with_value(self, db_session):
+        """Test creating project with video_title."""
+        workspace = Workspace(name="Test Workspace")
+        db_session.add(workspace)
+        db_session.commit()
+        db_session.refresh(workspace)
+
+        project = Project(
+            name="Test Project",
+            video_title="How to Build a REST API with FastAPI",
+            workspace_id=workspace.id,
+        )
+        db_session.add(project)
+        db_session.commit()
+        db_session.refresh(project)
+
+        assert project.video_title == "How to Build a REST API with FastAPI"
+
+    def test_project_video_title_max_length(self, db_session):
+        """Test that video_title accepts up to 500 characters."""
+        workspace = Workspace(name="Test Workspace")
+        db_session.add(workspace)
+        db_session.commit()
+        db_session.refresh(workspace)
+
+        # Create a 500-character string
+        long_title = "A" * 500
+
+        project = Project(
+            name="Test Project",
+            video_title=long_title,
+            workspace_id=workspace.id,
+        )
+        db_session.add(project)
+        db_session.commit()
+        db_session.refresh(project)
+
+        assert project.video_title == long_title
+        assert len(project.video_title) == 500
+
+    def test_project_video_title_can_be_updated(self, db_session):
+        """Test updating video_title on existing project."""
+        workspace = Workspace(name="Test Workspace")
+        db_session.add(workspace)
+        db_session.commit()
+        db_session.refresh(workspace)
+
+        project = Project(
+            name="Test Project",
+            workspace_id=workspace.id,
+        )
+        db_session.add(project)
+        db_session.commit()
+        db_session.refresh(project)
+
+        # Initially None
+        assert project.video_title is None
+
+        # Update to a value
+        project.video_title = "New Video Title"
+        db_session.commit()
+        db_session.refresh(project)
+
+        assert project.video_title == "New Video Title"
+
+        # Update to None
+        project.video_title = None
+        db_session.commit()
+        db_session.refresh(project)
+
+        assert project.video_title is None
+
 
 class TestCascadeDelete:
     """Tests for cascade delete behavior."""

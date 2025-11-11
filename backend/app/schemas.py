@@ -172,6 +172,11 @@ class ProjectBase(BaseModel):
         default="planned",
         description="Project status (planned, in_progress, completed, archived)",
     )
+    video_title: str | None = Field(
+        None,
+        max_length=500,
+        description="YouTube video title (optional, max 500 chars)",
+    )
 
 
 class ProjectCreate(ProjectBase):
@@ -254,6 +259,9 @@ class ProjectUpdate(BaseModel):
         None, max_length=2000, description="Project description (max 2000 chars)"
     )
     status: str | None = Field(None, description="Project status")
+    video_title: str | None = Field(
+        None, max_length=500, description="YouTube video title"
+    )
 
     @field_validator("name")
     @classmethod
