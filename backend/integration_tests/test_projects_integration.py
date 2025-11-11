@@ -487,9 +487,11 @@ class TestVideoTitleField:
         assert response.status_code == 200
         projects = response.json()
         assert len(projects) == 3
-        assert projects[0]["video_title"] == "Video Title 1"
-        assert projects[1]["video_title"] == "Video Title 2"
-        assert projects[2]["video_title"] is None
+        # Projects are ordered by created_at DESC (newest first)
+        # So Project 3 is first, then Project 2, then Project 1
+        assert projects[0]["video_title"] is None  # Project 3
+        assert projects[1]["video_title"] == "Video Title 2"  # Project 2
+        assert projects[2]["video_title"] == "Video Title 1"  # Project 1
 
     def test_update_project_video_title(self, client, create_sample_project):
         """Test updating project video_title."""
