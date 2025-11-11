@@ -165,7 +165,6 @@ export default function ProjectDetailPage() {
             Video Title
           </h2>
           <VideoTitleEditor
-            projectId={project.id}
             initialTitle={project.video_title}
             onSave={async (newTitle) => {
               await updateProject(project.id, { video_title: newTitle });

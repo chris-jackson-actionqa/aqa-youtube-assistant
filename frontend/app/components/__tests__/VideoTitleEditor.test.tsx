@@ -17,11 +17,7 @@ describe("VideoTitleEditor", () => {
   describe("Rendering - Display Mode", () => {
     it("should display current video title", () => {
       render(
-        <VideoTitleEditor
-          projectId={1}
-          initialTitle="My Awesome Video"
-          onSave={mockOnSave}
-        />
+        <VideoTitleEditor initialTitle="My Awesome Video" onSave={mockOnSave} />
       );
 
       expect(screen.getByText("My Awesome Video")).toBeInTheDocument();
@@ -31,32 +27,20 @@ describe("VideoTitleEditor", () => {
     });
 
     it('should display "No video title set" when title is null', () => {
-      render(
-        <VideoTitleEditor
-          projectId={1}
-          initialTitle={null}
-          onSave={mockOnSave}
-        />
-      );
+      render(<VideoTitleEditor initialTitle={null} onSave={mockOnSave} />);
 
       expect(screen.getByText("No video title set")).toBeInTheDocument();
     });
 
     it('should display "No video title set" when title is empty string', () => {
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       expect(screen.getByText("No video title set")).toBeInTheDocument();
     });
 
     it("should show edit button with proper accessibility", () => {
       render(
-        <VideoTitleEditor
-          projectId={1}
-          initialTitle="Test Title"
-          onSave={mockOnSave}
-        />
+        <VideoTitleEditor initialTitle="Test Title" onSave={mockOnSave} />
       );
 
       const editButton = screen.getByRole("button", {
@@ -72,11 +56,7 @@ describe("VideoTitleEditor", () => {
     it("should open popover when edit button is clicked", async () => {
       const user = userEvent.setup();
       render(
-        <VideoTitleEditor
-          projectId={1}
-          initialTitle="Test Title"
-          onSave={mockOnSave}
-        />
+        <VideoTitleEditor initialTitle="Test Title" onSave={mockOnSave} />
       );
 
       await user.click(
@@ -93,11 +73,7 @@ describe("VideoTitleEditor", () => {
     it("should populate input with current title", async () => {
       const user = userEvent.setup();
       render(
-        <VideoTitleEditor
-          projectId={1}
-          initialTitle="Current Title"
-          onSave={mockOnSave}
-        />
+        <VideoTitleEditor initialTitle="Current Title" onSave={mockOnSave} />
       );
 
       await user.click(
@@ -112,13 +88,7 @@ describe("VideoTitleEditor", () => {
 
     it("should populate input with empty string when title is null", async () => {
       const user = userEvent.setup();
-      render(
-        <VideoTitleEditor
-          projectId={1}
-          initialTitle={null}
-          onSave={mockOnSave}
-        />
-      );
+      render(<VideoTitleEditor initialTitle={null} onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -132,13 +102,7 @@ describe("VideoTitleEditor", () => {
 
     it("should have proper ARIA attributes on popover", async () => {
       const user = userEvent.setup();
-      render(
-        <VideoTitleEditor
-          projectId={1}
-          initialTitle="Test"
-          onSave={mockOnSave}
-        />
-      );
+      render(<VideoTitleEditor initialTitle="Test" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -156,9 +120,7 @@ describe("VideoTitleEditor", () => {
 
     it("should enforce max length of 500 characters", async () => {
       const user = userEvent.setup();
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -172,9 +134,7 @@ describe("VideoTitleEditor", () => {
 
     it("should auto-focus input field when popover opens", async () => {
       const user = userEvent.setup();
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -188,9 +148,7 @@ describe("VideoTitleEditor", () => {
   describe("User Interactions - Typing", () => {
     it("should update input value when typing", async () => {
       const user = userEvent.setup();
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -206,11 +164,7 @@ describe("VideoTitleEditor", () => {
     it("should allow editing existing title", async () => {
       const user = userEvent.setup();
       render(
-        <VideoTitleEditor
-          projectId={1}
-          initialTitle="Original Title"
-          onSave={mockOnSave}
-        />
+        <VideoTitleEditor initialTitle="Original Title" onSave={mockOnSave} />
       );
 
       await user.click(
@@ -230,9 +184,7 @@ describe("VideoTitleEditor", () => {
       const user = userEvent.setup();
       mockOnSave.mockResolvedValue(undefined);
 
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -252,9 +204,7 @@ describe("VideoTitleEditor", () => {
       const user = userEvent.setup();
       mockOnSave.mockResolvedValue(undefined);
 
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -275,11 +225,7 @@ describe("VideoTitleEditor", () => {
       mockOnSave.mockResolvedValue(undefined);
 
       render(
-        <VideoTitleEditor
-          projectId={1}
-          initialTitle="Existing Title"
-          onSave={mockOnSave}
-        />
+        <VideoTitleEditor initialTitle="Existing Title" onSave={mockOnSave} />
       );
 
       await user.click(
@@ -298,9 +244,7 @@ describe("VideoTitleEditor", () => {
       const user = userEvent.setup();
       mockOnSave.mockResolvedValue(undefined);
 
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -317,9 +261,7 @@ describe("VideoTitleEditor", () => {
       const user = userEvent.setup();
       mockOnSave.mockResolvedValue(undefined);
 
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -343,9 +285,7 @@ describe("VideoTitleEditor", () => {
       });
       mockOnSave.mockReturnValue(savePromise);
 
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -377,9 +317,7 @@ describe("VideoTitleEditor", () => {
       });
       mockOnSave.mockReturnValue(savePromise);
 
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -407,9 +345,7 @@ describe("VideoTitleEditor", () => {
   describe("Cancel Functionality", () => {
     it("should close popover when Cancel is clicked", async () => {
       const user = userEvent.setup();
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -423,11 +359,7 @@ describe("VideoTitleEditor", () => {
     it("should discard changes when Cancel is clicked", async () => {
       const user = userEvent.setup();
       render(
-        <VideoTitleEditor
-          projectId={1}
-          initialTitle="Original Title"
-          onSave={mockOnSave}
-        />
+        <VideoTitleEditor initialTitle="Original Title" onSave={mockOnSave} />
       );
 
       await user.click(
@@ -450,13 +382,7 @@ describe("VideoTitleEditor", () => {
 
     it("should restore empty string for null initial title on cancel", async () => {
       const user = userEvent.setup();
-      render(
-        <VideoTitleEditor
-          projectId={1}
-          initialTitle={null}
-          onSave={mockOnSave}
-        />
-      );
+      render(<VideoTitleEditor initialTitle={null} onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -479,9 +405,7 @@ describe("VideoTitleEditor", () => {
   describe("Keyboard Navigation", () => {
     it("should close popover when Escape key is pressed", async () => {
       const user = userEvent.setup();
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -498,9 +422,7 @@ describe("VideoTitleEditor", () => {
       const user = userEvent.setup();
       mockOnSave.mockResolvedValue(undefined);
 
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -516,9 +438,7 @@ describe("VideoTitleEditor", () => {
 
     it("should not save when Shift+Enter is pressed", async () => {
       const user = userEvent.setup();
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -534,13 +454,7 @@ describe("VideoTitleEditor", () => {
 
     it("should discard changes when Escape is pressed", async () => {
       const user = userEvent.setup();
-      render(
-        <VideoTitleEditor
-          projectId={1}
-          initialTitle="Original"
-          onSave={mockOnSave}
-        />
-      );
+      render(<VideoTitleEditor initialTitle="Original" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -563,9 +477,7 @@ describe("VideoTitleEditor", () => {
       const user = userEvent.setup();
       mockOnSave.mockRejectedValue(new Error("Network error"));
 
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -590,9 +502,7 @@ describe("VideoTitleEditor", () => {
       const user = userEvent.setup();
       mockOnSave.mockRejectedValue(new Error("Network error"));
 
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -618,9 +528,7 @@ describe("VideoTitleEditor", () => {
         .mockRejectedValueOnce(new Error("Network error"))
         .mockResolvedValueOnce(undefined);
 
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -653,9 +561,7 @@ describe("VideoTitleEditor", () => {
       const user = userEvent.setup();
       mockOnSave.mockRejectedValue(new Error("Network error"));
 
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -689,9 +595,7 @@ describe("VideoTitleEditor", () => {
         .mockRejectedValueOnce(new Error("Network error"))
         .mockResolvedValueOnce(undefined);
 
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -724,9 +628,7 @@ describe("VideoTitleEditor", () => {
       mockOnSave.mockResolvedValue(undefined);
       const longTitle = "a".repeat(500);
 
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -749,9 +651,7 @@ describe("VideoTitleEditor", () => {
       mockOnSave.mockResolvedValue(undefined);
       const specialTitle = 'Title with "quotes" & <symbols> | special!@#$%';
 
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -772,9 +672,7 @@ describe("VideoTitleEditor", () => {
       mockOnSave.mockResolvedValue(undefined);
       const emojiTitle = "My Video 🎥 Tutorial 📚 Amazing! 🚀";
 
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -794,9 +692,7 @@ describe("VideoTitleEditor", () => {
       const user = userEvent.setup();
       mockOnSave.mockResolvedValue(undefined);
 
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -818,9 +714,7 @@ describe("VideoTitleEditor", () => {
       const user = userEvent.setup();
       mockOnSave.mockResolvedValue(undefined);
 
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -841,9 +735,7 @@ describe("VideoTitleEditor", () => {
 
   describe("Accessibility", () => {
     it("should have proper button type attributes", () => {
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       const editButton = screen.getByRole("button", {
         name: /edit video title/i,
@@ -853,9 +745,7 @@ describe("VideoTitleEditor", () => {
 
     it("should have proper button types in popover", async () => {
       const user = userEvent.setup();
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -873,9 +763,7 @@ describe("VideoTitleEditor", () => {
 
     it("should have proper ARIA label on input", async () => {
       const user = userEvent.setup();
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })
@@ -887,9 +775,7 @@ describe("VideoTitleEditor", () => {
 
     it("should use semantic HTML for heading", async () => {
       const user = userEvent.setup();
-      render(
-        <VideoTitleEditor projectId={1} initialTitle="" onSave={mockOnSave} />
-      );
+      render(<VideoTitleEditor initialTitle="" onSave={mockOnSave} />);
 
       await user.click(
         screen.getByRole("button", { name: /edit video title/i })

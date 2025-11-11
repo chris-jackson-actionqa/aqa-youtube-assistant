@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface VideoTitleEditorProps {
-  projectId: number;
   initialTitle: string | null;
   onSave: (newTitle: string | null) => Promise<void>;
 }
@@ -26,7 +25,6 @@ interface VideoTitleEditorProps {
  *
  * @example
  * <VideoTitleEditor
- *   projectId={1}
  *   initialTitle="My Video Title"
  *   onSave={async (title) => { await updateProject(1, { video_title: title }); }}
  * />
@@ -39,6 +37,11 @@ export function VideoTitleEditor({
   const [value, setValue] = useState(initialTitle || "");
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Sync internal value state when initialTitle prop changes
+  useEffect(() => {
+    setValue(initialTitle || "");
+  }, [initialTitle]);
 
   const handleSave = async () => {
     setIsSaving(true);
