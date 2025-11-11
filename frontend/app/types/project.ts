@@ -8,6 +8,7 @@ export interface Project {
   name: string;
   description: string | null;
   status: string;
+  video_title: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -16,12 +17,14 @@ export interface ProjectCreate {
   name: string;
   description?: string | null;
   status?: string;
+  video_title?: string | null;
 }
 
 export interface ProjectUpdate {
   name?: string;
   description?: string | null;
   status?: string;
+  video_title?: string | null;
 }
 
 export type ProjectStatus =
