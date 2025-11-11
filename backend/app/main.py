@@ -461,6 +461,7 @@ async def create_project(
         name=project.name,
         description=project.description,
         status=project.status,
+        video_title=project.video_title,
         workspace_id=workspace_id,
     )
 
