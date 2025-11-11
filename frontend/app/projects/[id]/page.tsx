@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { getProject } from "@/app/lib/api";
+import { getProject, updateProject } from "@/app/lib/api";
 import { Project } from "@/app/types/project";
+import { VideoTitleEditor } from "@/app/components/VideoTitleEditor";
 
 /**
  * ProjectDetailPage Component
@@ -156,6 +157,21 @@ export default function ProjectDetailPage() {
               No description provided
             </p>
           )}
+        </section>
+
+        {/* Video Title Section */}
+        <section className="mt-6">
+          <h2 className="text-xl font-semibold mb-3 text-gray-900 dark:text-gray-100">
+            Video Title
+          </h2>
+          <VideoTitleEditor
+            projectId={project.id}
+            initialTitle={project.video_title}
+            onSave={async (newTitle) => {
+              await updateProject(project.id, { video_title: newTitle });
+              setProject({ ...project, video_title: newTitle });
+            }}
+          />
         </section>
       </main>
     </div>

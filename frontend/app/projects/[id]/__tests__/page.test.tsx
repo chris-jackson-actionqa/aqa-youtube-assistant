@@ -34,6 +34,7 @@ jest.mock("next/link", () => {
 // Mock API functions
 jest.mock("@/app/lib/api", () => ({
   getProject: jest.fn(),
+  updateProject: jest.fn(),
 }));
 
 const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
@@ -48,6 +49,7 @@ describe("ProjectDetailPage", () => {
     name: "Test Project",
     description: "Test project description",
     status: "in_progress",
+    video_title: null,
     created_at: "2024-01-15T10:30:00Z",
     updated_at: "2024-02-20T14:45:00Z",
   };
@@ -786,12 +788,17 @@ describe("ProjectDetailPage", () => {
 
       await waitFor(() => {
         const h1 = screen.getByRole("heading", { level: 1 });
-        const h2 = screen.getByRole("heading", { level: 2 });
+        const h2Elements = screen.getAllByRole("heading", { level: 2 });
 
         expect(h1).toBeInTheDocument();
-        expect(h2).toBeInTheDocument();
+        expect(h2Elements.length).toBeGreaterThanOrEqual(1);
         expect(h1.textContent).toBe("Test Project");
-        expect(h2.textContent).toBe("Description");
+
+        // Check that Description heading exists
+        const descriptionHeading = h2Elements.find(
+          (heading) => heading.textContent === "Description"
+        );
+        expect(descriptionHeading).toBeInTheDocument();
       });
     });
   });
