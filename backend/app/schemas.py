@@ -240,6 +240,27 @@ class ProjectCreate(ProjectBase):
             return None
         return v
 
+    @field_validator("video_title")
+    @classmethod
+    def video_title_empty_to_null(cls, v: str | None) -> str | None:
+        """
+        Convert empty video_title strings to null.
+
+        Ensures consistent representation of "no video title" in the database.
+        Empty strings are normalized to None/null.
+
+        Args:
+            v: Video title string or None
+
+        Returns:
+            None if empty string, otherwise the original value
+
+        Related: Issue #160
+        """
+        if v == "":
+            return None
+        return v
+
 
 class ProjectUpdate(BaseModel):
     """
@@ -300,6 +321,27 @@ class ProjectUpdate(BaseModel):
             None if empty string, otherwise the original value
 
         Related: Issue #27, Decision #16
+        """
+        if v == "":
+            return None
+        return v
+
+    @field_validator("video_title")
+    @classmethod
+    def video_title_empty_to_null(cls, v: str | None) -> str | None:
+        """
+        Convert empty video_title strings to null.
+
+        Ensures consistent representation of "no video title" in the database.
+        Empty strings are normalized to None/null.
+
+        Args:
+            v: Video title string or None
+
+        Returns:
+            None if empty string, otherwise the original value
+
+        Related: Issue #160
         """
         if v == "":
             return None

@@ -397,3 +397,247 @@ class TestErrorRecovery:
         get_response = client.get(f"/api/projects/{project.id}")
         assert get_response.status_code == 200
         assert get_response.json()["name"] == "Test Project"
+
+
+class TestVideoTitleField:
+    """Integration tests for video_title field CRUD operations.
+
+    Related: Issue #160 - Video Title Field Support
+    """
+
+    def test_create_project_with_video_title(self, client):
+        """Test creating project with video_title."""
+        response = client.post(
+            "/api/projects",
+            json={
+                "name": "Video Project",
+                "video_title": "My Awesome Video Title",
+            },
+        )
+
+        assert response.status_code == 201
+        data = response.json()
+        assert data["video_title"] == "My Awesome Video Title"
+
+    def test_create_project_without_video_title(self, client):
+        """Test creating project without video_title (defaults to null)."""
+        response = client.post(
+            "/api/projects",
+            json={"name": "No Video Title Project"},
+        )
+
+        assert response.status_code == 201
+        data = response.json()
+        assert data["video_title"] is None
+
+    def test_create_project_with_empty_video_title(self, client):
+        """Test that empty video_title is converted to null."""
+        response = client.post(
+            "/api/projects",
+            json={"name": "Empty Video Title", "video_title": ""},
+        )
+
+        assert response.status_code == 201
+        data = response.json()
+        assert data["video_title"] is None
+
+    def test_create_project_with_long_video_title(self, client):
+        """Test video_title with maximum allowed length (500 chars)."""
+        long_title = "x" * 500
+        response = client.post(
+            "/api/projects",
+            json={"name": "Long Title Project", "video_title": long_title},
+        )
+
+        assert response.status_code == 201
+        data = response.json()
+        assert len(data["video_title"]) == 500
+
+    def test_create_project_video_title_too_long(self, client):
+        """Test that video_title exceeding 500 chars is rejected."""
+        too_long_title = "x" * 501
+        response = client.post(
+            "/api/projects",
+            json={"name": "Too Long Title", "video_title": too_long_title},
+        )
+
+        assert response.status_code == 422
+
+    def test_get_project_includes_video_title(self, client, create_sample_project):
+        """Test GET /api/projects/{id} includes video_title."""
+        project = create_sample_project(
+            name="Test Project", video_title="Test Video Title"
+        )
+
+        response = client.get(f"/api/projects/{project.id}")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "video_title" in data
+        assert data["video_title"] == "Test Video Title"
+
+    def test_list_projects_includes_video_title(self, client, create_sample_project):
+        """Test GET /api/projects includes video_title for all projects."""
+        create_sample_project(name="Project 1", video_title="Video Title 1")
+        create_sample_project(name="Project 2", video_title="Video Title 2")
+        create_sample_project(name="Project 3")  # No video title
+
+        response = client.get("/api/projects")
+
+        assert response.status_code == 200
+        projects = response.json()
+        assert len(projects) == 3
+        # Projects are ordered by created_at DESC (newest first)
+        # So Project 3 is first, then Project 2, then Project 1
+        assert projects[0]["video_title"] is None  # Project 3
+        assert projects[1]["video_title"] == "Video Title 2"  # Project 2
+        assert projects[2]["video_title"] == "Video Title 1"  # Project 1
+
+    def test_update_project_video_title(self, client, create_sample_project):
+        """Test updating project video_title."""
+        project = create_sample_project(
+            name="Test Project", video_title="Original Title"
+        )
+
+        response = client.put(
+            f"/api/projects/{project.id}", json={"video_title": "Updated Title"}
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["video_title"] == "Updated Title"
+
+    def test_update_project_clear_video_title(self, client, create_sample_project):
+        """Test clearing video_title by setting to null."""
+        project = create_sample_project(
+            name="Test Project", video_title="Original Title"
+        )
+
+        response = client.put(
+            f"/api/projects/{project.id}", json={"video_title": None}
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["video_title"] is None
+
+    def test_update_project_empty_video_title_to_null(
+        self, client, create_sample_project
+    ):
+        """Test that empty string video_title converts to null on update."""
+        project = create_sample_project(
+            name="Test Project", video_title="Original Title"
+        )
+
+        response = client.put(f"/api/projects/{project.id}", json={"video_title": ""})
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["video_title"] is None
+
+    def test_update_project_video_title_only(self, client, create_sample_project):
+        """Test partial update with only video_title."""
+        project = create_sample_project(
+            name="Test Project",
+            description="Test Description",
+            video_title="Original Title",
+        )
+
+        response = client.put(
+            f"/api/projects/{project.id}", json={"video_title": "New Title"}
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["name"] == "Test Project"  # Unchanged
+        assert data["description"] == "Test Description"  # Unchanged
+        assert data["video_title"] == "New Title"  # Updated
+
+    def test_update_project_video_title_with_other_fields(
+        self, client, create_sample_project
+    ):
+        """Test updating video_title along with other fields."""
+        project = create_sample_project(name="Original Name")
+
+        response = client.put(
+            f"/api/projects/{project.id}",
+            json={
+                "name": "Updated Name",
+                "status": "in_progress",
+                "video_title": "New Video Title",
+            },
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["name"] == "Updated Name"
+        assert data["status"] == "in_progress"
+        assert data["video_title"] == "New Video Title"
+
+    def test_video_title_persists_across_operations(self, client):
+        """Test that video_title persists correctly through multiple operations."""
+        # Create with video_title
+        create_response = client.post(
+            "/api/projects",
+            json={"name": "Persist Test", "video_title": "Initial Title"},
+        )
+        project_id = create_response.json()["id"]
+
+        # Update other field
+        client.put(f"/api/projects/{project_id}", json={"status": "in_progress"})
+
+        # Verify video_title unchanged
+        get_response = client.get(f"/api/projects/{project_id}")
+        assert get_response.json()["video_title"] == "Initial Title"
+
+        # Update video_title
+        client.put(
+            f"/api/projects/{project_id}", json={"video_title": "Updated Title"}
+        )
+
+        # Verify update persisted
+        final_response = client.get(f"/api/projects/{project_id}")
+        assert final_response.json()["video_title"] == "Updated Title"
+
+    def test_video_title_with_special_characters(self, client):
+        """Test video_title with special characters and unicode."""
+        special_title = "How to Train Your Dog - Complete Guide! 🐕 (2025)"
+        response = client.post(
+            "/api/projects",
+            json={"name": "Special Chars", "video_title": special_title},
+        )
+
+        assert response.status_code == 201
+        data = response.json()
+        assert data["video_title"] == special_title
+
+    def test_complete_video_title_workflow(self, client):
+        """Test complete workflow: create, update, clear video_title."""
+        # Create without video_title
+        create_response = client.post("/api/projects", json={"name": "Workflow Test"})
+        project_id = create_response.json()["id"]
+        assert create_response.json()["video_title"] is None
+
+        # Add video_title
+        update1 = client.put(
+            f"/api/projects/{project_id}", json={"video_title": "First Title"}
+        )
+        assert update1.json()["video_title"] == "First Title"
+
+        # Update video_title
+        update2 = client.put(
+            f"/api/projects/{project_id}", json={"video_title": "Second Title"}
+        )
+        assert update2.json()["video_title"] == "Second Title"
+
+        # Clear video_title
+        update3 = client.put(
+            f"/api/projects/{project_id}", json={"video_title": None}
+        )
+        assert update3.json()["video_title"] is None
+
+        # Add it back
+        update4 = client.put(
+            f"/api/projects/{project_id}", json={"video_title": "Final Title"}
+        )
+        assert update4.json()["video_title"] == "Final Title"

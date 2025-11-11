@@ -16,7 +16,9 @@ import pytest
 from pydantic import ValidationError
 
 from app.schemas import (
+    ProjectCreate,
     ProjectResponse,
+    ProjectUpdate,
     WorkspaceCreate,
     WorkspaceResponse,
     WorkspaceUpdate,
@@ -375,3 +377,138 @@ class TestSchemaValidationEdgeCases:
 
         assert "\n" in workspace.description
         assert workspace.description == "Line 1\nLine 2\nLine 3"
+
+
+class TestProjectCreateSchema:
+    """Tests for ProjectCreate schema validation with video_title field."""
+
+    def test_create_project_with_video_title(self):
+        """Test creating project with video_title."""
+        data = {
+            "name": "Test Project",
+            "description": "Test description",
+            "video_title": "My Awesome Video Title",
+        }
+        project = ProjectCreate(**data)
+
+        assert project.name == "Test Project"
+        assert project.description == "Test description"
+        assert project.video_title == "My Awesome Video Title"
+
+    def test_create_project_video_title_optional(self):
+        """Test that video_title is optional."""
+        data = {"name": "Test Project"}
+        project = ProjectCreate(**data)
+
+        assert project.name == "Test Project"
+        assert project.video_title is None
+
+    def test_create_project_empty_video_title_to_null(self):
+        """Test that empty video_title converts to None."""
+        data = {
+            "name": "Test Project",
+            "video_title": "",
+        }
+        project = ProjectCreate(**data)
+
+        assert project.video_title is None
+
+    def test_create_project_video_title_max_length_valid(self):
+        """Test that video_title with exactly 500 chars is accepted."""
+        data = {"name": "Test Project", "video_title": "x" * 500}
+        project = ProjectCreate(**data)
+
+        assert len(project.video_title) == 500
+
+    def test_create_project_video_title_too_long(self):
+        """Test that video_title exceeding 500 chars is rejected."""
+        data = {"name": "Test Project", "video_title": "x" * 501}
+
+        with pytest.raises(ValidationError) as exc_info:
+            ProjectCreate(**data)
+
+        errors = exc_info.value.errors()
+        assert any(
+            error["loc"] == ("video_title",) and "500" in str(error) for error in errors
+        )
+
+    def test_create_project_video_title_with_special_chars(self):
+        """Test video_title with special characters."""
+        data = {
+            "name": "Test Project",
+            "video_title": "How to Train Your Dog - Complete Guide! 🐕",
+        }
+        project = ProjectCreate(**data)
+
+        assert project.video_title == "How to Train Your Dog - Complete Guide! 🐕"
+
+    def test_create_project_video_title_none(self):
+        """Test that None video_title is accepted."""
+        data = {"name": "Test Project", "video_title": None}
+        project = ProjectCreate(**data)
+
+        assert project.video_title is None
+
+
+class TestProjectUpdateSchema:
+    """Tests for ProjectUpdate schema validation with video_title field."""
+
+    def test_update_project_video_title(self):
+        """Test updating video_title."""
+        data = {"video_title": "Updated Video Title"}
+        project = ProjectUpdate(**data)
+
+        assert project.video_title == "Updated Video Title"
+
+    def test_update_project_video_title_to_null(self):
+        """Test updating video_title to None (clearing it)."""
+        data = {"video_title": None}
+        project = ProjectUpdate(**data)
+
+        assert project.video_title is None
+
+    def test_update_project_empty_video_title_to_null(self):
+        """Test that empty string video_title converts to None."""
+        data = {"video_title": ""}
+        project = ProjectUpdate(**data)
+
+        assert project.video_title is None
+
+    def test_update_project_video_title_max_length_valid(self):
+        """Test that video_title with exactly 500 chars is accepted."""
+        data = {"video_title": "x" * 500}
+        project = ProjectUpdate(**data)
+
+        assert len(project.video_title) == 500
+
+    def test_update_project_video_title_too_long(self):
+        """Test that video_title exceeding 500 chars is rejected."""
+        data = {"video_title": "x" * 501}
+
+        with pytest.raises(ValidationError) as exc_info:
+            ProjectUpdate(**data)
+
+        errors = exc_info.value.errors()
+        assert any(
+            error["loc"] == ("video_title",) and "500" in str(error) for error in errors
+        )
+
+    def test_update_project_partial_fields_with_video_title(self):
+        """Test partial update including video_title."""
+        data = {"name": "Updated Name", "video_title": "New Video Title"}
+        project = ProjectUpdate(**data)
+
+        assert project.name == "Updated Name"
+        assert project.video_title == "New Video Title"
+        assert project.description is None
+        assert project.status is None
+
+    def test_update_project_all_fields_none(self):
+        """Test that empty update is valid (all fields optional)."""
+        data = {}
+        project = ProjectUpdate(**data)
+
+        assert project.name is None
+        assert project.description is None
+        assert project.status is None
+        assert project.video_title is None
