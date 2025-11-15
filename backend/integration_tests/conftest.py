@@ -137,3 +137,25 @@ def create_sample_project(db_session):
 def db_file_path():
     """Provides the path to the test database file for verification."""
     return TEST_DB_PATH
+
+
+@pytest.fixture
+def create_sample_template(client):
+    """
+    Factory fixture to create sample templates for testing.
+
+    Returns a function that creates templates with given data.
+    """
+
+    def _create(
+        type="title",
+        name="Test Template",
+        content="Best {{tools}} for Testers in 2025",
+    ):
+        response = client.post(
+            "/api/templates",
+            json={"type": type, "name": name, "content": content},
+        )
+        return response.json()
+
+    return _create
