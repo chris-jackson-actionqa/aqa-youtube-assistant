@@ -60,9 +60,9 @@ else
     echo "  ✓ Type checking passed"
 fi
 
-# Run unit tests with pytest
-echo "  → Running unit tests..."
-pytest unit_tests/ -q --tb=short -x
+# Run unit tests with pytest and coverage checking
+echo "  → Running unit tests with coverage..."
+pytest unit_tests/ -q --tb=short -x --cov=app --cov-report=term-missing --cov-fail-under=95
 
 # Capture the exit code
 BACKEND_EXIT_CODE=$?
@@ -73,8 +73,8 @@ cd ..
 # If backend tests failed, prevent the commit
 if [ $BACKEND_EXIT_CODE -ne 0 ]; then
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "❌ Backend tests failed! Commit aborted."
-    echo "Fix the failing tests before committing."
+    echo "❌ Backend tests or coverage check failed! Commit aborted."
+    echo "Fix the failing tests or improve coverage to meet 95% threshold before committing."
     exit 1
 fi
 
