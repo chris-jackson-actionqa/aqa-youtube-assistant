@@ -11,8 +11,14 @@ import {
   updateProject,
   deleteProject,
   checkHealth,
+  getTemplates,
+  getTemplate,
+  createTemplate,
+  updateTemplate,
+  deleteTemplate,
 } from "../api";
 import { Project, ProjectCreate, ProjectUpdate } from "../../types/project";
+import { Template, TemplateCreate, TemplateUpdate } from "../../types/template";
 
 // Mock fetch globally
 global.fetch = jest.fn();
@@ -574,6 +580,275 @@ describe("API Client", () => {
           }),
         })
       );
+    });
+  });
+
+  describe("Template API", () => {
+    describe("getTemplates", () => {
+      it("should fetch all templates without type filter", async () => {
+        const mockTemplates: Template[] = [
+          {
+            id: 1,
+            type: "title",
+            name: "Template 1",
+            content: "[Topic] in [Year]",
+            created_at: "2025-10-21T00:00:00Z",
+            updated_at: "2025-10-21T00:00:00Z",
+          },
+          {
+            id: 2,
+            type: "description",
+            name: "Template 2",
+            content: "Learn about [Topic]",
+            created_at: "2025-10-21T00:00:00Z",
+            updated_at: "2025-10-21T00:00:00Z",
+          },
+        ];
+
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockTemplates,
+        });
+
+        const result = await getTemplates();
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          "http://localhost:8000/api/templates",
+          expect.objectContaining({
+            headers: expect.objectContaining({
+              "Content-Type": "application/json",
+              "X-Workspace-Id": "1",
+            }),
+          })
+        );
+        expect(result).toEqual(mockTemplates);
+      });
+
+      it("should fetch templates filtered by type", async () => {
+        const mockTemplates: Template[] = [
+          {
+            id: 1,
+            type: "title",
+            name: "Template 1",
+            content: "[Topic] in [Year]",
+            created_at: "2025-10-21T00:00:00Z",
+            updated_at: "2025-10-21T00:00:00Z",
+          },
+        ];
+
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockTemplates,
+        });
+
+        const result = await getTemplates("title");
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          "http://localhost:8000/api/templates?type=title",
+          expect.any(Object)
+        );
+        expect(result).toEqual(mockTemplates);
+      });
+
+      it("should return empty array when no templates exist", async () => {
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          json: async () => [],
+        });
+
+        const result = await getTemplates();
+        expect(result).toEqual([]);
+      });
+    });
+
+    describe("getTemplate", () => {
+      it("should successfully fetch a single template", async () => {
+        const mockTemplate: Template = {
+          id: 1,
+          type: "title",
+          name: "Template 1",
+          content: "[Topic] in [Year]",
+          created_at: "2025-10-21T00:00:00Z",
+          updated_at: "2025-10-21T00:00:00Z",
+        };
+
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockTemplate,
+        });
+
+        const result = await getTemplate(1);
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          "http://localhost:8000/api/templates/1",
+          expect.objectContaining({
+            headers: expect.objectContaining({
+              "Content-Type": "application/json",
+              "X-Workspace-Id": "1",
+            }),
+          })
+        );
+        expect(result).toEqual(mockTemplate);
+      });
+
+      it("should throw ApiError on 404 Not Found", async () => {
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: false,
+          status: 404,
+          statusText: "Not Found",
+          json: async () => ({ detail: "Template with id 999 not found" }),
+        });
+
+        await expect(getTemplate(999)).rejects.toThrow(ApiError);
+      });
+    });
+
+    describe("createTemplate", () => {
+      it("should successfully create a template", async () => {
+        const createData: TemplateCreate = {
+          type: "title",
+          name: "New Template",
+          content: "[Topic] Guide",
+        };
+
+        const mockTemplate: Template = {
+          id: 1,
+          type: "title",
+          name: "New Template",
+          content: "[Topic] Guide",
+          created_at: "2025-10-21T00:00:00Z",
+          updated_at: "2025-10-21T00:00:00Z",
+        };
+
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockTemplate,
+        });
+
+        const result = await createTemplate(createData);
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          "http://localhost:8000/api/templates",
+          {
+            method: "POST",
+            body: JSON.stringify(createData),
+            headers: {
+              "Content-Type": "application/json",
+              "X-Workspace-Id": "1",
+            },
+          }
+        );
+        expect(result).toEqual(mockTemplate);
+      });
+
+      it("should throw ApiError on validation error", async () => {
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: false,
+          status: 422,
+          statusText: "Unprocessable Entity",
+          json: async () => ({ detail: "Validation error" }),
+        });
+
+        await expect(
+          createTemplate({
+            type: "",
+            name: "",
+            content: "",
+          })
+        ).rejects.toThrow(ApiError);
+      });
+    });
+
+    describe("updateTemplate", () => {
+      it("should successfully update a template", async () => {
+        const updateData: TemplateUpdate = {
+          name: "Updated Template",
+          content: "[Updated] Content",
+        };
+
+        const mockTemplate: Template = {
+          id: 1,
+          type: "title",
+          name: "Updated Template",
+          content: "[Updated] Content",
+          created_at: "2025-10-21T00:00:00Z",
+          updated_at: "2025-10-21T01:00:00Z",
+        };
+
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockTemplate,
+        });
+
+        const result = await updateTemplate(1, updateData);
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          "http://localhost:8000/api/templates/1",
+          {
+            method: "PUT",
+            body: JSON.stringify(updateData),
+            headers: {
+              "Content-Type": "application/json",
+              "X-Workspace-Id": "1",
+            },
+          }
+        );
+        expect(result).toEqual(mockTemplate);
+      });
+
+      it("should throw ApiError on 404", async () => {
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: false,
+          status: 404,
+          statusText: "Not Found",
+          json: async () => ({ detail: "Template not found" }),
+        });
+
+        await expect(updateTemplate(999, { name: "Updated" })).rejects.toThrow(
+          ApiError
+        );
+      });
+    });
+
+    describe("deleteTemplate", () => {
+      it("should successfully delete a template", async () => {
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          status: 204,
+        });
+
+        await deleteTemplate(1);
+
+        expect(global.fetch).toHaveBeenCalledWith(
+          "http://localhost:8000/api/templates/1",
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Workspace-Id": "1",
+            },
+          }
+        );
+      });
+
+      it("should throw ApiError on 404", async () => {
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: false,
+          status: 404,
+          statusText: "Not Found",
+          json: async () => ({ detail: "Template not found" }),
+        });
+
+        await expect(deleteTemplate(999)).rejects.toThrow(ApiError);
+      });
+
+      it("should throw ApiError on network error", async () => {
+        (global.fetch as jest.Mock).mockRejectedValueOnce(
+          new Error("Network error")
+        );
+
+        await expect(deleteTemplate(1)).rejects.toThrow(ApiError);
+      });
     });
   });
 });

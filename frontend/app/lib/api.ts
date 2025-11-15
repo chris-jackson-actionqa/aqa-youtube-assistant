@@ -4,6 +4,7 @@
  */
 
 import { Project, ProjectCreate, ProjectUpdate } from "../types/project";
+import { Template, TemplateCreate, TemplateUpdate } from "../types/template";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -134,4 +135,51 @@ export async function deleteProject(id: number): Promise<{ message: string }> {
  */
 export async function checkHealth(): Promise<{ status: string }> {
   return apiFetch<{ status: string }>("/api/health");
+}
+
+/**
+ * Get all templates, optionally filtered by type
+ */
+export async function getTemplates(type?: string): Promise<Template[]> {
+  const url = type ? `/api/templates?type=${type}` : "/api/templates";
+  return apiFetch<Template[]>(url);
+}
+
+/**
+ * Get a single template by ID
+ */
+export async function getTemplate(id: number): Promise<Template> {
+  return apiFetch<Template>(`/api/templates/${id}`);
+}
+
+/**
+ * Create a new template
+ */
+export async function createTemplate(data: TemplateCreate): Promise<Template> {
+  return apiFetch<Template>("/api/templates", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * Update a template
+ */
+export async function updateTemplate(
+  id: number,
+  data: TemplateUpdate
+): Promise<Template> {
+  return apiFetch<Template>(`/api/templates/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * Delete a template
+ */
+export async function deleteTemplate(id: number): Promise<void> {
+  await apiFetch<void>(`/api/templates/${id}`, {
+    method: "DELETE",
+  });
 }
