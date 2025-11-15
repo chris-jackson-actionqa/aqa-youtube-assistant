@@ -368,3 +368,191 @@ class ProjectResponse(ProjectBase):
     )
     created_at: datetime
     updated_at: datetime
+
+
+class TemplateBase(BaseModel):
+    """Base schema for template data"""
+
+    type: str = Field(
+        ...,
+        min_length=1,
+        max_length=50,
+        description="Template category (e.g., 'title', 'description')",
+    )
+    name: str = Field(
+        ..., min_length=1, max_length=100, description="User-friendly template label"
+    )
+    content: str = Field(
+        ...,
+        min_length=1,
+        max_length=256,
+        description="Template text with {{placeholders}}",
+    )
+
+
+class TemplateCreate(TemplateBase):
+    """
+    Schema for creating a new template.
+
+    Validation rules:
+    - Name and content: Leading/trailing whitespace automatically trimmed
+    - Content: Must have at least one {{placeholder}}
+    - Content: No empty placeholders {{}}
+    - Content: Case-insensitive duplicate prevention
+
+    Related: Epic #166
+    """
+
+    @field_validator("name", "content")
+    @classmethod
+    def trim_whitespace(cls, v: str) -> str:
+        """
+        Trim leading and trailing whitespace.
+
+        Ensures consistent storage and prevents issues with duplicate detection.
+
+        Args:
+            v: Field value string
+
+        Returns:
+            Trimmed string
+
+        Raises:
+            ValueError: If field is empty after trimming
+
+        Related: Epic #166
+        """
+        if v:
+            trimmed = v.strip()
+            if not trimmed:
+                raise ValueError("Field cannot be empty or only whitespace")
+            return trimmed
+        return v
+
+    @field_validator("content")
+    @classmethod
+    def validate_placeholders(cls, v: str) -> str:
+        """
+        Ensure content has at least one valid placeholder.
+
+        Validates that:
+        - At least one {{placeholder}} exists
+        - No empty placeholders {{}}
+        - All placeholders have content
+
+        Args:
+            v: Template content string
+
+        Returns:
+            Validated content string
+
+        Raises:
+            ValueError: If placeholder validation fails
+
+        Related: Epic #166
+        """
+        import re
+
+        # Check for at least one {{placeholder}}
+        placeholders = re.findall(r"\{\{([^}]+)\}\}", v)
+        if not placeholders:
+            raise ValueError("Template must contain at least one {{placeholder}}")
+
+        # Check for empty placeholders {{}}
+        if "{{}}" in v:
+            raise ValueError("Empty placeholders {{}} are not allowed")
+
+        # Ensure all placeholders have content
+        for placeholder in placeholders:
+            if not placeholder.strip():
+                raise ValueError("Placeholders cannot be empty")
+
+        return v
+
+
+class TemplateUpdate(BaseModel):
+    """
+    Schema for updating an existing template.
+
+    All fields are optional to support partial updates.
+    """
+
+    type: str | None = Field(None, min_length=1, max_length=50)
+    name: str | None = Field(None, min_length=1, max_length=100)
+    content: str | None = Field(None, min_length=1, max_length=256)
+
+    @field_validator("name", "content")
+    @classmethod
+    def trim_whitespace(cls, v: str | None) -> str | None:
+        """
+        Trim whitespace if value provided.
+
+        Args:
+            v: Field value string or None
+
+        Returns:
+            Trimmed string or None
+
+        Raises:
+            ValueError: If field is empty after trimming
+
+        Related: Epic #166
+        """
+        if v:
+            trimmed = v.strip()
+            if not trimmed:
+                raise ValueError("Field cannot be empty or only whitespace")
+            return trimmed
+        return v
+
+    @field_validator("content")
+    @classmethod
+    def validate_placeholders(cls, v: str | None) -> str | None:
+        """
+        Validate placeholders if content is being updated.
+
+        Args:
+            v: Template content string or None
+
+        Returns:
+            Validated content string or None
+
+        Raises:
+            ValueError: If placeholder validation fails
+
+        Related: Epic #166
+        """
+        if v is None:
+            return v
+
+        import re
+
+        placeholders = re.findall(r"\{\{([^}]+)\}\}", v)
+        if not placeholders:
+            raise ValueError("Template must contain at least one {{placeholder}}")
+
+        if "{{}}" in v:
+            raise ValueError("Empty placeholders {{}} are not allowed")
+
+        for placeholder in placeholders:
+            if not placeholder.strip():
+                raise ValueError("Placeholders cannot be empty")
+
+        return v
+
+
+class TemplateResponse(TemplateBase):
+    """
+    Schema for template response.
+
+    Configuration:
+    - from_attributes: Enables compatibility with SQLAlchemy ORM models
+
+    Related: Epic #166
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    created_at: datetime
+    updated_at: datetime

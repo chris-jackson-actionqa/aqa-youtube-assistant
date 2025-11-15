@@ -104,3 +104,47 @@ class Project(Base):
     # This works across SQLite (dev) and PostgreSQL (future production)
     __table_args__ = (Index("uix_project_name_lower", func.lower(name), unique=True),)
 
+
+class Template(Base):
+    """
+    Template database model.
+
+    Represents a reusable template with placeholders for various content types
+    (e.g., video titles, descriptions). Templates are global and not workspace-specific.
+
+    Attributes:
+        id: Primary key
+        type: Template category ('title', 'description', etc.)
+        name: User-friendly template label (max 100 chars)
+        content: Template text with {{placeholders}} (max 256 chars)
+        created_at: Timestamp of creation
+        updated_at: Timestamp of last update
+
+    Related: Epic #166 - Title Template Management
+    """
+
+    __tablename__ = "templates"
+
+    id = Column(Integer, primary_key=True, index=True)
+    type = Column(String(50), nullable=False, index=True)
+    name = Column(String(100), nullable=False)
+    content = Column(String(256), nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
+    updated_at = Column(
+        DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+    )
+
+    # Case-insensitive unique constraint on (type, content)
+    __table_args__ = (
+        Index(
+            "uix_template_type_content_lower",
+            type,
+            func.lower(content),
+            unique=True,
+        ),
+    )
+
+    def __repr__(self) -> str:
+        """String representation for debugging."""
+        return f"<Template(id={self.id}, type='{self.type}', name='{self.name}')>"
+
