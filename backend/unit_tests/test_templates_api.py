@@ -478,6 +478,26 @@ class TestUpdateTemplate:
         assert response.status_code == 409
         assert "already exists" in response.json()["detail"]
 
+    def test_update_template_type_only_creates_duplicate(
+        self, client, create_sample_template
+    ):
+        """Test that updating type alone can create a duplicate and is detected."""
+        # Template A: type="title", content="{{test}}"
+        template_a = create_sample_template(
+            type="title", name="Template A", content="{{test}}"
+        )
+        # Template B: type="description", content="{{test}}"
+        create_sample_template(
+            type="description", name="Template B", content="{{test}}"
+        )
+
+        # Try to update Template A's type to "description" - should fail (duplicate)
+        update_data = {"type": "description"}
+        response = client.put(f"/api/templates/{template_a['id']}", json=update_data)
+
+        assert response.status_code == 409
+        assert "already exists" in response.json()["detail"]
+
     def test_update_template_to_same_content_succeeds(
         self, client, create_sample_template
     ):

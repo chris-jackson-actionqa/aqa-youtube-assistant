@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, Header, HTTPException, Response
+from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
@@ -694,7 +694,7 @@ async def create_template(template: TemplateCreate, db: Session = Depends(get_db
 
     Returns:
         201: Template created successfully
-        400: Validation error
+        422: Validation error
         409: Duplicate template (case-insensitive)
 
     Related: Epic #166
@@ -789,7 +789,7 @@ async def update_template(
     Returns:
         200: Template updated successfully
         404: Template not found
-        400: Validation error
+        422: Validation error
         409: Duplicate content
 
     Related: Epic #166
@@ -800,14 +800,15 @@ async def update_template(
     if not db_template:
         raise HTTPException(status_code=404, detail="Template not found")
 
-    # Check for duplicate if content is being updated
-    if template_update.content:
+    # Check for duplicate if type or content is being updated
+    if template_update.type or template_update.content:
         existing = (
             db.query(Template)
             .filter(
                 Template.id != template_id,
                 Template.type == (template_update.type or db_template.type),
-                func.lower(Template.content) == func.lower(template_update.content),
+                func.lower(Template.content)
+                == func.lower(template_update.content or db_template.content),
             )
             .first()
         )
@@ -848,4 +849,4 @@ async def delete_template(template_id: int, db: Session = Depends(get_db)):
     db.delete(db_template)
     db.commit()
 
-    return Response(status_code=204)
+    return None
