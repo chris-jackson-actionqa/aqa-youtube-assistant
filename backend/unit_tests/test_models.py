@@ -16,7 +16,7 @@ from datetime import datetime
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from app.models import Project, Workspace
+from app.models import Project, Template, Workspace
 
 
 class TestWorkspaceModel:
@@ -444,7 +444,6 @@ class TestTemplateModel:
 
     def test_create_template_success(self, db_session):
         """Test creating a template with all fields."""
-        from app.models import Template
 
         template = Template(
             type="title",
@@ -466,7 +465,6 @@ class TestTemplateModel:
 
     def test_create_template_minimal(self, db_session):
         """Test creating template with only required fields."""
-        from app.models import Template
 
         template = Template(
             type="description",
@@ -484,7 +482,6 @@ class TestTemplateModel:
 
     def test_template_case_insensitive_unique_constraint(self, db_session):
         """Test that (type, content) must be unique regardless of case."""
-        from app.models import Template
 
         template1 = Template(
             type="title",
@@ -513,7 +510,6 @@ class TestTemplateModel:
 
     def test_template_same_content_different_type_allowed(self, db_session):
         """Test that same content is allowed for different types."""
-        from app.models import Template
 
         template1 = Template(
             type="title",
@@ -541,7 +537,6 @@ class TestTemplateModel:
         self, db_session
     ):
         """Test that different names don't bypass unique constraint."""
-        from app.models import Template
 
         template1 = Template(
             type="title",
@@ -565,7 +560,6 @@ class TestTemplateModel:
 
     def test_template_content_max_length(self, db_session):
         """Test that content accepts up to 256 characters."""
-        from app.models import Template
 
         # Create a 256-character string
         long_content = "A" * 256
@@ -584,7 +578,6 @@ class TestTemplateModel:
 
     def test_template_name_max_length(self, db_session):
         """Test that name accepts up to 100 characters."""
-        from app.models import Template
 
         # Create a 100-character string
         long_name = "B" * 100
@@ -603,7 +596,6 @@ class TestTemplateModel:
 
     def test_template_type_max_length(self, db_session):
         """Test that type accepts up to 50 characters."""
-        from app.models import Template
 
         # Create a 50-character string
         long_type = "C" * 50
@@ -622,7 +614,6 @@ class TestTemplateModel:
 
     def test_template_timestamps_auto_set(self, db_session):
         """Test that timestamps are automatically set on creation."""
-        from app.models import Template
 
         template = Template(
             type="title",
@@ -640,7 +631,6 @@ class TestTemplateModel:
 
     def test_template_updated_at_changes_on_update(self, db_session):
         """Test that updated_at timestamp changes when template is updated."""
-        from app.models import Template
 
         template = Template(
             type="title",
@@ -662,7 +652,6 @@ class TestTemplateModel:
 
     def test_template_created_at_unchanged_on_update(self, db_session):
         """Test that created_at remains unchanged when template is updated."""
-        from app.models import Template
 
         template = Template(
             type="title",
@@ -684,7 +673,6 @@ class TestTemplateModel:
 
     def test_template_repr(self, db_session):
         """Test template string representation."""
-        from app.models import Template
 
         template = Template(
             type="title",
@@ -703,7 +691,6 @@ class TestTemplateModel:
 
     def test_template_with_placeholders(self, db_session):
         """Test template with placeholder syntax."""
-        from app.models import Template
 
         template = Template(
             type="title",
@@ -720,7 +707,6 @@ class TestTemplateModel:
 
     def test_template_type_indexed(self, db_session):
         """Test that type column is indexed for efficient filtering."""
-        from app.models import Template
 
         # Create multiple templates with different types
         templates = [
@@ -747,7 +733,6 @@ class TestTemplateModel:
 
     def test_template_multiple_types(self, db_session):
         """Test creating templates of various types."""
-        from app.models import Template
 
         templates = [
             Template(
@@ -792,7 +777,6 @@ class TestTemplateModel:
 
     def test_template_whitespace_in_content_matters(self, db_session):
         """Test that whitespace differences in content are significant."""
-        from app.models import Template
 
         template1 = Template(
             type="title",

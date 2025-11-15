@@ -39,11 +39,11 @@ def upgrade() -> None:
     # Create index on type for filtering queries
     op.create_index(op.f('ix_templates_type'), 'templates', ['type'], unique=False)
 
-    # Create case-insensitive unique index on (type, LOWER(content))
+    # Create case-insensitive unique index on (type, lower(content))
     op.create_index(
         'uix_template_type_content_lower',
         'templates',
-        ['type', sa.text('LOWER(content)')],
+        ['type', sa.text('lower(content)')],
         unique=True
     )
 
