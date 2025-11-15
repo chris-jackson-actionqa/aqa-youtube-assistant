@@ -434,3 +434,382 @@ class TestWorkspaceProjectIntegration:
         assert "Work Project 1" in work_names
         assert "Work Project 2" in work_names
         assert "Personal Project" not in work_names
+
+
+class TestTemplateModel:
+    """Tests for the Template model.
+
+    Related: Issue #168, Epic #166 - Title Template Management
+    """
+
+    def test_create_template_success(self, db_session):
+        """Test creating a template with all fields."""
+        from app.models import Template
+
+        template = Template(
+            type="title",
+            name="Professional Title",
+            content="How to {{topic}} in {{timeframe}}",
+        )
+        db_session.add(template)
+        db_session.commit()
+        db_session.refresh(template)
+
+        assert template.id is not None
+        assert template.type == "title"
+        assert template.name == "Professional Title"
+        assert template.content == "How to {{topic}} in {{timeframe}}"
+        assert template.created_at is not None
+        assert template.updated_at is not None
+        assert isinstance(template.created_at, datetime)
+        assert isinstance(template.updated_at, datetime)
+
+    def test_create_template_minimal(self, db_session):
+        """Test creating template with only required fields."""
+        from app.models import Template
+
+        template = Template(
+            type="description",
+            name="Basic Description",
+            content="Simple content",
+        )
+        db_session.add(template)
+        db_session.commit()
+        db_session.refresh(template)
+
+        assert template.id is not None
+        assert template.type == "description"
+        assert template.name == "Basic Description"
+        assert template.content == "Simple content"
+
+    def test_template_case_insensitive_unique_constraint(self, db_session):
+        """Test that (type, content) must be unique regardless of case."""
+        from app.models import Template
+
+        template1 = Template(
+            type="title",
+            name="First Template",
+            content="How to CODE in Python",
+        )
+        db_session.add(template1)
+        db_session.commit()
+
+        # Try to create template with same type and content (different case)
+        template2 = Template(
+            type="title",
+            name="Second Template",
+            content="How to code in Python",  # Different case
+        )
+        db_session.add(template2)
+
+        with pytest.raises(IntegrityError) as exc_info:
+            db_session.commit()
+
+        # Verify it's the unique constraint that failed
+        assert "UNIQUE constraint failed" in str(exc_info.value).lower() or \
+               "uix_template_type_content_lower" in str(exc_info.value).lower()
+
+        db_session.rollback()
+
+    def test_template_same_content_different_type_allowed(self, db_session):
+        """Test that same content is allowed for different types."""
+        from app.models import Template
+
+        template1 = Template(
+            type="title",
+            name="Title Template",
+            content="Getting Started with {{topic}}",
+        )
+        template2 = Template(
+            type="description",
+            name="Description Template",
+            content="Getting Started with {{topic}}",  # Same content
+        )
+        db_session.add_all([template1, template2])
+        db_session.commit()
+
+        # Should succeed - different types
+        db_session.refresh(template1)
+        db_session.refresh(template2)
+
+        assert template1.id != template2.id
+        assert template1.type == "title"
+        assert template2.type == "description"
+        assert template1.content == template2.content
+
+    def test_template_different_names_same_content_same_type_fails(
+        self, db_session
+    ):
+        """Test that different names don't bypass unique constraint."""
+        from app.models import Template
+
+        template1 = Template(
+            type="title",
+            name="Name One",
+            content="Unique Content Here",
+        )
+        db_session.add(template1)
+        db_session.commit()
+
+        template2 = Template(
+            type="title",
+            name="Name Two",  # Different name
+            content="Unique Content Here",  # Same content
+        )
+        db_session.add(template2)
+
+        with pytest.raises(IntegrityError):
+            db_session.commit()
+
+        db_session.rollback()
+
+    def test_template_content_max_length(self, db_session):
+        """Test that content accepts up to 256 characters."""
+        from app.models import Template
+
+        # Create a 256-character string
+        long_content = "A" * 256
+
+        template = Template(
+            type="title",
+            name="Long Content",
+            content=long_content,
+        )
+        db_session.add(template)
+        db_session.commit()
+        db_session.refresh(template)
+
+        assert template.content == long_content
+        assert len(template.content) == 256
+
+    def test_template_name_max_length(self, db_session):
+        """Test that name accepts up to 100 characters."""
+        from app.models import Template
+
+        # Create a 100-character string
+        long_name = "B" * 100
+
+        template = Template(
+            type="title",
+            name=long_name,
+            content="Content",
+        )
+        db_session.add(template)
+        db_session.commit()
+        db_session.refresh(template)
+
+        assert template.name == long_name
+        assert len(template.name) == 100
+
+    def test_template_type_max_length(self, db_session):
+        """Test that type accepts up to 50 characters."""
+        from app.models import Template
+
+        # Create a 50-character string
+        long_type = "C" * 50
+
+        template = Template(
+            type=long_type,
+            name="Name",
+            content="Content",
+        )
+        db_session.add(template)
+        db_session.commit()
+        db_session.refresh(template)
+
+        assert template.type == long_type
+        assert len(template.type) == 50
+
+    def test_template_timestamps_auto_set(self, db_session):
+        """Test that timestamps are automatically set on creation."""
+        from app.models import Template
+
+        template = Template(
+            type="title",
+            name="Timestamp Test",
+            content="Test content",
+        )
+        db_session.add(template)
+        db_session.commit()
+        db_session.refresh(template)
+
+        assert template.created_at is not None
+        assert template.updated_at is not None
+        assert isinstance(template.created_at, datetime)
+        assert isinstance(template.updated_at, datetime)
+
+    def test_template_updated_at_changes_on_update(self, db_session):
+        """Test that updated_at timestamp changes when template is updated."""
+        from app.models import Template
+
+        template = Template(
+            type="title",
+            name="Original Name",
+            content="Original content",
+        )
+        db_session.add(template)
+        db_session.commit()
+        db_session.refresh(template)
+
+        original_updated_at = template.updated_at
+
+        # Update template
+        template.name = "Updated Name"
+        db_session.commit()
+        db_session.refresh(template)
+
+        assert template.updated_at > original_updated_at
+
+    def test_template_created_at_unchanged_on_update(self, db_session):
+        """Test that created_at remains unchanged when template is updated."""
+        from app.models import Template
+
+        template = Template(
+            type="title",
+            name="Original Name",
+            content="Original content",
+        )
+        db_session.add(template)
+        db_session.commit()
+        db_session.refresh(template)
+
+        original_created_at = template.created_at
+
+        # Update template
+        template.content = "Updated content with different value"
+        db_session.commit()
+        db_session.refresh(template)
+
+        assert template.created_at == original_created_at
+
+    def test_template_repr(self, db_session):
+        """Test template string representation."""
+        from app.models import Template
+
+        template = Template(
+            type="title",
+            name="Test Template",
+            content="Test content",
+        )
+        db_session.add(template)
+        db_session.commit()
+        db_session.refresh(template)
+
+        repr_str = repr(template)
+        assert "Template" in repr_str
+        assert str(template.id) in repr_str
+        assert "title" in repr_str
+        assert "Test Template" in repr_str
+
+    def test_template_with_placeholders(self, db_session):
+        """Test template with placeholder syntax."""
+        from app.models import Template
+
+        template = Template(
+            type="title",
+            name="Placeholder Template",
+            content="How to {{action}} {{object}} in {{timeframe}}",
+        )
+        db_session.add(template)
+        db_session.commit()
+        db_session.refresh(template)
+
+        assert "{{action}}" in template.content
+        assert "{{object}}" in template.content
+        assert "{{timeframe}}" in template.content
+
+    def test_template_type_indexed(self, db_session):
+        """Test that type column is indexed for efficient filtering."""
+        from app.models import Template
+
+        # Create multiple templates with different types
+        templates = [
+            Template(
+                type=f"type{i % 3}",
+                name=f"Template {i}",
+                content=f"Content {i}",
+            )
+            for i in range(10)
+        ]
+        db_session.add_all(templates)
+        db_session.commit()
+
+        # Query by type should be efficient (index is used)
+        type1_templates = (
+            db_session.query(Template)
+            .filter(Template.type == "type1")
+            .all()
+        )
+
+        assert len(type1_templates) > 0
+        for template in type1_templates:
+            assert template.type == "type1"
+
+    def test_template_multiple_types(self, db_session):
+        """Test creating templates of various types."""
+        from app.models import Template
+
+        templates = [
+            Template(
+                type="title",
+                name="Title Template",
+                content="Title content",
+            ),
+            Template(
+                type="description",
+                name="Description Template",
+                content="Description content",
+            ),
+            Template(
+                type="tags",
+                name="Tags Template",
+                content="Tags content",
+            ),
+        ]
+        db_session.add_all(templates)
+        db_session.commit()
+
+        # Query each type
+        title_templates = (
+            db_session.query(Template)
+            .filter(Template.type == "title")
+            .all()
+        )
+        desc_templates = (
+            db_session.query(Template)
+            .filter(Template.type == "description")
+            .all()
+        )
+        tags_templates = (
+            db_session.query(Template)
+            .filter(Template.type == "tags")
+            .all()
+        )
+
+        assert len(title_templates) == 1
+        assert len(desc_templates) == 1
+        assert len(tags_templates) == 1
+
+    def test_template_whitespace_in_content_matters(self, db_session):
+        """Test that whitespace differences in content are significant."""
+        from app.models import Template
+
+        template1 = Template(
+            type="title",
+            name="Whitespace 1",
+            content="Content with spaces",
+        )
+        template2 = Template(
+            type="title",
+            name="Whitespace 2",
+            content="Content  with  spaces",  # Extra spaces
+        )
+        db_session.add_all([template1, template2])
+        db_session.commit()
+
+        # Should succeed - different content (different whitespace)
+        db_session.refresh(template1)
+        db_session.refresh(template2)
+
+        assert template1.content != template2.content
+        assert template1.id != template2.id
