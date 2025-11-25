@@ -16,6 +16,15 @@ export interface Project {
   updated_at?: string;
 }
 
+export interface Template {
+  id: number;
+  type: string;
+  name: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}
+
 /**
  * ProjectHelpers - Page Object for Project-related operations
  *
@@ -446,4 +455,88 @@ export async function checkAPIHealth(page: Page): Promise<boolean> {
  */
 export async function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * TemplateHelpers - Helper for Template-related operations
+ *
+ * Templates are global and not workspace-specific
+ */
+export class TemplateHelpers {
+  private readonly baseURL: string;
+
+  constructor(
+    private page: Page,
+    private request?: APIRequestContext
+  ) {
+    this.baseURL = 'http://localhost:8000';
+  }
+
+  /**
+   * Create a template via API
+   */
+  async createTemplateViaAPI(
+    type: string,
+    name: string,
+    content: string
+  ): Promise<{ id: number; type: string; name: string; content: string }> {
+    const context = this.request || this.page.request;
+
+    const response = await context.post(`${this.baseURL}/api/templates`, {
+      data: {
+        type,
+        name,
+        content,
+      },
+    });
+
+    if (!response.ok()) {
+      const errorText = await response.text();
+      throw new Error(`Failed to create template via API: ${response.status()} - ${errorText}`);
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Get all templates via API
+   */
+  async getAllTemplatesViaAPI(): Promise<Template[]> {
+    const context = this.request || this.page.request;
+    const response = await context.get(`${this.baseURL}/api/templates`);
+
+    if (!response.ok()) {
+      throw new Error(`Failed to fetch templates: ${response.status()}`);
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Delete a template via API
+   */
+  async deleteTemplateViaAPI(id: number): Promise<void> {
+    const context = this.request || this.page.request;
+    const response = await context.delete(`${this.baseURL}/api/templates/${id}`);
+
+    // 404 is ok - template already deleted
+    if (!response.ok() && response.status() !== 404) {
+      throw new Error(`Failed to delete template via API: ${response.status()}`);
+    }
+  }
+
+  /**
+   * Clear all templates
+   */
+  async clearAllTemplates(): Promise<void> {
+    try {
+      const templates = await this.getAllTemplatesViaAPI();
+
+      // Delete all templates in parallel
+      await Promise.all(templates.map((template) => this.deleteTemplateViaAPI(template.id)));
+    } catch (error) {
+      console.warn('Failed to clear templates:', error);
+      // Don't fail the test if cleanup fails
+    }
+  }
 }
