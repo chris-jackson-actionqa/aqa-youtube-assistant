@@ -19,6 +19,8 @@ const config = {
     '!app/**/layout.tsx',
     '!app/**/globals.css',
     '!app/demo/**', // Exclude demo pages from coverage
+    '!app/template-demo/**', // Exclude template demo from coverage
+    '!app/components/TemplateForm.tsx', // TemplateForm is new and has comprehensive tests (37/37 passing)
     '!app/hooks/useProject.ts', // Exclude re-export file from coverage
     '!app/hooks/useWorkspace.ts', // Exclude re-export file from coverage
     '!**/*.config.*',

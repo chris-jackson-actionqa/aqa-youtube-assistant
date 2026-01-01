@@ -1,4 +1,4 @@
-import { render, screen, waitFor, act } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { useParams, useRouter } from "next/navigation";
 import ProjectDetailPage from "../page";
 import * as api from "@/app/lib/api";
@@ -513,7 +513,7 @@ describe("ProjectDetailPage", () => {
 
     it("404 alert has dark mode styling", async () => {
       mockGetProject.mockRejectedValue(new Error("Not found"));
-      const { container } = render(<ProjectDetailPage />);
+      render(<ProjectDetailPage />);
 
       await waitFor(() => {
         const alert = screen.getByRole("alert");
