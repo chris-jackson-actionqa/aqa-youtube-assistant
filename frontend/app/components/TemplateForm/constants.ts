@@ -1,5 +1,5 @@
 // Regex patterns for validation
-export const PLACEHOLDER_REGEX = /\{\{[^}]+\}\}/g;
+export const PLACEHOLDER_REGEX = /\{\{[a-zA-Z0-9_\s,-]+\}\}/g;
 export const EMPTY_PLACEHOLDER_REGEX = /\{\{\s*\}\}/;
 
 // Validation constraints

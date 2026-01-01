@@ -11,8 +11,6 @@ import {
 export const validateName = (value: string): string | undefined => {
   const trimmed = value.trim();
   if (!trimmed) return VALIDATION_MESSAGES.NAME_EMPTY;
-  if (trimmed.length > CONSTRAINTS.NAME_MAX)
-    return VALIDATION_MESSAGES.NAME_TOO_LONG;
   return undefined;
 };
 
@@ -22,8 +20,6 @@ export const validateName = (value: string): string | undefined => {
 export const validateContent = (value: string): string | undefined => {
   const trimmed = value.trim();
   if (!trimmed) return VALIDATION_MESSAGES.CONTENT_EMPTY;
-  if (trimmed.length > CONSTRAINTS.CONTENT_MAX)
-    return VALIDATION_MESSAGES.CONTENT_TOO_LONG;
   return undefined;
 };
 
@@ -42,10 +38,18 @@ export const validatePlaceholders = (value: string): string | undefined => {
 };
 
 /**
- * Validates that the template type is provided
+ * Validates that the template type is provided and allowed
  */
+const ALLOWED_TEMPLATE_TYPES = ["title", "description"];
+
 export const validateType = (value: string): string | undefined => {
-  if (!value.trim()) return VALIDATION_MESSAGES.TYPE_REQUIRED;
+  const trimmed = value.trim();
+  if (!trimmed) return VALIDATION_MESSAGES.TYPE_REQUIRED;
+
+  const normalized = trimmed.toLowerCase();
+  if (!ALLOWED_TEMPLATE_TYPES.includes(normalized)) {
+    return "Template type must be either 'title' or 'description'";
+  }
   return undefined;
 };
 

@@ -46,10 +46,6 @@ Simple, concise checklist for running E2E tests with Playwright using external s
 
 From project root, execute these commands in order:
 
-### 🚀 Run E2E Tests (Standard Workflow)
-
-From project root, execute these commands in order:
-
 ```bash
 # 1. Setup test database
 cd backend

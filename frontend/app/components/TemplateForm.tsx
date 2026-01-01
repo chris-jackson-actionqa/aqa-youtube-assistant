@@ -103,6 +103,14 @@ export default function TemplateForm({
     }
   };
 
+  const handleNameBlur = () => {
+    setName(name.trim());
+  };
+
+  const handleContentBlur = () => {
+    setContent(content.trim());
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -145,9 +153,11 @@ export default function TemplateForm({
 
       // Call success callback if provided
       if (onSuccess) {
-        setTimeout(() => {
+        const timeoutId = setTimeout(() => {
           onSuccess(result);
         }, 1500);
+        // Cleanup timeout on unmount
+        return () => clearTimeout(timeoutId);
       }
     } catch (err) {
       setFormErrors(handleApiError(err));
@@ -232,6 +242,7 @@ export default function TemplateForm({
             id="name"
             value={name}
             onChange={handleNameChange}
+            onBlur={handleNameBlur}
             required
             maxLength={100}
             placeholder="Enter template name"
@@ -257,6 +268,7 @@ export default function TemplateForm({
             id="content"
             value={content}
             onChange={handleContentChange}
+            onBlur={handleContentBlur}
             required
             maxLength={256}
             rows={4}
@@ -269,7 +281,9 @@ export default function TemplateForm({
             aria-describedby={
               formErrors.content || formErrors.placeholders
                 ? "content-error"
-                : "content-help"
+                : uniquePlaceholders.length > 0
+                  ? "content-placeholders"
+                  : "content-hint"
             }
           />
           {(formErrors.content || formErrors.placeholders) && (
@@ -282,7 +296,7 @@ export default function TemplateForm({
               {content.length} / 256 characters
             </p>
             {uniquePlaceholders.length > 0 && (
-              <p id="content-help" className={INFO_TEXT_CLASSES}>
+              <p id="content-placeholders" className={INFO_TEXT_CLASSES}>
                 Placeholders found:{" "}
                 <code className="bg-gray-100 dark:bg-gray-900 px-2 py-1 rounded">
                   {uniquePlaceholders.join(", ")}
@@ -290,7 +304,7 @@ export default function TemplateForm({
               </p>
             )}
             {uniquePlaceholders.length === 0 && !formErrors.placeholders && (
-              <p id="content-help" className={HINT_TEXT_CLASSES}>
+              <p id="content-hint" className={HINT_TEXT_CLASSES}>
                 Add placeholders like{" "}
                 <code className="bg-gray-100 dark:bg-gray-900 px-2 py-1 rounded">
                   {`{{placeholder_name}}`}

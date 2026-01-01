@@ -13,7 +13,7 @@ jest.mock("../Spinner", () => {
 
 // Mock template data
 const mockTemplate = {
-  id: "1",
+  id: 1,
   type: "title",
   name: "Test Template",
   content: "Best {{tools}} for {{topic}}",
@@ -359,7 +359,7 @@ describe("TemplateForm", () => {
       });
     });
 
-    it("should clear form after successful creation", async () => {
+    it("should clear form after successful update in edit mode", async () => {
       jest.useFakeTimers();
       const user = userEvent.setup({ delay: null });
       const mockOnSuccess = jest.fn();
@@ -392,7 +392,7 @@ describe("TemplateForm", () => {
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(api.updateTemplate).toHaveBeenCalledWith("1", {
+        expect(api.updateTemplate).toHaveBeenCalledWith(1, {
           type: "title",
           name: "Updated Name",
           content: "Best {{tools}} for {{topic}}",
