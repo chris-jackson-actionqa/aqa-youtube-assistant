@@ -2,16 +2,32 @@
 
 import { useState, FormEvent } from "react";
 import { TemplateCreate, TemplateUpdate, Template } from "../types/template";
-import { createTemplate, updateTemplate, ApiError } from "../lib/api";
+import { createTemplate, updateTemplate } from "../lib/api";
 import Spinner from "./Spinner";
-
-interface FormErrors {
-  type?: string;
-  name?: string;
-  content?: string;
-  placeholders?: string;
-  api?: string;
-}
+import { FormErrors } from "./TemplateForm/types";
+import {
+  validateForm,
+  extractPlaceholders,
+  isFormValid,
+} from "./TemplateForm/validation";
+import { handleApiError } from "./TemplateForm/errorHandler";
+import {
+  BUTTON_CANCEL_CLASSES,
+  BUTTON_SUBMIT_CLASSES,
+  getInputClassName,
+  LABEL_CLASSES,
+  ERROR_TEXT_CLASSES,
+  HELP_TEXT_CLASSES,
+  INFO_TEXT_CLASSES,
+  HINT_TEXT_CLASSES,
+  ALERT_ERROR_CLASSES,
+  ALERT_SUCCESS_CLASSES,
+  ALERT_INFO_CLASSES,
+} from "./TemplateForm/styles";
+import {
+  SUCCESS_MESSAGES,
+  VALIDATION_MESSAGES,
+} from "./TemplateForm/constants";
 
 interface TemplateFormProps {
   mode?: "create" | "edit";
@@ -19,10 +35,6 @@ interface TemplateFormProps {
   onSuccess?: (template: Template) => void;
   onCancel?: () => void;
 }
-
-// Regex to match placeholders like {{placeholder}}
-const PLACEHOLDER_REGEX = /\{\{[^}]+\}\}/g;
-const EMPTY_PLACEHOLDER_REGEX = /\{\{\s*\}\}/;
 
 /**
  * TemplateForm - Reusable form component for creating and editing templates
@@ -62,46 +74,10 @@ export default function TemplateForm({
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Get placeholders from content
-  const placeholders = content.match(PLACEHOLDER_REGEX) || [];
-  const uniquePlaceholders = Array.from(new Set(placeholders));
+  // Get unique placeholders from content
+  const uniquePlaceholders = extractPlaceholders(content);
 
-  // Validation helpers
-  const validateName = (value: string): string | undefined => {
-    const trimmed = value.trim();
-    if (!trimmed)
-      return "Template name cannot be empty or contain only whitespace";
-    if (trimmed.length > 100)
-      return "Template name cannot exceed 100 characters";
-    return undefined;
-  };
-
-  const validateContent = (value: string): string | undefined => {
-    const trimmed = value.trim();
-    if (!trimmed)
-      return "Template content cannot be empty or contain only whitespace";
-    if (trimmed.length > 256)
-      return "Template content cannot exceed 256 characters";
-    return undefined;
-  };
-
-  const validatePlaceholders = (value: string): string | undefined => {
-    const matches = value.match(PLACEHOLDER_REGEX) || [];
-    if (matches.length === 0) {
-      return "Template must contain at least one placeholder (e.g., {{topic}})";
-    }
-    if (EMPTY_PLACEHOLDER_REGEX.test(value)) {
-      return "Empty placeholders {{}} are not allowed";
-    }
-    return undefined;
-  };
-
-  const validateType = (value: string): string | undefined => {
-    if (!value.trim()) return "Template type is required";
-    return undefined;
-  };
-
-  // Validation on change handlers
+  // Change handlers that clear relevant field errors
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setName(e.target.value);
     if (formErrors.name) {
@@ -134,21 +110,9 @@ export default function TemplateForm({
     setSuccessMessage(null);
 
     // Validate all fields
-    const newErrors: FormErrors = {};
-    const nameError = validateName(name);
-    if (nameError) newErrors.name = nameError;
-
-    const contentError = validateContent(content);
-    if (contentError) newErrors.content = contentError;
-
-    const placeholdersError = validatePlaceholders(content);
-    if (placeholdersError) newErrors.placeholders = placeholdersError;
-
-    const typeError = validateType(type);
-    if (typeError) newErrors.type = typeError;
-
-    if (Object.keys(newErrors).length > 0) {
-      setFormErrors(newErrors);
+    const newErrors = validateForm(name, content, type);
+    if (Object.values(newErrors).some((error) => error)) {
+      setFormErrors(newErrors as FormErrors);
       return;
     }
 
@@ -164,11 +128,11 @@ export default function TemplateForm({
           content: content.trim(),
         };
         result = await createTemplate(templateData);
-        setSuccessMessage(`Template "${result.name}" created successfully!`);
+        setSuccessMessage(SUCCESS_MESSAGES.CREATE(result.name));
       } else {
         // Edit mode
         if (!initialTemplate?.id) {
-          throw new Error("Template ID is required for edit mode");
+          throw new Error(VALIDATION_MESSAGES.TEMPLATE_ID_REQUIRED);
         }
         const templateData: TemplateUpdate = {
           type: type.trim(),
@@ -176,7 +140,7 @@ export default function TemplateForm({
           content: content.trim(),
         };
         result = await updateTemplate(initialTemplate.id, templateData);
-        setSuccessMessage(`Template "${result.name}" updated successfully!`);
+        setSuccessMessage(SUCCESS_MESSAGES.UPDATE(result.name));
       }
 
       // Call success callback if provided
@@ -186,44 +150,7 @@ export default function TemplateForm({
         }, 1500);
       }
     } catch (err) {
-      if (err instanceof ApiError) {
-        // Duplicate content (409 Conflict)
-        if (err.status === 409) {
-          setFormErrors({
-            content:
-              "A template with this type and content already exists. Please use different content.",
-          });
-        } else if (err.status === 422) {
-          // Validation error from backend
-          setFormErrors({
-            api:
-              err.message ||
-              "Validation failed. Please check your input and try again.",
-          });
-        } else if (err.status === 404) {
-          setFormErrors({
-            api: "Template not found. It may have been deleted.",
-          });
-        } else if (err.status >= 500) {
-          // Server errors
-          setFormErrors({
-            api: "Server error. Please try again later.",
-          });
-        } else if (err.status === 0) {
-          // Network error
-          setFormErrors({
-            api: "Failed to save template. Please check your connection and try again.",
-          });
-        } else {
-          setFormErrors({
-            api: err.message,
-          });
-        }
-      } else {
-        setFormErrors({
-          api: "Failed to save template. Please try again.",
-        });
-      }
+      setFormErrors(handleApiError(err));
     } finally {
       setIsSubmitting(false);
     }
@@ -238,13 +165,7 @@ export default function TemplateForm({
     onCancel?.();
   };
 
-  const isFormValid =
-    name.trim() &&
-    content.trim() &&
-    validateName(name) === undefined &&
-    validateContent(content) === undefined &&
-    validatePlaceholders(content) === undefined &&
-    validateType(type) === undefined;
+  const isValid = isFormValid(name, content, type);
 
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
@@ -260,10 +181,7 @@ export default function TemplateForm({
       </p>
 
       {formErrors.api && (
-        <div
-          role="alert"
-          className="mb-4 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg"
-        >
+        <div role="alert" className={ALERT_ERROR_CLASSES}>
           <p className="text-red-600 dark:text-red-400 text-sm font-medium">
             {formErrors.api}
           </p>
@@ -271,11 +189,7 @@ export default function TemplateForm({
       )}
 
       {successMessage && (
-        <div
-          role="status"
-          aria-live="polite"
-          className="mb-4 p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg"
-        >
+        <div role="status" aria-live="polite" className={ALERT_SUCCESS_CLASSES}>
           <p className="text-green-600 dark:text-green-400 text-sm font-medium">
             {successMessage}
           </p>
@@ -285,7 +199,7 @@ export default function TemplateForm({
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Type Field */}
         <div>
-          <label htmlFor="type" className="block text-sm font-medium mb-2">
+          <label htmlFor="type" className={LABEL_CLASSES}>
             Template Type <span className="text-red-500">*</span>
           </label>
           <input
@@ -296,24 +210,13 @@ export default function TemplateForm({
             required
             maxLength={50}
             placeholder="e.g., title, description, tags"
-            className={`w-full px-4 py-2 border rounded-lg 
-                     focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                     bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                     placeholder-gray-400 dark:placeholder-gray-500 ${
-                       formErrors.type
-                         ? "border-red-500 dark:border-red-500"
-                         : "border-gray-300 dark:border-gray-600"
-                     }`}
+            className={getInputClassName(!!formErrors.type)}
             disabled={isSubmitting}
             aria-invalid={!!formErrors.type}
             aria-describedby={formErrors.type ? "type-error" : undefined}
           />
           {formErrors.type && (
-            <p
-              id="type-error"
-              className="mt-1 text-sm text-red-600 dark:text-red-400"
-              role="alert"
-            >
+            <p id="type-error" className={ERROR_TEXT_CLASSES} role="alert">
               {formErrors.type}
             </p>
           )}
@@ -321,7 +224,7 @@ export default function TemplateForm({
 
         {/* Name Field */}
         <div>
-          <label htmlFor="name" className="block text-sm font-medium mb-2">
+          <label htmlFor="name" className={LABEL_CLASSES}>
             Template Name <span className="text-red-500">*</span>
           </label>
           <input
@@ -332,35 +235,22 @@ export default function TemplateForm({
             required
             maxLength={100}
             placeholder="Enter template name"
-            className={`w-full px-4 py-2 border rounded-lg 
-                     focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                     bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                     placeholder-gray-400 dark:placeholder-gray-500 ${
-                       formErrors.name
-                         ? "border-red-500 dark:border-red-500"
-                         : "border-gray-300 dark:border-gray-600"
-                     }`}
+            className={getInputClassName(!!formErrors.name)}
             disabled={isSubmitting}
             aria-invalid={!!formErrors.name}
             aria-describedby={formErrors.name ? "name-error" : undefined}
           />
           {formErrors.name && (
-            <p
-              id="name-error"
-              className="mt-1 text-sm text-red-600 dark:text-red-400"
-              role="alert"
-            >
+            <p id="name-error" className={ERROR_TEXT_CLASSES} role="alert">
               {formErrors.name}
             </p>
           )}
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            {name.length} / 100 characters
-          </p>
+          <p className={HELP_TEXT_CLASSES}>{name.length} / 100 characters</p>
         </div>
 
         {/* Content Field */}
         <div>
-          <label htmlFor="content" className="block text-sm font-medium mb-2">
+          <label htmlFor="content" className={LABEL_CLASSES}>
             Template Content <span className="text-red-500">*</span>
           </label>
           <textarea
@@ -371,14 +261,9 @@ export default function TemplateForm({
             maxLength={256}
             rows={4}
             placeholder="Enter template content with at least one placeholder"
-            className={`w-full px-4 py-2 border rounded-lg 
-                     focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                     bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                     placeholder-gray-400 dark:placeholder-gray-500 font-mono text-sm ${
-                       formErrors.content || formErrors.placeholders
-                         ? "border-red-500 dark:border-red-500"
-                         : "border-gray-300 dark:border-gray-600"
-                     }`}
+            className={getInputClassName(
+              !!(formErrors.content || formErrors.placeholders)
+            )}
             disabled={isSubmitting}
             aria-invalid={!!(formErrors.content || formErrors.placeholders)}
             aria-describedby={
@@ -388,23 +273,16 @@ export default function TemplateForm({
             }
           />
           {(formErrors.content || formErrors.placeholders) && (
-            <p
-              id="content-error"
-              className="mt-1 text-sm text-red-600 dark:text-red-400"
-              role="alert"
-            >
+            <p id="content-error" className={ERROR_TEXT_CLASSES} role="alert">
               {formErrors.content || formErrors.placeholders}
             </p>
           )}
           <div className="mt-2 flex flex-col gap-2">
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className={HELP_TEXT_CLASSES}>
               {content.length} / 256 characters
             </p>
             {uniquePlaceholders.length > 0 && (
-              <p
-                id="content-help"
-                className="text-xs text-gray-600 dark:text-gray-300"
-              >
+              <p id="content-help" className={INFO_TEXT_CLASSES}>
                 Placeholders found:{" "}
                 <code className="bg-gray-100 dark:bg-gray-900 px-2 py-1 rounded">
                   {uniquePlaceholders.join(", ")}
@@ -412,10 +290,7 @@ export default function TemplateForm({
               </p>
             )}
             {uniquePlaceholders.length === 0 && !formErrors.placeholders && (
-              <p
-                id="content-help"
-                className="text-xs text-blue-600 dark:text-blue-400"
-              >
+              <p id="content-help" className={HINT_TEXT_CLASSES}>
                 Add placeholders like{" "}
                 <code className="bg-gray-100 dark:bg-gray-900 px-2 py-1 rounded">
                   {`{{placeholder_name}}`}
@@ -427,7 +302,7 @@ export default function TemplateForm({
         </div>
 
         {/* Help Text */}
-        <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+        <div className={ALERT_INFO_CLASSES}>
           <p className="text-sm text-blue-800 dark:text-blue-300 font-medium mb-2">
             Placeholder Syntax:
           </p>
@@ -457,10 +332,8 @@ export default function TemplateForm({
         <div className="flex gap-3 pt-4">
           <button
             type="submit"
-            disabled={isSubmitting || !isFormValid}
-            className="flex-1 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg
-                     disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed
-                     transition-colors duration-200 flex items-center justify-center gap-2"
+            disabled={isSubmitting || !isValid}
+            className={BUTTON_SUBMIT_CLASSES}
             aria-busy={isSubmitting}
           >
             {isSubmitting && (
@@ -488,9 +361,7 @@ export default function TemplateForm({
               type="button"
               onClick={handleCancel}
               disabled={isSubmitting}
-              className="px-6 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 
-                       text-gray-800 dark:text-gray-200 font-medium rounded-lg
-                       disabled:cursor-not-allowed transition-colors duration-200"
+              className={BUTTON_CANCEL_CLASSES}
             >
               Cancel
             </button>

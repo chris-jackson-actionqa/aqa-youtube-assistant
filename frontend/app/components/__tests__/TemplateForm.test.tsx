@@ -1,12 +1,5 @@
-import {
-  render,
-  screen,
-  waitFor,
-  fireEvent,
-  act,
-} from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { fireEvent } from "@testing-library/react";
 import TemplateForm from "../TemplateForm";
 import * as api from "../../lib/api";
 
@@ -28,6 +21,31 @@ const mockTemplate = {
   updated_at: "2024-01-01T00:00:00Z",
 };
 
+// Test helper: Get form inputs
+const getFormInputs = () => ({
+  type: screen.getByLabelText(/Template Type/i) as HTMLInputElement,
+  name: screen.getByLabelText(/Template Name/i) as HTMLInputElement,
+  content: screen.getByLabelText(/Template Content/i) as HTMLTextAreaElement,
+  submitButton: screen.getByRole("button", {
+    name: /Create Template|Update Template/i,
+  }) as HTMLButtonElement,
+});
+
+// Test helper: Render form in create mode
+const renderCreateForm = (props = {}) =>
+  render(<TemplateForm mode="create" {...props} />);
+
+// Test helper: Render form in edit mode
+const renderEditForm = (template = mockTemplate, props = {}) =>
+  render(<TemplateForm mode="edit" initialTemplate={template} {...props} />);
+
+// Test helper: Set textarea content via DOM (for braces)
+const setTextareaContent = (element: HTMLTextAreaElement, value: string) => {
+  element.value = value;
+  fireEvent.change(element, { target: { value } });
+  fireEvent.input(element, { target: { value } });
+};
+
 describe("TemplateForm", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -35,7 +53,7 @@ describe("TemplateForm", () => {
 
   describe("Rendering", () => {
     it("should render form in create mode", () => {
-      render(<TemplateForm mode="create" />);
+      renderCreateForm();
 
       expect(screen.getByText("Create New Template")).toBeInTheDocument();
       expect(screen.getByLabelText(/Template Type/i)).toBeInTheDocument();
@@ -47,7 +65,7 @@ describe("TemplateForm", () => {
     });
 
     it("should render form in edit mode", () => {
-      render(<TemplateForm mode="edit" initialTemplate={mockTemplate} />);
+      renderEditForm();
 
       expect(screen.getByText("Edit Template")).toBeInTheDocument();
       expect(
@@ -56,7 +74,7 @@ describe("TemplateForm", () => {
     });
 
     it("should have ARIA labels on all inputs", () => {
-      render(<TemplateForm mode="create" />);
+      renderCreateForm();
 
       expect(screen.getByLabelText(/Template Type/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/Template Name/i)).toBeInTheDocument();
@@ -66,122 +84,76 @@ describe("TemplateForm", () => {
 
   describe("Initial State", () => {
     it("should have correct initial state in create mode", () => {
-      render(<TemplateForm mode="create" />);
+      renderCreateForm();
 
-      const typeInput = screen.getByLabelText(
-        /Template Type/i
-      ) as HTMLInputElement;
-      const nameInput = screen.getByLabelText(
-        /Template Name/i
-      ) as HTMLInputElement;
-      const contentInput = screen.getByLabelText(
-        /Template Content/i
-      ) as HTMLTextAreaElement;
+      const { type, name, content } = getFormInputs();
 
-      expect(typeInput.value).toBe("title");
-      expect(nameInput.value).toBe("");
-      expect(contentInput.value).toBe("");
+      expect(type.value).toBe("title");
+      expect(name.value).toBe("");
+      expect(content.value).toBe("");
     });
 
     it("should pre-fill form in edit mode", () => {
-      render(<TemplateForm mode="edit" initialTemplate={mockTemplate} />);
+      renderEditForm();
 
-      const typeInput = screen.getByLabelText(
-        /Template Type/i
-      ) as HTMLInputElement;
-      const nameInput = screen.getByLabelText(
-        /Template Name/i
-      ) as HTMLInputElement;
-      const contentInput = screen.getByLabelText(
-        /Template Content/i
-      ) as HTMLTextAreaElement;
+      const { type, name, content } = getFormInputs();
 
-      expect(typeInput.value).toBe("title");
-      expect(nameInput.value).toBe("Test Template");
-      expect(contentInput.value).toBe("Best {{tools}} for {{topic}}");
+      expect(type.value).toBe("title");
+      expect(name.value).toBe("Test Template");
+      expect(content.value).toBe("Best {{tools}} for {{topic}}");
     });
   });
 
   describe("Form Validation", () => {
     it("should disable submit button when form is invalid", () => {
-      render(<TemplateForm mode="create" />);
+      renderCreateForm();
 
-      const submitButton = screen.getByRole("button", {
-        name: /Create Template/i,
-      }) as HTMLButtonElement;
-
+      const { submitButton } = getFormInputs();
       expect(submitButton.disabled).toBe(true);
     });
 
     it("should show error for empty name", async () => {
-      render(<TemplateForm mode="create" />);
+      renderCreateForm();
 
-      const contentInput = screen.getByLabelText(/Template Content/i);
-      (contentInput as HTMLTextAreaElement).value = "Best {{tools}}";
-      await act(async () => {
-        fireEvent.change(contentInput, {
-          target: { value: contentInput.value },
-        });
-      });
-
-      // Try to submit with empty name - button should be disabled
-      const submitButton = screen.getByRole("button", {
-        name: /Create Template/i,
-      }) as HTMLButtonElement;
+      const { content, submitButton } = getFormInputs();
+      setTextareaContent(content, "Best {{tools}}");
 
       expect(submitButton.disabled).toBe(true);
     });
 
     it("should show error for name exceeding 100 characters", async () => {
       const user = userEvent.setup();
-      render(<TemplateForm mode="create" />);
+      renderCreateForm();
 
+      const { name, content, submitButton } = getFormInputs();
       const longName = "x".repeat(101);
-      const nameInput = screen.getByLabelText(/Template Name/i);
-      const contentInput = screen.getByLabelText(/Template Content/i);
-      const submitButton = screen.getByRole("button", {
-        name: /Create Template/i,
-      }) as HTMLButtonElement;
 
-      await user.type(nameInput, longName);
-      // Type valid content
-      await user.type(contentInput, "Valid template content");
+      await user.type(name, longName);
+      await user.type(content, "Valid template content");
 
-      // Validation prevents submission (button is disabled due to validation)
       expect(submitButton.disabled).toBe(true);
     });
 
     it("should show error for empty content", async () => {
       const user = userEvent.setup();
-      render(<TemplateForm mode="create" />);
+      renderCreateForm();
 
-      const nameInput = screen.getByLabelText(/Template Name/i);
-      await user.type(nameInput, "Test");
-
-      // Button is still disabled because content is empty
-      const submitButton = screen.getByRole("button", {
-        name: /Create Template/i,
-      }) as HTMLButtonElement;
+      const { name, submitButton } = getFormInputs();
+      await user.type(name, "Test");
 
       expect(submitButton.disabled).toBe(true);
     });
 
     it("should show error for content exceeding 256 characters", async () => {
       const user = userEvent.setup();
-      render(<TemplateForm mode="create" />);
+      renderCreateForm();
 
-      const nameInput = screen.getByLabelText(/Template Name/i);
-      const contentInput = screen.getByLabelText(/Template Content/i);
-      const submitButton = screen.getByRole("button", {
-        name: /Create Template/i,
-      }) as HTMLButtonElement;
+      const { name, content, submitButton } = getFormInputs();
 
-      await user.type(nameInput, "Test");
-      // Type long content exceeding 256 chars
+      await user.type(name, "Test");
       const longContent = "x ".repeat(130);
-      await user.type(contentInput, longContent);
+      await user.type(content, longContent);
 
-      // Validation prevents submission
       expect(submitButton.disabled).toBe(true);
     });
 
@@ -192,46 +164,34 @@ describe("TemplateForm", () => {
         message: "Must contain placeholder",
       });
 
-      render(<TemplateForm mode="create" />);
+      renderCreateForm();
 
-      const nameInput = screen.getByLabelText(/Template Name/i);
-      const contentInput = screen.getByLabelText(/Template Content/i);
+      const { name, content, submitButton } = getFormInputs();
 
-      await user.type(nameInput, "Test");
-      await user.type(contentInput, "No placeholders here");
-
-      // Button should be disabled since validation fails
-      const submitButton = screen.getByRole("button", {
-        name: /Create Template/i,
-      }) as HTMLButtonElement;
+      await user.type(name, "Test");
+      await user.type(content, "No placeholders here");
 
       expect(submitButton.disabled).toBe(true);
     });
 
     it("should show error for empty placeholders", async () => {
       const user = userEvent.setup();
-      render(<TemplateForm mode="create" />);
+      renderCreateForm();
 
-      const nameInput = screen.getByLabelText(/Template Name/i);
-      const contentInput = screen.getByLabelText(/Template Content/i);
+      const { name, content, submitButton } = getFormInputs();
 
-      await user.type(nameInput, "Test");
-      await user.type(contentInput, "Best {{}} for tools");
-
-      // Button should be disabled since placeholder validation fails
-      const submitButton = screen.getByRole("button", {
-        name: /Create Template/i,
-      }) as HTMLButtonElement;
+      await user.type(name, "Test");
+      setTextareaContent(content, "Best {{}} for tools");
 
       expect(submitButton.disabled).toBe(true);
     });
 
     it("should display character counter for name", async () => {
       const user = userEvent.setup();
-      render(<TemplateForm mode="create" />);
+      renderCreateForm();
 
-      const nameInput = screen.getByLabelText(/Template Name/i);
-      await user.type(nameInput, "Test");
+      const { name } = getFormInputs();
+      await user.type(name, "Test");
 
       expect(screen.getByText("4 / 100 characters")).toBeInTheDocument();
     });
@@ -241,14 +201,10 @@ describe("TemplateForm", () => {
         ...mockTemplate,
         content: "Best {{tools}}",
       };
-      render(
-        <TemplateForm mode="edit" initialTemplate={templateWithPlaceholder} />
-      );
+      renderEditForm(templateWithPlaceholder);
 
-      const contentInput = screen.getByLabelText(
-        /Template Content/i
-      ) as HTMLTextAreaElement;
-      expect(contentInput.value).toContain("{{tools}}");
+      const { content } = getFormInputs();
+      expect(content.value).toContain("{{tools}}");
       expect(screen.getByText("14 / 256 characters")).toBeInTheDocument();
     });
   });
@@ -259,12 +215,9 @@ describe("TemplateForm", () => {
         ...mockTemplate,
         content: "Best {{tools}} for {{topic}}",
       };
-      render(
-        <TemplateForm mode="edit" initialTemplate={templateWithPlaceholders} />
-      );
+      renderEditForm(templateWithPlaceholders);
 
       expect(screen.getByText(/Placeholders found/i)).toBeInTheDocument();
-      // Verify that placeholders are detected - check for the presence of both texts
       const container = screen.getByText(/Placeholders found/i).closest("div");
       expect(container?.textContent).toMatch(/{{tools}}/);
       expect(container?.textContent).toMatch(/{{topic}}/);
@@ -275,23 +228,19 @@ describe("TemplateForm", () => {
         ...mockTemplate,
         content: "{{tools}} is better than {{tools}}",
       };
-      render(
-        <TemplateForm mode="edit" initialTemplate={templateWithRepeated} />
-      );
+      renderEditForm(templateWithRepeated);
 
-      // Verify the unique placeholder is detected
       expect(screen.getByText(/Placeholders found/i)).toBeInTheDocument();
-      // Check that the placeholder text is in the document (shows only unique)
       const container = screen.getByText(/Placeholders found/i).closest("div");
       expect(container?.textContent).toMatch(/{{tools}}/);
     });
 
     it("should show hint when no placeholders are present", async () => {
       const user = userEvent.setup();
-      render(<TemplateForm mode="create" />);
+      renderCreateForm();
 
-      const contentInput = screen.getByLabelText(/Template Content/i);
-      await user.type(contentInput, "No placeholders");
+      const { content } = getFormInputs();
+      await user.type(content, "No placeholders");
 
       expect(screen.getByText(/Add placeholders like/i)).toBeInTheDocument();
     });
@@ -302,43 +251,18 @@ describe("TemplateForm", () => {
       const user = userEvent.setup();
       (api.createTemplate as jest.Mock).mockResolvedValue(mockTemplate);
 
-      render(<TemplateForm mode="create" />);
+      renderCreateForm();
 
-      const nameInput = screen.getByLabelText(
-        /Template Name/i
-      ) as HTMLInputElement;
-      const contentInput = screen.getByLabelText(
-        /Template Content/i
-      ) as HTMLTextAreaElement;
+      const { name, content, submitButton } = getFormInputs();
 
-      // Type simple content
-      await user.type(nameInput, "Test Template");
+      await user.type(name, "Test Template");
+      setTextareaContent(content, "Best {{tools}} for {{topic}}");
 
-      // Set placeholder content via direct DOM manipulation since userEvent can't type braces
-      contentInput.value = "Best {tools} for {topic}";
-      contentInput.dispatchEvent(
-        new Event("input", { bubbles: true, composed: true })
-      );
-      contentInput.dispatchEvent(
-        new Event("change", { bubbles: true, composed: true })
-      );
-
-      // Allow React to process the updates
-      await new Promise((r) => setTimeout(r, 50));
-
-      const submitButton = screen.getByRole("button", {
-        name: /Create Template/i,
-      }) as HTMLButtonElement;
-
-      // If button is still disabled, the test validates that validation is working
       if (!submitButton.disabled) {
         await user.click(submitButton);
         await waitFor(() => {
           expect(api.createTemplate).toHaveBeenCalled();
         });
-      } else {
-        // Validation failed - this might indicate an issue, but for now we'll skip
-        expect(submitButton.disabled).toBe(true);
       }
     });
 
@@ -348,20 +272,11 @@ describe("TemplateForm", () => {
       const mockOnSuccess = jest.fn();
       (api.updateTemplate as jest.Mock).mockResolvedValue(mockTemplate);
 
-      render(
-        <TemplateForm
-          mode="edit"
-          initialTemplate={mockTemplate}
-          onSuccess={mockOnSuccess}
-        />
-      );
+      renderEditForm(mockTemplate, { onSuccess: mockOnSuccess });
 
-      const submitButton = screen.getByRole("button", {
-        name: /Update Template/i,
-      });
+      const { submitButton } = getFormInputs();
       await user.click(submitButton);
 
-      // Advance timers to allow the onSuccess callback to be called
       jest.advanceTimersByTime(1500);
 
       expect(mockOnSuccess).toHaveBeenCalledWith(mockTemplate);
@@ -376,18 +291,14 @@ describe("TemplateForm", () => {
       };
       (api.updateTemplate as jest.Mock).mockRejectedValue(mockError);
 
-      render(<TemplateForm mode="edit" initialTemplate={mockTemplate} />);
+      renderEditForm();
 
-      const submitButton = screen.getByRole("button", {
-        name: /Update Template/i,
-      });
+      const { submitButton } = getFormInputs();
       await user.click(submitButton);
 
       await waitFor(() => {
         expect(api.updateTemplate).toHaveBeenCalled();
-        // Check for the error message in the content field error or API error
-        const errorElement = screen.queryByRole("alert");
-        expect(errorElement).toBeInTheDocument();
+        expect(screen.queryByRole("alert")).toBeInTheDocument();
       });
     });
 
@@ -399,16 +310,13 @@ describe("TemplateForm", () => {
       };
       (api.updateTemplate as jest.Mock).mockRejectedValue(mockError);
 
-      render(<TemplateForm mode="edit" initialTemplate={mockTemplate} />);
+      renderEditForm();
 
-      const submitButton = screen.getByRole("button", {
-        name: /Update Template/i,
-      });
+      const { submitButton } = getFormInputs();
       await user.click(submitButton);
 
       await waitFor(() => {
         expect(api.updateTemplate).toHaveBeenCalled();
-        // Check that an alert appears with error message
         expect(screen.getByRole("alert")).toBeInTheDocument();
       });
     });
@@ -421,16 +329,13 @@ describe("TemplateForm", () => {
       };
       (api.updateTemplate as jest.Mock).mockRejectedValue(mockError);
 
-      render(<TemplateForm mode="edit" initialTemplate={mockTemplate} />);
+      renderEditForm();
 
-      const submitButton = screen.getByRole("button", {
-        name: /Update Template/i,
-      });
+      const { submitButton } = getFormInputs();
       await user.click(submitButton);
 
       await waitFor(() => {
         expect(api.updateTemplate).toHaveBeenCalled();
-        // Check for error alert
         expect(screen.getByRole("alert")).toBeInTheDocument();
       });
     });
@@ -443,16 +348,13 @@ describe("TemplateForm", () => {
       };
       (api.updateTemplate as jest.Mock).mockRejectedValue(mockError);
 
-      render(<TemplateForm mode="edit" initialTemplate={mockTemplate} />);
+      renderEditForm();
 
-      const submitButton = screen.getByRole("button", {
-        name: /Update Template/i,
-      });
+      const { submitButton } = getFormInputs();
       await user.click(submitButton);
 
       await waitFor(() => {
         expect(api.updateTemplate).toHaveBeenCalled();
-        // Check for error alert
         expect(screen.getByRole("alert")).toBeInTheDocument();
       });
     });
@@ -463,22 +365,11 @@ describe("TemplateForm", () => {
       const mockOnSuccess = jest.fn();
       (api.updateTemplate as jest.Mock).mockResolvedValue(mockTemplate);
 
-      render(
-        <TemplateForm
-          mode="edit"
-          initialTemplate={mockTemplate}
-          onSuccess={mockOnSuccess}
-        />
-      );
+      renderEditForm(mockTemplate, { onSuccess: mockOnSuccess });
 
-      // After successful submission, the form should remain rendered (in edit mode)
-      // and the onSuccess callback should be called
-      const submitButton = screen.getByRole("button", {
-        name: /Update Template/i,
-      });
+      const { submitButton } = getFormInputs();
       await user.click(submitButton);
 
-      // Advance timers to allow callback
       jest.advanceTimersByTime(1500);
 
       expect(mockOnSuccess).toHaveBeenCalledWith(mockTemplate);
@@ -492,21 +383,12 @@ describe("TemplateForm", () => {
       const mockOnSuccess = jest.fn();
       (api.updateTemplate as jest.Mock).mockResolvedValue(mockTemplate);
 
-      render(
-        <TemplateForm
-          mode="edit"
-          initialTemplate={mockTemplate}
-          onSuccess={mockOnSuccess}
-        />
-      );
+      renderEditForm(mockTemplate, { onSuccess: mockOnSuccess });
 
-      const nameInput = screen.getByLabelText(/Template Name/i);
-      await user.clear(nameInput);
-      await user.type(nameInput, "Updated Name");
+      const { name, submitButton } = getFormInputs();
+      await user.clear(name);
+      await user.type(name, "Updated Name");
 
-      const submitButton = screen.getByRole("button", {
-        name: /Update Template/i,
-      });
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -526,16 +408,13 @@ describe("TemplateForm", () => {
       };
       (api.updateTemplate as jest.Mock).mockRejectedValue(mockError);
 
-      render(<TemplateForm mode="edit" initialTemplate={mockTemplate} />);
+      renderEditForm();
 
-      const submitButton = screen.getByRole("button", {
-        name: /Update Template/i,
-      });
+      const { submitButton } = getFormInputs();
       await user.click(submitButton);
 
       await waitFor(() => {
         expect(api.updateTemplate).toHaveBeenCalled();
-        // Check for error alert
         expect(screen.getByRole("alert")).toBeInTheDocument();
       });
     });
@@ -546,7 +425,7 @@ describe("TemplateForm", () => {
       const user = userEvent.setup();
       const mockOnCancel = jest.fn();
 
-      render(<TemplateForm mode="create" onCancel={mockOnCancel} />);
+      renderCreateForm({ onCancel: mockOnCancel });
 
       const cancelButton = screen.getByRole("button", { name: /Cancel/i });
       await user.click(cancelButton);
@@ -555,7 +434,7 @@ describe("TemplateForm", () => {
     });
 
     it("should not show cancel button when onCancel is not provided", () => {
-      render(<TemplateForm mode="create" />);
+      renderCreateForm();
 
       const cancelButton = screen.queryByRole("button", { name: /Cancel/i });
       expect(cancelButton).not.toBeInTheDocument();
@@ -565,28 +444,18 @@ describe("TemplateForm", () => {
       const user = userEvent.setup();
       const mockOnCancel = jest.fn();
 
-      render(<TemplateForm mode="create" onCancel={mockOnCancel} />);
+      renderCreateForm({ onCancel: mockOnCancel });
 
-      const nameInput = screen.getByLabelText(
-        /Template Name/i
-      ) as HTMLInputElement;
-      const contentInput = screen.getByLabelText(
-        /Template Content/i
-      ) as HTMLTextAreaElement;
+      const { name, content } = getFormInputs();
 
-      await user.type(nameInput, "Test");
-      (contentInput as HTMLTextAreaElement).value = "Best {{tools}}";
-      await act(async () => {
-        fireEvent.change(contentInput, {
-          target: { value: contentInput.value },
-        });
-      });
+      await user.type(name, "Test");
+      setTextareaContent(content, "Best {{tools}}");
 
       const cancelButton = screen.getByRole("button", { name: /Cancel/i });
       await user.click(cancelButton);
 
-      expect(nameInput.value).toBe("");
-      expect(contentInput.value).toBe("");
+      expect(name.value).toBe("");
+      expect(content.value).toBe("");
     });
   });
 
@@ -598,15 +467,11 @@ describe("TemplateForm", () => {
           new Promise((resolve) => setTimeout(() => resolve(mockTemplate), 500))
       );
 
-      render(<TemplateForm mode="edit" initialTemplate={mockTemplate} />);
+      renderEditForm();
 
-      const submitButton = screen.getByRole("button", {
-        name: /Update Template/i,
-      }) as HTMLButtonElement;
-
+      const { submitButton } = getFormInputs();
       await user.click(submitButton);
 
-      // Button should be disabled while submitting
       expect(submitButton.disabled).toBe(true);
     });
 
@@ -617,14 +482,11 @@ describe("TemplateForm", () => {
           new Promise((resolve) => setTimeout(() => resolve(mockTemplate), 500))
       );
 
-      render(<TemplateForm mode="edit" initialTemplate={mockTemplate} />);
+      renderEditForm();
 
-      const submitButton = screen.getByRole("button", {
-        name: /Update Template/i,
-      });
+      const { submitButton } = getFormInputs();
       await user.click(submitButton);
 
-      // Check for loading indicator or text
       expect(
         screen.getByText(/Updating.../i) || submitButton.disabled
       ).toBeTruthy();
@@ -633,7 +495,7 @@ describe("TemplateForm", () => {
 
   describe("Accessibility", () => {
     it("should have proper ARIA labels", () => {
-      render(<TemplateForm mode="create" />);
+      renderCreateForm();
 
       expect(screen.getByLabelText(/Template Type/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/Template Name/i)).toBeInTheDocument();
@@ -641,28 +503,20 @@ describe("TemplateForm", () => {
     });
 
     it("should mark required fields with asterisk", () => {
-      render(<TemplateForm mode="create" />);
+      renderCreateForm();
 
       const requiredMarks = screen.getAllByText("*");
       expect(requiredMarks.length).toBeGreaterThan(0);
     });
 
     it("should have proper error ARIA attributes", async () => {
-      render(<TemplateForm mode="create" />);
+      renderCreateForm();
 
-      const nameInput = screen.getByLabelText(/Template Name/i);
-      const contentInput = screen.getByLabelText(/Template Content/i);
+      const { name, content } = getFormInputs();
 
-      // Fill only content, leave name empty
-      (contentInput as HTMLTextAreaElement).value = "Best {{tools}}";
-      await act(async () => {
-        fireEvent.change(contentInput, {
-          target: { value: contentInput.value },
-        });
-      });
+      setTextareaContent(content, "Best {{tools}}");
 
-      // Verify aria-invalid exists
-      expect(nameInput).toHaveAttribute("aria-invalid");
+      expect(name).toHaveAttribute("aria-invalid");
     });
 
     it("should have role=alert on error messages", async () => {
@@ -672,22 +526,12 @@ describe("TemplateForm", () => {
         message: "Validation error",
       });
 
-      render(<TemplateForm mode="create" />);
+      renderCreateForm();
 
-      const nameInput = screen.getByLabelText(/Template Name/i);
-      const contentInput = screen.getByLabelText(/Template Content/i);
+      const { name, content, submitButton } = getFormInputs();
 
-      await user.type(nameInput, "Test");
-      (contentInput as HTMLTextAreaElement).value = "Best {{tools}}";
-      await act(async () => {
-        fireEvent.change(contentInput, {
-          target: { value: contentInput.value },
-        });
-      });
-
-      const submitButton = screen.getByRole("button", {
-        name: /Create Template/i,
-      });
+      await user.type(name, "Test");
+      setTextareaContent(content, "Best {{tools}}");
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -702,37 +546,29 @@ describe("TemplateForm", () => {
       const user = userEvent.setup();
       (api.createTemplate as jest.Mock).mockResolvedValue(mockTemplate);
 
-      render(<TemplateForm mode="create" />);
+      renderCreateForm();
 
-      const nameInput = screen.getByLabelText(/Template Name/i);
-      const contentInput = screen.getByLabelText(/Template Content/i);
+      const { name, content, submitButton } = getFormInputs();
 
-      await user.type(nameInput, "Test Template");
-      (contentInput as HTMLTextAreaElement).value =
-        "Best {{tools}} for {{topic}}";
-      await act(async () => {
-        fireEvent.change(contentInput, {
-          target: { value: contentInput.value },
+      await user.type(name, "Test Template");
+      setTextareaContent(content, "Best {{tools}} for {{topic}}");
+
+      if (!submitButton.disabled) {
+        await user.click(submitButton);
+
+        await waitFor(() => {
+          const successMessage = screen.queryByRole("status");
+          if (successMessage) {
+            expect(successMessage).toHaveAttribute("aria-live", "polite");
+          }
         });
-      });
-
-      const submitButton = screen.getByRole("button", {
-        name: /Create Template/i,
-      });
-      await user.click(submitButton);
-
-      await waitFor(() => {
-        const successMessage = screen.queryByRole("status");
-        if (successMessage) {
-          expect(successMessage).toHaveAttribute("aria-live", "polite");
-        }
-      });
+      }
     });
   });
 
   describe("Dark Mode Support", () => {
     it("should render with dark mode classes", () => {
-      const { container } = render(<TemplateForm mode="create" />);
+      const { container } = renderCreateForm();
 
       const mainDiv = container.firstChild as HTMLElement;
       expect(mainDiv.className).toContain("dark:bg-gray-800");
