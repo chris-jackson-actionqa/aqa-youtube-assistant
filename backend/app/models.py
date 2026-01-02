@@ -129,6 +129,13 @@ class Template(Base):
     type = Column(String(50), nullable=False, index=True)
     name = Column(String(100), nullable=False)
     content = Column(String(256), nullable=False)
+    workspace_id = Column(
+        Integer,
+        ForeignKey("workspaces.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+        default=1,
+    )
     created_at = Column(DateTime, default=lambda: datetime.now(UTC))
     updated_at = Column(
         DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
@@ -137,12 +144,16 @@ class Template(Base):
     # Case-insensitive unique constraint on (type, content)
     __table_args__ = (
         Index(
-            "uix_template_type_content_lower",
+            "uix_template_workspace_type_content_lower",
+            workspace_id,
             type,
             func.lower(content),
             unique=True,
         ),
     )
+
+    # Many-to-one relationship with workspace
+    workspace = relationship("Workspace")
 
     def __repr__(self) -> str:
         """String representation for debugging."""

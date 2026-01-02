@@ -1,7 +1,6 @@
 import {
   PLACEHOLDER_REGEX,
   EMPTY_PLACEHOLDER_REGEX,
-  CONSTRAINTS,
   VALIDATION_MESSAGES,
 } from "./constants";
 

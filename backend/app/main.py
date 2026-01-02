@@ -683,7 +683,11 @@ async def delete_project(
 
 
 @app.post("/api/templates", response_model=TemplateResponse, status_code=201)
-async def create_template(template: TemplateCreate, db: Session = Depends(get_db)):
+async def create_template(
+    template: TemplateCreate,
+    workspace_id: int = Depends(get_workspace_id),
+    db: Session = Depends(get_db),
+):
     """
     Create a new template.
 
@@ -699,10 +703,18 @@ async def create_template(template: TemplateCreate, db: Session = Depends(get_db
 
     Related: Epic #166
     """
-    # Check for case-insensitive duplicate
+    # Validate workspace exists
+    workspace = db.query(Workspace).filter(Workspace.id == workspace_id).first()
+    if not workspace:
+        raise HTTPException(
+            status_code=404, detail=f"Workspace with id {workspace_id} not found"
+        )
+
+    # Check for case-insensitive duplicate scoped to workspace
     existing = (
         db.query(Template)
         .filter(
+            Template.workspace_id == workspace_id,
             Template.type == template.type,
             func.lower(Template.content) == func.lower(template.content),
         )
@@ -717,7 +729,10 @@ async def create_template(template: TemplateCreate, db: Session = Depends(get_db
 
     # Create new template
     db_template = Template(
-        type=template.type, name=template.name, content=template.content
+        type=template.type,
+        name=template.name,
+        content=template.content,
+        workspace_id=workspace_id,
     )
     db.add(db_template)
     db.commit()
@@ -728,7 +743,9 @@ async def create_template(template: TemplateCreate, db: Session = Depends(get_db
 
 @app.get("/api/templates", response_model=list[TemplateResponse])
 async def list_templates(
-    type: str | None = None, db: Session = Depends(get_db)
+    type: str | None = None,
+    workspace_id: int = Depends(get_workspace_id),
+    db: Session = Depends(get_db),
 ):
     """
     List all templates, optionally filtered by type.
@@ -745,7 +762,7 @@ async def list_templates(
 
     Related: Epic #166
     """
-    query = db.query(Template)
+    query = db.query(Template).filter(Template.workspace_id == workspace_id)
 
     if type:
         query = query.filter(Template.type == type)
@@ -755,7 +772,11 @@ async def list_templates(
 
 
 @app.get("/api/templates/{template_id}", response_model=TemplateResponse)
-async def get_template(template_id: int, db: Session = Depends(get_db)):
+async def get_template(
+    template_id: int,
+    workspace_id: int = Depends(get_workspace_id),
+    db: Session = Depends(get_db),
+):
     """
     Get a single template by ID.
 
@@ -765,7 +786,11 @@ async def get_template(template_id: int, db: Session = Depends(get_db)):
 
     Related: Epic #166
     """
-    template = db.query(Template).filter(Template.id == template_id).first()
+    template = (
+        db.query(Template)
+        .filter(Template.id == template_id, Template.workspace_id == workspace_id)
+        .first()
+    )
 
     if not template:
         raise HTTPException(status_code=404, detail="Template not found")
@@ -775,7 +800,10 @@ async def get_template(template_id: int, db: Session = Depends(get_db)):
 
 @app.put("/api/templates/{template_id}", response_model=TemplateResponse)
 async def update_template(
-    template_id: int, template_update: TemplateUpdate, db: Session = Depends(get_db)
+    template_id: int,
+    template_update: TemplateUpdate,
+    workspace_id: int = Depends(get_workspace_id),
+    db: Session = Depends(get_db),
 ):
     """
     Update an existing template.
@@ -795,7 +823,11 @@ async def update_template(
     Related: Epic #166
     """
     # Get existing template
-    db_template = db.query(Template).filter(Template.id == template_id).first()
+    db_template = (
+        db.query(Template)
+        .filter(Template.id == template_id, Template.workspace_id == workspace_id)
+        .first()
+    )
 
     if not db_template:
         raise HTTPException(status_code=404, detail="Template not found")
@@ -805,6 +837,7 @@ async def update_template(
         existing = (
             db.query(Template)
             .filter(
+                Template.workspace_id == workspace_id,
                 Template.id != template_id,
                 Template.type == (template_update.type or db_template.type),
                 func.lower(Template.content)
@@ -831,7 +864,11 @@ async def update_template(
 
 
 @app.delete("/api/templates/{template_id}", status_code=204)
-async def delete_template(template_id: int, db: Session = Depends(get_db)):
+async def delete_template(
+    template_id: int,
+    workspace_id: int = Depends(get_workspace_id),
+    db: Session = Depends(get_db),
+):
     """
     Delete a template.
 
@@ -841,7 +878,11 @@ async def delete_template(template_id: int, db: Session = Depends(get_db)):
 
     Related: Epic #166
     """
-    db_template = db.query(Template).filter(Template.id == template_id).first()
+    db_template = (
+        db.query(Template)
+        .filter(Template.id == template_id, Template.workspace_id == workspace_id)
+        .first()
+    )
 
     if not db_template:
         raise HTTPException(status_code=404, detail="Template not found")

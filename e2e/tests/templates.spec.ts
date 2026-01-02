@@ -27,6 +27,9 @@ test.describe('Templates Page', () => {
     // Setup workspace for test isolation
     await helpers.setupWorkspace();
 
+    // Pass workspace context to template helpers
+    templateHelpers.setWorkspaceId(helpers.getCurrentWorkspaceId());
+
     // Clear all templates before each test
     await templateHelpers.clearAllTemplates();
   });
