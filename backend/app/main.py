@@ -15,7 +15,7 @@ load_dotenv()
 
 from .database import get_db  # noqa: E402
 from .migrations import run_migrations  # noqa: E402
-from .models import Project, Template, Workspace  # noqa: E402
+from .models import Project, Workspace  # noqa: E402
 from .schemas import (  # noqa: E402
     ProjectCreate,
     ProjectResponse,
@@ -27,7 +27,7 @@ from .schemas import (  # noqa: E402
     WorkspaceResponse,
     WorkspaceUpdate,
 )
-from .services import TemplateService, WorkspaceService  # noqa: E402
+from .services import TemplateService  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -703,32 +703,7 @@ async def create_template(
 
     Related: Epic #166
     """
-    # Validate workspace exists
-    WorkspaceService.get_workspace_or_404(workspace_id, db)
-
-    # Check for case-insensitive duplicate scoped to workspace
-    existing = TemplateService.check_duplicate_content(
-        template.type, template.content, workspace_id, db
-    )
-
-    if existing:
-        raise HTTPException(
-            status_code=409,
-            detail=f"Template with this content already exists (ID: {existing.id})",
-        )
-
-    # Create new template
-    db_template = Template(
-        type=template.type,
-        name=template.name,
-        content=template.content,
-        workspace_id=workspace_id,
-    )
-    db.add(db_template)
-    db.commit()
-    db.refresh(db_template)
-
-    return db_template
+    return TemplateService.create_template(template, workspace_id, db)
 
 
 @app.get("/api/templates", response_model=list[TemplateResponse])
@@ -797,34 +772,9 @@ async def update_template(
 
     Related: Epic #166
     """
-    # Get existing template
-    db_template = TemplateService.get_template_or_404(template_id, workspace_id, db)
-
-    # Check for duplicate if type or content is being updated
-    if template_update.type or template_update.content:
-        existing = TemplateService.check_duplicate_content(
-            template_update.type or db_template.type,  # type: ignore[arg-type]
-            template_update.content or db_template.content,  # type: ignore[arg-type]
-            workspace_id,
-            db,
-            exclude_id=template_id,
-        )
-
-        if existing:
-            raise HTTPException(
-                status_code=409,
-                detail=f"Template with this content already exists (ID: {existing.id})",
-            )
-
-    # Update fields
-    update_data = template_update.model_dump(exclude_unset=True)
-    for field, value in update_data.items():
-        setattr(db_template, field, value)
-
-    db.commit()
-    db.refresh(db_template)
-
-    return db_template
+    return TemplateService.update_template(
+        template_id, template_update, workspace_id, db
+    )
 
 
 @app.delete("/api/templates/{template_id}", status_code=204)
@@ -842,7 +792,5 @@ async def delete_template(
 
     Related: Epic #166
     """
-    db_template = TemplateService.get_template_or_404(template_id, workspace_id, db)
-    db.delete(db_template)
-    db.commit()
+    TemplateService.delete_template(template_id, workspace_id, db)
     return None

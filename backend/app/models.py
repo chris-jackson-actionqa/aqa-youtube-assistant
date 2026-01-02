@@ -110,7 +110,8 @@ class Template(Base):
     Template database model.
 
     Represents a reusable template with placeholders for various content types
-    (e.g., video titles, descriptions). Templates are global and not workspace-specific.
+    (e.g., video titles, descriptions). Templates are scoped to workspaces so
+    each workspace can maintain its own template library.
 
     Attributes:
         id: Primary key

@@ -8,9 +8,11 @@ and maintainable.
 
 from fastapi import HTTPException
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .models import Template, Workspace
+from .schemas import TemplateCreate, TemplateUpdate
 
 
 class WorkspaceService:
@@ -129,3 +131,91 @@ class TemplateService:
             query = query.filter(Template.type == type_filter)
 
         return query.order_by(Template.created_at.desc()).all()
+
+    @staticmethod
+    def create_template(
+        template_data: TemplateCreate, workspace_id: int, db: Session
+    ) -> Template:
+        """Create a template scoped to a workspace with duplicate protection."""
+        WorkspaceService.get_workspace_or_404(workspace_id, db)
+
+        existing = TemplateService.check_duplicate_content(
+            template_data.type, template_data.content, workspace_id, db
+        )
+        if existing:
+            raise HTTPException(
+                status_code=409,
+                detail=f"Template with this content already exists (ID: {existing.id})",
+            )
+
+        db_template = Template(
+            type=template_data.type,
+            name=template_data.name,
+            content=template_data.content,
+            workspace_id=workspace_id,
+        )
+
+        try:
+            db.add(db_template)
+            db.commit()
+            db.refresh(db_template)
+        except IntegrityError:
+            db.rollback()
+            raise HTTPException(
+                status_code=409,
+                detail="Template with this content already exists",
+            ) from None
+
+        return db_template
+
+    @staticmethod
+    def update_template(
+        template_id: int,
+        template_update: TemplateUpdate,
+        workspace_id: int,
+        db: Session,
+    ) -> Template:
+        """Update a template with optional type/content changes and deduping."""
+        db_template = TemplateService.get_template_or_404(
+            template_id, workspace_id, db
+        )
+
+        if template_update.type or template_update.content:
+            existing = TemplateService.check_duplicate_content(
+                template_update.type or db_template.type,  # type: ignore[arg-type]
+                template_update.content or db_template.content,  # type: ignore[arg-type]
+                workspace_id,
+                db,
+                exclude_id=template_id,
+            )
+            if existing:
+                raise HTTPException(
+                    status_code=409,
+                    detail=(
+                        "Template with this content already exists "
+                        f"(ID: {existing.id})"
+                    ),
+                )
+
+        update_data = template_update.model_dump(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(db_template, field, value)
+
+        try:
+            db.commit()
+            db.refresh(db_template)
+        except IntegrityError:
+            db.rollback()
+            raise HTTPException(
+                status_code=409,
+                detail="Template with this content already exists",
+            ) from None
+
+        return db_template
+
+    @staticmethod
+    def delete_template(template_id: int, workspace_id: int, db: Session) -> None:
+        """Delete a template scoped to a workspace."""
+        db_template = TemplateService.get_template_or_404(template_id, workspace_id, db)
+        db.delete(db_template)
+        db.commit()
