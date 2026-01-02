@@ -571,7 +571,7 @@ test.describe('Templates Page', () => {
       await page.getByRole('button', { name: 'Cancel' }).click();
 
       // Assert - Dialog closes
-      await expect(dialog).not.toBeVisible();
+      await expect(dialog).toBeHidden();
 
       // Assert - Template still exists
       await expect(page.getByText('Template to Delete')).toBeVisible();
@@ -593,7 +593,7 @@ test.describe('Templates Page', () => {
       await page.keyboard.press('Escape');
 
       // Assert - Dialog closes
-      await expect(dialog).not.toBeVisible();
+      await expect(dialog).toBeHidden();
 
       // Assert - Template still exists
       await expect(page.getByText('Another Template')).toBeVisible();
@@ -628,10 +628,10 @@ test.describe('Templates Page', () => {
       expect(deleteResponse.ok()).toBeTruthy();
 
       // Assert - Dialog closes
-      await expect(dialog).not.toBeVisible();
+      await expect(dialog).toBeHidden();
 
       // Assert - Template removed from list
-      await expect(page.getByText('Template to Delete')).not.toBeVisible();
+      await expect(page.getByText('Template to Delete')).toBeHidden();
 
       // Assert - Other template still exists
       await expect(page.getByText('Another Template')).toBeVisible();
@@ -741,7 +741,7 @@ test.describe('Templates Page', () => {
       await page.mouse.click(50, 50);
 
       // Assert - Dialog closes
-      await expect(dialog).not.toBeVisible();
+      await expect(dialog).toBeHidden();
 
       // Assert - Template still exists
       await expect(page.getByText('Template to Delete')).toBeVisible();
