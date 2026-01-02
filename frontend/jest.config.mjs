@@ -11,13 +11,12 @@ const config = {
   // Add more setup options before each test is run
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testEnvironment: 'jest-environment-jsdom',
-  
-  // Coverage configuration
   collectCoverageFrom: [
     'app/**/*.{js,jsx,ts,tsx}',
     '!app/**/*.d.ts',
     '!app/**/layout.tsx',
     '!app/**/globals.css',
+    '!app/types/**', // Exclude types directory
     '!app/demo/**', // Exclude demo pages from coverage
     '!app/template-demo/**', // Exclude template demo from coverage
     '!app/components/TemplateForm.tsx', // Component with utility modules tested via 37 integration tests
@@ -31,12 +30,18 @@ const config = {
   
   coverageThreshold: {
     global: {
-      branches: 98,
+      branches: 99,
       functions: 98,
       lines: 98,
-      statements: 98,
+      statements: 99,
     },
   },
+  
+  // Coverage reporters
+  coverageReporters: ['text', 'json', 'lcov', 'html'],
+  
+  // Use V8 code coverage instrumentation
+  coverageProvider: 'v8',
   
   // Test match patterns
   testMatch: [

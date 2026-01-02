@@ -69,6 +69,7 @@ describe("TemplatesPage", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (api.getTemplates as jest.Mock).mockResolvedValue(mockTemplates);
+    (api.deleteTemplate as jest.Mock).mockResolvedValue(undefined);
   });
 
   describe("Page Layout", () => {
@@ -411,6 +412,215 @@ describe("TemplatesPage", () => {
           screen.getByRole("button", { name: "Retry" })
         ).toBeInTheDocument();
       });
+    });
+  });
+
+  describe("Deletion Flow", () => {
+    it("opens and focuses the delete dialog", async () => {
+      render(<TemplatesPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Standard Title Template")).toBeInTheDocument();
+      });
+
+      fireEvent.click(
+        screen.getByRole("button", {
+          name: "Delete template Standard Title Template",
+        })
+      );
+
+      const dialog = await screen.findByRole("dialog", {
+        name: "Delete template",
+      });
+
+      expect(dialog).toBeInTheDocument();
+      const cancelButton = screen.getByRole("button", { name: "Cancel" });
+      await waitFor(() => expect(cancelButton).toHaveFocus());
+      expect(screen.getByRole("main", { hidden: true })).toHaveAttribute(
+        "aria-hidden",
+        "true"
+      );
+    });
+
+    it("closes the dialog when Escape is pressed", async () => {
+      render(<TemplatesPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Standard Title Template")).toBeInTheDocument();
+      });
+
+      fireEvent.click(
+        screen.getByRole("button", {
+          name: "Delete template Standard Title Template",
+        })
+      );
+
+      await screen.findByRole("dialog", { name: "Delete template" });
+
+      fireEvent.keyDown(window, { key: "Escape" });
+
+      await waitFor(() => {
+        expect(
+          screen.queryByRole("dialog", { name: "Delete template" })
+        ).not.toBeInTheDocument();
+      });
+      expect(screen.getByRole("main", { hidden: true })).toHaveAttribute(
+        "aria-hidden",
+        "false"
+      );
+    });
+
+    it("closes when clicking the overlay", async () => {
+      render(<TemplatesPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Standard Title Template")).toBeInTheDocument();
+      });
+
+      fireEvent.click(
+        screen.getByRole("button", {
+          name: "Delete template Standard Title Template",
+        })
+      );
+
+      const dialog = await screen.findByRole("dialog", {
+        name: "Delete template",
+      });
+
+      fireEvent.click(dialog);
+
+      await waitFor(() => {
+        expect(
+          screen.queryByRole("dialog", { name: "Delete template" })
+        ).not.toBeInTheDocument();
+      });
+    });
+
+    it("deletes a template and updates the list", async () => {
+      render(<TemplatesPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Standard Title Template")).toBeInTheDocument();
+      });
+
+      fireEvent.click(
+        screen.getByRole("button", {
+          name: "Delete template Standard Title Template",
+        })
+      );
+
+      fireEvent.click(
+        await screen.findByRole("button", { name: "Delete Template" })
+      );
+
+      await waitFor(() => {
+        expect(api.deleteTemplate).toHaveBeenCalledWith(1);
+      });
+
+      await waitFor(() => {
+        expect(
+          screen.queryByText("Standard Title Template")
+        ).not.toBeInTheDocument();
+      });
+
+      expect(
+        screen.queryByRole("dialog", { name: "Delete template" })
+      ).not.toBeInTheDocument();
+    });
+
+    it("deletes within a filtered view and preserves other types", async () => {
+      render(<TemplatesPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Standard Title Template")).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByRole("button", { name: /Title \(2\)/ }));
+
+      fireEvent.click(
+        screen.getByRole("button", {
+          name: "Delete template Standard Title Template",
+        })
+      );
+
+      fireEvent.click(
+        await screen.findByRole("button", { name: "Delete Template" })
+      );
+
+      await waitFor(() => {
+        expect(api.deleteTemplate).toHaveBeenCalledWith(1);
+      });
+
+      await waitFor(() => {
+        expect(
+          screen.queryByText("Standard Title Template")
+        ).not.toBeInTheDocument();
+      });
+
+      expect(screen.getByText("Question Title Template")).toBeInTheDocument();
+      expect(
+        screen.queryByText("Tutorial Description")
+      ).not.toBeInTheDocument();
+    });
+
+    it("shows an error when deletion fails", async () => {
+      (api.deleteTemplate as jest.Mock).mockRejectedValueOnce(
+        new Error("Delete failed")
+      );
+
+      render(<TemplatesPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Standard Title Template")).toBeInTheDocument();
+      });
+
+      fireEvent.click(
+        screen.getByRole("button", {
+          name: "Delete template Standard Title Template",
+        })
+      );
+
+      fireEvent.click(
+        await screen.findByRole("button", { name: "Delete Template" })
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText("Delete failed")).toBeInTheDocument();
+      });
+
+      expect(
+        screen.getByRole("button", { name: "Delete Template" })
+      ).not.toBeDisabled();
+    });
+
+    it("shows a generic error when deletion throws a non-Error", async () => {
+      (api.deleteTemplate as jest.Mock).mockRejectedValueOnce("boom");
+
+      render(<TemplatesPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Standard Title Template")).toBeInTheDocument();
+      });
+
+      fireEvent.click(
+        screen.getByRole("button", {
+          name: "Delete template Standard Title Template",
+        })
+      );
+
+      fireEvent.click(
+        await screen.findByRole("button", { name: "Delete Template" })
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("Failed to delete template. Please try again.")
+        ).toBeInTheDocument();
+      });
+
+      expect(
+        screen.getByRole("button", { name: "Delete Template" })
+      ).not.toBeDisabled();
     });
   });
 

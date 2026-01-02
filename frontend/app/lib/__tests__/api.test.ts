@@ -538,6 +538,11 @@ describe("API Client", () => {
       process.env.NEXT_PUBLIC_API_URL = originalEnv;
     });
 
+    const loadApiWithFreshEnv = async () => {
+      jest.resetModules();
+      return import("../api");
+    };
+
     it("should use default API URL when env var is not set", async () => {
       delete process.env.NEXT_PUBLIC_API_URL;
       (global.fetch as jest.Mock).mockResolvedValueOnce({
@@ -545,11 +550,33 @@ describe("API Client", () => {
         json: async () => ({ status: "healthy" }),
       });
 
-      await checkHealth();
+      const { checkHealth: freshCheckHealth } = await loadApiWithFreshEnv();
+      await freshCheckHealth();
 
       expect(global.fetch).toHaveBeenCalledWith(
         "http://localhost:8000/api/health",
         expect.any(Object)
+      );
+    });
+
+    it("should use NEXT_PUBLIC_API_URL when provided", async () => {
+      process.env.NEXT_PUBLIC_API_URL = "https://api.example.com";
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],
+      });
+
+      const { getProjects: freshGetProjects } = await loadApiWithFreshEnv();
+      await freshGetProjects();
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        "https://api.example.com/api/projects",
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            "X-Workspace-Id": "1",
+          }),
+        })
       );
     });
   });

@@ -906,6 +906,38 @@ describe("WorkspaceContext", () => {
         );
       });
     });
+
+    describe("Workspace deletion", () => {
+      it("selects another workspace after deleting the current one", async () => {
+        (workspaceApi.list as jest.Mock)
+          .mockResolvedValueOnce(mockWorkspaces)
+          .mockResolvedValueOnce([mockWorkspaces[1]]);
+        (workspaceApi.delete as jest.Mock).mockResolvedValue(undefined);
+
+        render(
+          <WorkspaceProvider>
+            <TestComponent />
+          </WorkspaceProvider>
+        );
+
+        await waitFor(() => {
+          expect(screen.getByTestId("current-workspace")).toHaveTextContent(
+            "Default Workspace"
+          );
+        });
+
+        await act(async () => {
+          await screen.getByText("Delete Workspace").click();
+        });
+
+        await waitFor(() => {
+          expect(workspaceApi.delete).toHaveBeenCalledWith(1);
+          expect(screen.getByTestId("current-workspace")).toHaveTextContent(
+            "Test Workspace"
+          );
+        });
+      });
+    });
   });
 
   describe("useWorkspace Hook", () => {
