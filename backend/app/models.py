@@ -142,7 +142,8 @@ class Template(Base):
         DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
     )
 
-    # Case-insensitive unique constraint on (type, content)
+    # Workspace-scoped, case-insensitive unique constraint
+    # on (workspace_id, type, lower(content))
     __table_args__ = (
         Index(
             "uix_template_workspace_type_content_lower",
