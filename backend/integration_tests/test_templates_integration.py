@@ -681,8 +681,11 @@ class TestDatabaseConstraints:
         with pytest.raises(IntegrityError) as exc_info:
             db_session.commit()
 
-        # Verify it's the specific unique constraint that failed
-        assert "uix_template_type_content_lower" in str(exc_info.value).lower()
+        # Verify the new workspace-scoped unique constraint name
+        # (after migration from uix_template_type_content_lower)
+        assert "uix_template_workspace_type_content_lower" in str(
+            exc_info.value
+        ).lower()
 
         db_session.rollback()
 

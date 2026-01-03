@@ -91,7 +91,6 @@ class TestCreateTemplate:
 
         assert response.status_code == 409
         assert "already exists" in response.json()["detail"]
-        assert "ID: 1" in response.json()["detail"]
 
     def test_create_template_duplicate_different_case(
         self, client, create_sample_template
@@ -637,3 +636,268 @@ class TestDeleteTemplate:
         response = client.post("/api/templates", json=new_data)
 
         assert response.status_code == 201
+
+
+class TestTemplateWorkspaceScoping:
+    """Tests for workspace scoping of templates (Issue #91)."""
+
+    @pytest.fixture(autouse=True)
+    def setup_workspaces(self, db_session):
+        """Create additional test workspaces."""
+        from app.models import Workspace
+
+        # Workspace 1 is already created by conftest
+        # Create workspaces 2 and 3 for testing
+        ws2 = Workspace(id=2, name="Workspace 2", description="Test workspace 2")
+        ws3 = Workspace(id=3, name="Workspace 3", description="Test workspace 3")
+        db_session.add(ws2)
+        db_session.add(ws3)
+        db_session.commit()
+
+    def test_create_template_uses_workspace_id_from_header(self, client):
+        """Test that template creation uses workspace_id from X-Workspace-Id header."""
+        data = {"type": "title", "name": "Workspace Test", "content": "{{topic}}"}
+
+        # Create with workspace_id=1 (default)
+        response = client.post(
+            "/api/templates", json=data, headers={"X-Workspace-Id": "1"}
+        )
+
+        assert response.status_code == 201
+        result = response.json()
+        assert result["workspace_id"] == 1
+
+    def test_create_template_defaults_to_workspace_id_1(self, client):
+        """Test template creation defaults to workspace_id=1 if header absent."""
+        data = {"type": "title", "name": "Default Workspace", "content": "{{topic}}"}
+
+        # Create without header
+        response = client.post("/api/templates", json=data)
+
+        assert response.status_code == 201
+        result = response.json()
+        assert result["workspace_id"] == 1
+
+    def test_create_template_with_custom_workspace_id(self, client):
+        """Test creating template in custom workspace."""
+        data = {"type": "title", "name": "Custom Workspace", "content": "{{topic}}"}
+
+        response = client.post(
+            "/api/templates", json=data, headers={"X-Workspace-Id": "2"}
+        )
+
+        assert response.status_code == 201
+        result = response.json()
+        assert result["workspace_id"] == 2
+
+    def test_list_templates_filters_by_workspace_id(self, client):
+        """Test that list templates only returns templates from current workspace."""
+        # Create template in workspace 1
+        data1 = {"type": "title", "name": "WS1 Template", "content": "{{a}}"}
+        response1 = client.post(
+            "/api/templates", json=data1, headers={"X-Workspace-Id": "1"}
+        )
+        assert response1.status_code == 201
+
+        # Create template in workspace 2
+        data2 = {"type": "title", "name": "WS2 Template", "content": "{{b}}"}
+        response2 = client.post(
+            "/api/templates", json=data2, headers={"X-Workspace-Id": "2"}
+        )
+        assert response2.status_code == 201
+
+        # List templates in workspace 1 (default)
+        list_response = client.get("/api/templates", headers={"X-Workspace-Id": "1"})
+        assert list_response.status_code == 200
+        templates = list_response.json()
+        assert len(templates) == 1
+        assert templates[0]["name"] == "WS1 Template"
+        assert templates[0]["workspace_id"] == 1
+
+        # List templates in workspace 2
+        list_response = client.get("/api/templates", headers={"X-Workspace-Id": "2"})
+        assert list_response.status_code == 200
+        templates = list_response.json()
+        assert len(templates) == 1
+        assert templates[0]["name"] == "WS2 Template"
+        assert templates[0]["workspace_id"] == 2
+
+    def test_list_templates_with_filter_and_workspace_scoping(self, client):
+        """Test that type filter respects workspace scoping."""
+        # Create title template in workspace 1
+        client.post(
+            "/api/templates",
+            json={"type": "title", "name": "Title WS1", "content": "{{a}}"},
+            headers={"X-Workspace-Id": "1"},
+        )
+
+        # Create description template in workspace 1
+        client.post(
+            "/api/templates",
+            json={"type": "description", "name": "Desc WS1", "content": "{{b}}"},
+            headers={"X-Workspace-Id": "1"},
+        )
+
+        # Create title template in workspace 2
+        client.post(
+            "/api/templates",
+            json={"type": "title", "name": "Title WS2", "content": "{{c}}"},
+            headers={"X-Workspace-Id": "2"},
+        )
+
+        # List title templates in workspace 1
+        response = client.get(
+            "/api/templates?type=title", headers={"X-Workspace-Id": "1"}
+        )
+        assert response.status_code == 200
+        templates = list(response.json())
+        assert len(templates) == 1
+        assert templates[0]["name"] == "Title WS1"
+
+        # List title templates in workspace 2
+        response = client.get(
+            "/api/templates?type=title", headers={"X-Workspace-Id": "2"}
+        )
+        assert response.status_code == 200
+        templates = response.json()
+        assert len(templates) == 1
+        assert templates[0]["name"] == "Title WS2"
+
+    def test_get_template_filters_by_workspace_id(self, client):
+        """Test that getting a template checks workspace_id match."""
+        # Create template in workspace 1
+        response1 = client.post(
+            "/api/templates",
+            json={"type": "title", "name": "WS1", "content": "{{a}}"},
+            headers={"X-Workspace-Id": "1"},
+        )
+        template_id = response1.json()["id"]
+
+        # Get template as workspace 1 - should succeed
+        get_response = client.get(
+            f"/api/templates/{template_id}", headers={"X-Workspace-Id": "1"}
+        )
+        assert get_response.status_code == 200
+
+        # Get template as workspace 2 - should return 404 (not found in workspace 2)
+        get_response = client.get(
+            f"/api/templates/{template_id}", headers={"X-Workspace-Id": "2"}
+        )
+        assert get_response.status_code == 404
+
+    def test_update_template_filters_by_workspace_id(self, client):
+        """Test that updating a template checks workspace_id match."""
+        # Create template in workspace 1
+        response1 = client.post(
+            "/api/templates",
+            json={"type": "title", "name": "Original", "content": "{{a}}"},
+            headers={"X-Workspace-Id": "1"},
+        )
+        template_id = response1.json()["id"]
+
+        # Update as workspace 1 - should succeed
+        update_response = client.put(
+            f"/api/templates/{template_id}",
+            json={"name": "Updated"},
+            headers={"X-Workspace-Id": "1"},
+        )
+        assert update_response.status_code == 200
+        assert update_response.json()["name"] == "Updated"
+
+        # Update as workspace 2 - should return 404
+        update_response = client.put(
+            f"/api/templates/{template_id}",
+            json={"name": "Hacked"},
+            headers={"X-Workspace-Id": "2"},
+        )
+        assert update_response.status_code == 404
+
+    def test_delete_template_filters_by_workspace_id(self, client):
+        """Test that deleting a template checks workspace_id match."""
+        # Create template in workspace 1
+        response1 = client.post(
+            "/api/templates",
+            json={"type": "title", "name": "Delete Test", "content": "{{a}}"},
+            headers={"X-Workspace-Id": "1"},
+        )
+        template_id = response1.json()["id"]
+
+        # Delete as workspace 2 - should return 404
+        delete_response = client.delete(
+            f"/api/templates/{template_id}", headers={"X-Workspace-Id": "2"}
+        )
+        assert delete_response.status_code == 404
+
+        # Verify template still exists in workspace 1
+        get_response = client.get(
+            f"/api/templates/{template_id}", headers={"X-Workspace-Id": "1"}
+        )
+        assert get_response.status_code == 200
+
+        # Delete as workspace 1 - should succeed
+        delete_response = client.delete(
+            f"/api/templates/{template_id}", headers={"X-Workspace-Id": "1"}
+        )
+        assert delete_response.status_code == 204
+
+    def test_duplicate_check_scoped_by_workspace(self, client):
+        """Test that duplicate content check is scoped by workspace."""
+        # Create template in workspace 1
+        client.post(
+            "/api/templates",
+            json={"type": "title", "name": "WS1", "content": "{{same}}"},
+            headers={"X-Workspace-Id": "1"},
+        )
+
+        # Same content in workspace 2 should be allowed (different workspace)
+        response = client.post(
+            "/api/templates",
+            json={"type": "title", "name": "WS2", "content": "{{same}}"},
+            headers={"X-Workspace-Id": "2"},
+        )
+        assert response.status_code == 201
+
+        # Same content in workspace 1 should fail (same workspace)
+        response = client.post(
+            "/api/templates",
+            json={"type": "title", "name": "WS1 Dup", "content": "{{same}}"},
+            headers={"X-Workspace-Id": "1"},
+        )
+        assert response.status_code == 409
+
+    def test_template_response_includes_workspace_id(self, client):
+        """Test that template response includes workspace_id field."""
+        response = client.post(
+            "/api/templates",
+            json={"type": "title", "name": "Test", "content": "{{a}}"},
+            headers={"X-Workspace-Id": "3"},
+        )
+
+        assert response.status_code == 201
+        result = response.json()
+        assert "workspace_id" in result
+        assert result["workspace_id"] == 3
+
+    def test_invalid_workspace_id_header_defaults_to_1(self, client):
+        """Test that invalid/null workspace_id header defaults to 1."""
+        response = client.post(
+            "/api/templates",
+            json={"type": "title", "name": "Test", "content": "{{a}}"},
+            headers={"X-Workspace-Id": "0"},  # Zero or empty treated as invalid
+        )
+
+        # Should default to 1 or accept valid workspace_id
+        assert response.status_code == 201
+        # When X-Workspace-Id is not a valid workspace, it should default to 1
+        assert response.json()["workspace_id"] == 1
+
+    def test_create_template_with_nonexistent_workspace_returns_404(self, client):
+        """Test that creating template with non-existent workspace returns 404."""
+        response = client.post(
+            "/api/templates",
+            json={"type": "title", "name": "Test", "content": "{{a}}"},
+            headers={"X-Workspace-Id": "9999"},  # Non-existent workspace
+        )
+
+        assert response.status_code == 404
+        assert "not found" in response.json()["detail"].lower()

@@ -27,6 +27,9 @@ test.describe('Templates Page', () => {
     // Setup workspace for test isolation
     await helpers.setupWorkspace();
 
+    // Pass workspace context to template helpers
+    templateHelpers.setWorkspaceId(helpers.getCurrentWorkspaceId());
+
     // Clear all templates before each test
     await templateHelpers.clearAllTemplates();
   });
@@ -493,6 +496,255 @@ test.describe('Templates Page', () => {
 
       // Assert - Title filter activated
       await expect(titleButton).toHaveAttribute('aria-pressed', 'true');
+    });
+  });
+
+  test.describe('Template Deletion', () => {
+    test.beforeEach(async () => {
+      // Create templates for deletion tests
+      await templateHelpers.createTemplateViaAPI(
+        'Title',
+        'Template to Delete',
+        'This is {{template}} content'
+      );
+      await templateHelpers.createTemplateViaAPI(
+        'Description',
+        'Another Template',
+        'Another {{template}}'
+      );
+    });
+
+    test('should display delete button on each template card', async ({ page }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      // Assert - Delete buttons visible for both templates
+      const deleteButtons = page.getByRole('button', { name: /Delete template/i });
+      await expect(deleteButtons).toHaveCount(2);
+    });
+
+    test('TD-001: should show confirmation dialog when delete button is clicked', async ({
+      page,
+    }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      // Act - Click delete button for first template
+      await page.getByRole('button', { name: /Delete template Template to Delete/i }).click();
+
+      // Assert - Confirmation dialog appears
+      const dialog = page.getByRole('dialog', { name: /Delete template/i });
+      await expect(dialog).toBeVisible();
+
+      // Assert - Dialog shows template name
+      await expect(dialog).toContainText('Template to Delete');
+
+      // Assert - Dialog has warning message
+      await expect(dialog).toContainText(/This action cannot be undone/i);
+
+      // Assert - Dialog has Cancel button
+      await expect(page.getByRole('button', { name: 'Cancel' })).toBeVisible();
+
+      // Assert - Dialog has Delete Template button
+      await expect(page.getByRole('button', { name: 'Delete Template' })).toBeVisible();
+    });
+
+    test('TD-002: should cancel deletion and close dialog when cancel is clicked', async ({
+      page,
+    }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      // Act - Open confirmation dialog
+      await page.getByRole('button', { name: /Delete template Template to Delete/i }).click();
+
+      const dialog = page.getByRole('dialog', { name: /Delete template/i });
+      await expect(dialog).toBeVisible();
+
+      // Act - Click cancel
+      await page.getByRole('button', { name: 'Cancel' }).click();
+
+      // Assert - Dialog closes
+      await expect(dialog).toBeHidden();
+
+      // Assert - Template still exists
+      await expect(page.getByText('Template to Delete')).toBeVisible();
+    });
+
+    test('TD-003: should close dialog when Escape key is pressed', async ({ page }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      // Act - Open confirmation dialog
+      await page.getByRole('button', { name: /Delete template Another Template/i }).click();
+
+      const dialog = page.getByRole('dialog', { name: /Delete template/i });
+      await expect(dialog).toBeVisible();
+
+      // Act - Press Escape key
+      await page.keyboard.press('Escape');
+
+      // Assert - Dialog closes
+      await expect(dialog).toBeHidden();
+
+      // Assert - Template still exists
+      await expect(page.getByText('Another Template')).toBeVisible();
+    });
+
+    test('TD-001 (Critical): should delete template after confirming', async ({ page }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      // Verify template exists
+      await expect(page.getByText('Template to Delete')).toBeVisible();
+
+      // Act - Open confirmation dialog
+      await page.getByRole('button', { name: /Delete template Template to Delete/i }).click();
+
+      const dialog = page.getByRole('dialog', { name: /Delete template/i });
+      await expect(dialog).toBeVisible();
+
+      // Setup API response listener
+      const deleteResponsePromise = page.waitForResponse(
+        (response) =>
+          response.url().includes('/api/templates/') && response.request().method() === 'DELETE'
+      );
+
+      // Act - Confirm deletion
+      await page.getByRole('button', { name: 'Delete Template' }).click();
+
+      // Assert - API call made
+      const deleteResponse = await deleteResponsePromise;
+      expect(deleteResponse.ok()).toBeTruthy();
+
+      // Assert - Dialog closes
+      await expect(dialog).toBeHidden();
+
+      // Assert - Template removed from list
+      await expect(page.getByText('Template to Delete')).toBeHidden();
+
+      // Assert - Other template still exists
+      await expect(page.getByText('Another Template')).toBeVisible();
+    });
+
+    test('TD-004: should display error message when deletion fails', async ({ page }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      // Mock API failure for deletion
+      await page.route('**/api/templates/*', (route) => {
+        if (route.request().method() === 'DELETE') {
+          route.fulfill({ status: 500, body: 'Server error' });
+        } else {
+          route.continue();
+        }
+      });
+
+      // Act - Open confirmation dialog and confirm deletion
+      await page.getByRole('button', { name: /Delete template Template to Delete/i }).click();
+
+      const dialog = page.getByRole('dialog', { name: /Delete template/i });
+      await expect(dialog).toBeVisible();
+
+      await page.getByRole('button', { name: 'Delete Template' }).click();
+
+      // Assert - Error message displayed in dialog
+      await expect(dialog).toContainText(/failed to delete|error/i);
+
+      // Assert - Template still exists in list (after closing error)
+      await page.getByRole('button', { name: 'Cancel' }).click();
+      await expect(page.getByText('Template to Delete')).toBeVisible();
+    });
+
+    test('TD-005: should support keyboard navigation in delete dialog', async ({ page }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      // Act - Open confirmation dialog
+      await page.getByRole('button', { name: /Delete template Template to Delete/i }).click();
+
+      const dialog = page.getByRole('dialog', { name: /Delete template/i });
+      await expect(dialog).toBeVisible();
+
+      // Assert - Cancel button has focus initially
+      const cancelButton = page.getByRole('button', { name: 'Cancel' });
+      await expect(cancelButton).toBeFocused();
+
+      // Act - Tab to Delete button
+      await page.keyboard.press('Tab');
+
+      // Assert - Delete Template button now has focus
+      const deleteButton = page.getByRole('button', { name: 'Delete Template' });
+      await expect(deleteButton).toBeFocused();
+
+      // Act - Shift+Tab back to Cancel
+      await page.keyboard.press('Shift+Tab');
+
+      // Assert - Cancel button has focus again
+      await expect(cancelButton).toBeFocused();
+    });
+
+    test('TD-006: should show empty state after deleting last template', async ({ page }) => {
+      // Arrange - Clear all templates and create just one
+      await templateHelpers.clearAllTemplates();
+      await templateHelpers.createTemplateViaAPI('Title', 'Last Template', '{{content}}');
+
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      // Verify one template exists
+      await expect(page.getByText('Last Template')).toBeVisible();
+
+      // Act - Delete the last template
+      await page.getByRole('button', { name: /Delete template Last Template/i }).click();
+
+      const dialog = page.getByRole('dialog', { name: /Delete template/i });
+      await expect(dialog).toBeVisible();
+
+      await page.getByRole('button', { name: 'Delete Template' }).click();
+
+      // Assert - Empty state message displayed
+      await expect(
+        page.getByText(/No templates found. Create your first template to get started./i)
+      ).toBeVisible();
+    });
+
+    test('should close dialog when clicking backdrop', async ({ page }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      // Act - Open confirmation dialog
+      await page.getByRole('button', { name: /Delete template Template to Delete/i }).click();
+
+      const dialog = page.getByRole('dialog', { name: /Delete template/i });
+      await expect(dialog).toBeVisible();
+
+      // Act - Click outside the dialog (backdrop)
+      // Click at a position that's outside the dialog content
+      await page.mouse.click(50, 50);
+
+      // Assert - Dialog closes
+      await expect(dialog).toBeHidden();
+
+      // Assert - Template still exists
+      await expect(page.getByText('Template to Delete')).toBeVisible();
     });
   });
 });

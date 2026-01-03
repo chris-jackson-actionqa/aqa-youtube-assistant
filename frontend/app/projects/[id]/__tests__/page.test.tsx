@@ -365,6 +365,34 @@ describe("ProjectDetailPage", () => {
     });
   });
 
+  describe("edge cases", () => {
+    it("renders 404 view when id is invalid", async () => {
+      mockUseParams.mockReturnValue({ id: "abc" });
+
+      render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Project Not Found")).toBeInTheDocument();
+      });
+    });
+
+    it("shows fallback text when description is missing", async () => {
+      mockUseParams.mockReturnValue({ id: "1" });
+      mockGetProject.mockResolvedValue({
+        ...mockProject,
+        description: null,
+      });
+
+      render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Test Project")).toBeInTheDocument();
+      });
+
+      expect(screen.getByText("No description provided")).toBeInTheDocument();
+    });
+  });
+
   describe("404 handling - invalid IDs", () => {
     it("shows 404 when ID is not a number", async () => {
       mockUseParams.mockReturnValue({ id: "abc" });

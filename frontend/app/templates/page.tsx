@@ -1,9 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { getTemplates } from "@/app/lib/api";
-import { Template } from "@/app/types/template";
+import { deleteTemplate, getTemplates } from "@/app/lib/api";
+import {
+  formatTemplateTypeLabel,
+  normalizeTemplateType,
+  NormalizedTemplate,
+  Template,
+  TemplateType,
+} from "@/app/types/template";
 
 /**
  * TemplatesPage Component
@@ -27,13 +33,16 @@ import { Template } from "@/app/types/template";
  * // URL: /templates -> Displays all templates
  */
 export default function TemplatesPage() {
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [filteredTemplates, setFilteredTemplates] = useState<Template[]>([]);
+  const [templates, setTemplates] = useState<NormalizedTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedType, setSelectedType] = useState<
-    "All" | "Title" | "Description"
-  >("All");
+  const [selectedType, setSelectedType] = useState<TemplateType | "all">("all");
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<NormalizedTemplate | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -42,8 +51,8 @@ export default function TemplatesPage() {
 
       try {
         const data = await getTemplates();
-        setTemplates(data);
-        setFilteredTemplates(data);
+        const normalized = data.map(normalizeTemplateFromApi);
+        setTemplates(normalized);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Failed to load templates"
@@ -56,16 +65,79 @@ export default function TemplatesPage() {
     fetchTemplates();
   }, []);
 
-  // Filter templates when selectedType changes
+  const templateCounts = useMemo(
+    () => calculateTemplateCounts(templates),
+    [templates]
+  );
+
+  const filteredTemplates = useMemo(
+    () => filterTemplatesByType(templates, selectedType),
+    [selectedType, templates]
+  );
+
+  const selectedTypeLabel = useMemo(
+    () =>
+      selectedType === "all" ? "All" : formatTemplateTypeLabel(selectedType),
+    [selectedType]
+  );
+
+  const closeDeleteDialog = useCallback(() => {
+    setIsDeleteDialogOpen(false);
+    setSelectedTemplate(null);
+    setDeleteError(null);
+  }, []);
+
   useEffect(() => {
-    if (selectedType === "All") {
-      setFilteredTemplates(templates);
-    } else {
-      setFilteredTemplates(
-        templates.filter((template) => template.type === selectedType)
-      );
+    if (!isDeleteDialogOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeDeleteDialog();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isDeleteDialogOpen, closeDeleteDialog]);
+
+  useEffect(() => {
+    if (isDeleteDialogOpen && cancelButtonRef.current) {
+      cancelButtonRef.current.focus();
     }
-  }, [selectedType, templates]);
+  }, [isDeleteDialogOpen]);
+
+  const handleDeleteClick = (template: NormalizedTemplate) => {
+    setSelectedTemplate(template);
+    setDeleteError(null);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedTemplate) return;
+
+    setIsDeleting(true);
+    setDeleteError(null);
+
+    try {
+      await deleteTemplate(selectedTemplate.id);
+
+      setTemplates((currentTemplates) =>
+        currentTemplates.filter(
+          (template) => template.id !== selectedTemplate.id
+        )
+      );
+
+      closeDeleteDialog();
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Failed to delete template. Please try again.";
+      setDeleteError(message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // Show loading state
   if (isLoading) {
@@ -111,7 +183,7 @@ export default function TemplatesPage() {
 
   return (
     <div className="min-h-screen p-8 pb-20 gap-16 sm:p-20 font-sans bg-gray-50 dark:bg-gray-900">
-      <main className="max-w-6xl mx-auto">
+      <main className="max-w-6xl mx-auto" aria-hidden={isDeleteDialogOpen}>
         {/* Back Navigation */}
         <Link
           href="/"
@@ -139,44 +211,43 @@ export default function TemplatesPage() {
           </label>
           <div className="inline-flex rounded-lg border border-gray-300 dark:border-gray-600 overflow-hidden">
             <button
-              onClick={() => setSelectedType("All")}
+              onClick={() => setSelectedType("all")}
               className={`px-4 py-2 text-sm font-medium transition-colors duration-200
                 ${
-                  selectedType === "All"
+                  selectedType === "all"
                     ? "bg-blue-600 text-white"
                     : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                 }
                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset`}
-              aria-pressed={selectedType === "All"}
+              aria-pressed={selectedType === "all"}
             >
-              All ({templates.length})
+              All ({templateCounts.all})
             </button>
             <button
-              onClick={() => setSelectedType("Title")}
+              onClick={() => setSelectedType("title")}
               className={`px-4 py-2 text-sm font-medium transition-colors duration-200 border-l border-gray-300 dark:border-gray-600
                 ${
-                  selectedType === "Title"
+                  selectedType === "title"
                     ? "bg-blue-600 text-white"
                     : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                 }
                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset`}
-              aria-pressed={selectedType === "Title"}
+              aria-pressed={selectedType === "title"}
             >
-              Title ({templates.filter((t) => t.type === "Title").length})
+              Title ({templateCounts.title})
             </button>
             <button
-              onClick={() => setSelectedType("Description")}
+              onClick={() => setSelectedType("description")}
               className={`px-4 py-2 text-sm font-medium transition-colors duration-200 border-l border-gray-300 dark:border-gray-600
                 ${
-                  selectedType === "Description"
+                  selectedType === "description"
                     ? "bg-blue-600 text-white"
                     : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                 }
                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset`}
-              aria-pressed={selectedType === "Description"}
+              aria-pressed={selectedType === "description"}
             >
-              Description (
-              {templates.filter((t) => t.type === "Description").length})
+              Description ({templateCounts.description})
             </button>
           </div>
         </div>
@@ -189,9 +260,9 @@ export default function TemplatesPage() {
               role="status"
             >
               <p className="text-gray-600 dark:text-gray-400">
-                {selectedType === "All"
+                {selectedType === "all"
                   ? "No templates found. Create your first template to get started."
-                  : `No ${selectedType} templates found.`}
+                  : `No ${selectedTypeLabel} templates found.`}
               </p>
             </div>
           ) : (
@@ -209,14 +280,23 @@ export default function TemplatesPage() {
                       </h3>
                       <span
                         className={`inline-block px-2 py-1 text-xs font-medium rounded ${
-                          template.type === "Title"
+                          template.type === "title"
                             ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300"
                             : "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
                         }`}
                       >
-                        {template.type}
+                        {formatTemplateTypeLabel(template.type)}
                       </span>
                     </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteClick(template)}
+                      className="ml-4 inline-flex items-center rounded-md border border-red-200 dark:border-red-700 bg-white dark:bg-gray-900 px-3 py-1 text-sm font-medium text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-800/30 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                      aria-label={`Delete template ${template.name}`}
+                    >
+                      Delete template
+                    </button>
                   </div>
 
                   {/* Template Content */}
@@ -238,8 +318,86 @@ export default function TemplatesPage() {
           )}
         </section>
       </main>
+
+      {isDeleteDialogOpen && selectedTemplate && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Delete template"
+          onClick={closeDeleteDialog}
+        >
+          <div
+            className="w-full max-w-lg rounded-lg bg-white dark:bg-gray-900 p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              Delete template
+            </h2>
+            <p className="text-gray-700 dark:text-gray-300 mb-4">
+              Are you sure you want to delete &quot;{selectedTemplate.name}
+              &quot;? This action cannot be undone.
+            </p>
+
+            {deleteError && (
+              <div
+                role="alert"
+                className="mb-4 rounded border border-red-200 dark:border-red-700 bg-red-50 dark:bg-red-900/30 px-4 py-3 text-sm text-red-800 dark:text-red-200"
+              >
+                {deleteError}
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                ref={cancelButtonRef}
+                onClick={closeDeleteDialog}
+                className="inline-flex items-center rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteConfirm}
+                disabled={isDeleting}
+                className="inline-flex items-center rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-70"
+              >
+                {isDeleting ? "Deleting..." : "Delete Template"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
+}
+
+function normalizeTemplateFromApi(template: Template): NormalizedTemplate {
+  return {
+    ...template,
+    type: normalizeTemplateType(template.type),
+  };
+}
+
+function calculateTemplateCounts(templates: NormalizedTemplate[]) {
+  return templates.reduce(
+    (counts, template) => {
+      counts.all += 1;
+      if (template.type === "title") counts.title += 1;
+      if (template.type === "description") counts.description += 1;
+      return counts;
+    },
+    { all: 0, title: 0, description: 0 }
+  );
+}
+
+function filterTemplatesByType(
+  templates: NormalizedTemplate[],
+  selectedType: TemplateType | "all"
+) {
+  if (selectedType === "all") return templates;
+  return templates.filter((template) => template.type === selectedType);
 }
 
 /**

@@ -496,6 +496,7 @@ class TestTemplateModel:
             type="title",
             name="Second Template",
             content="How to code in Python",  # Different case
+            workspace_id=1,
         )
         db_session.add(template2)
 
@@ -503,8 +504,10 @@ class TestTemplateModel:
             db_session.commit()
 
         # Verify it's the unique constraint that failed
-        assert "UNIQUE constraint failed" in str(exc_info.value).lower() or \
-               "uix_template_type_content_lower" in str(exc_info.value).lower()
+        error_msg = str(exc_info.value).lower()
+        assert "unique constraint failed" in error_msg or \
+               "uix_template_workspace_type_content_lower" in error_msg or \
+               "uix_template_type_content_lower" in error_msg
 
         db_session.rollback()
 

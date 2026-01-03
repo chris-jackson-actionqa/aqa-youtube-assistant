@@ -445,6 +445,7 @@ class TestTemplateResponseSchema:
             "type": "title",
             "name": "Test Template",
             "content": "{{topic}} in {{year}}",
+            "workspace_id": 1,
             "created_at": now,
             "updated_at": now,
         }
@@ -454,6 +455,7 @@ class TestTemplateResponseSchema:
         assert template.type == "title"
         assert template.name == "Test Template"
         assert template.content == "{{topic}} in {{year}}"
+        assert template.workspace_id == 1
         assert template.created_at == now
         assert template.updated_at == now
 
@@ -467,6 +469,7 @@ class TestTemplateResponseSchema:
             type = "title"
             name = "ORM Template"
             content = "{{test}}"
+            workspace_id = 1
             created_at = datetime.now(UTC)
             updated_at = datetime.now(UTC)
 
@@ -476,6 +479,7 @@ class TestTemplateResponseSchema:
         assert template.id == 1
         assert template.type == "title"
         assert template.name == "ORM Template"
+        assert template.workspace_id == 1
         assert template.content == "{{test}}"
         assert template.created_at == mock_template.created_at
         assert template.updated_at == mock_template.updated_at

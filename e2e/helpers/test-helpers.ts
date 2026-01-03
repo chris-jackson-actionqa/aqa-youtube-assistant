@@ -133,6 +133,13 @@ export class ProjectHelpers {
   }
 
   /**
+   * Expose the current workspace id for other helpers (e.g., templates).
+   */
+  getCurrentWorkspaceId(): number {
+    return this.getWorkspaceId();
+  }
+
+  /**
    * Navigate to the home page
    */
   async goToHomePage() {
@@ -464,12 +471,27 @@ export async function wait(ms: number): Promise<void> {
  */
 export class TemplateHelpers {
   private readonly baseURL: string;
+  private workspaceId: number | null = null;
 
   constructor(
     private page: Page,
     private request?: APIRequestContext
   ) {
     this.baseURL = 'http://localhost:8000';
+  }
+
+  /**
+   * Set workspace context for template API calls.
+   * Templates are now scoped by workspace.
+   */
+  setWorkspaceId(workspaceId: number) {
+    this.workspaceId = workspaceId;
+  }
+
+  private getHeaders(): Record<string, string> {
+    return this.workspaceId
+      ? { 'X-Workspace-Id': this.workspaceId.toString() }
+      : { 'X-Workspace-Id': '1' };
   }
 
   /**
@@ -488,6 +510,7 @@ export class TemplateHelpers {
         name,
         content,
       },
+      headers: this.getHeaders(),
     });
 
     if (!response.ok()) {
@@ -503,7 +526,9 @@ export class TemplateHelpers {
    */
   async getAllTemplatesViaAPI(): Promise<Template[]> {
     const context = this.request || this.page.request;
-    const response = await context.get(`${this.baseURL}/api/templates`);
+    const response = await context.get(`${this.baseURL}/api/templates`, {
+      headers: this.getHeaders(),
+    });
 
     if (!response.ok()) {
       throw new Error(`Failed to fetch templates: ${response.status()}`);
@@ -517,7 +542,9 @@ export class TemplateHelpers {
    */
   async deleteTemplateViaAPI(id: number): Promise<void> {
     const context = this.request || this.page.request;
-    const response = await context.delete(`${this.baseURL}/api/templates/${id}`);
+    const response = await context.delete(`${this.baseURL}/api/templates/${id}`, {
+      headers: this.getHeaders(),
+    });
 
     // 404 is ok - template already deleted
     if (!response.ok() && response.status() !== 404) {

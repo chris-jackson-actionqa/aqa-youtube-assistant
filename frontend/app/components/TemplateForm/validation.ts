@@ -1,9 +1,9 @@
 import {
   PLACEHOLDER_REGEX,
   EMPTY_PLACEHOLDER_REGEX,
-  CONSTRAINTS,
   VALIDATION_MESSAGES,
 } from "./constants";
+import { TEMPLATE_TYPES, TemplateType } from "../../types/template";
 
 /**
  * Validates that the template name meets all requirements
@@ -40,14 +40,12 @@ export const validatePlaceholders = (value: string): string | undefined => {
 /**
  * Validates that the template type is provided and allowed
  */
-const ALLOWED_TEMPLATE_TYPES = ["title", "description"];
-
 export const validateType = (value: string): string | undefined => {
   const trimmed = value.trim();
   if (!trimmed) return VALIDATION_MESSAGES.TYPE_REQUIRED;
 
-  const normalized = trimmed.toLowerCase();
-  if (!ALLOWED_TEMPLATE_TYPES.includes(normalized)) {
+  const normalized = trimmed.toLowerCase() as TemplateType;
+  if (!TEMPLATE_TYPES.includes(normalized)) {
     return "Template type must be either 'title' or 'description'";
   }
   return undefined;

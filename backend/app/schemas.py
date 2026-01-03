@@ -554,5 +554,6 @@ class TemplateResponse(TemplateBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    workspace_id: int
     created_at: datetime
     updated_at: datetime
