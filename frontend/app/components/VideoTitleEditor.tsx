@@ -100,7 +100,7 @@ export function VideoTitleEditor({
       {/* Edit Mode - Popover */}
       {isEditing && (
         <div
-          className="absolute z-10 w-96 max-w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg p-4"
+          className="absolute z-40 w-96 max-w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg p-4"
           role="dialog"
           aria-labelledby="edit-video-title-heading"
         >
