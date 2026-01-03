@@ -619,6 +619,7 @@ describe("API Client", () => {
             type: "title",
             name: "Template 1",
             content: "[Topic] in [Year]",
+            workspace_id: 1,
             created_at: "2025-10-21T00:00:00Z",
             updated_at: "2025-10-21T00:00:00Z",
           },
@@ -627,6 +628,7 @@ describe("API Client", () => {
             type: "description",
             name: "Template 2",
             content: "Learn about [Topic]",
+            workspace_id: 1,
             created_at: "2025-10-21T00:00:00Z",
             updated_at: "2025-10-21T00:00:00Z",
           },
@@ -658,6 +660,7 @@ describe("API Client", () => {
             type: "title",
             name: "Template 1",
             content: "[Topic] in [Year]",
+            workspace_id: 1,
             created_at: "2025-10-21T00:00:00Z",
             updated_at: "2025-10-21T00:00:00Z",
           },
@@ -695,6 +698,7 @@ describe("API Client", () => {
           type: "title",
           name: "Template 1",
           content: "[Topic] in [Year]",
+          workspace_id: 1,
           created_at: "2025-10-21T00:00:00Z",
           updated_at: "2025-10-21T00:00:00Z",
         };
@@ -743,6 +747,7 @@ describe("API Client", () => {
           type: "title",
           name: "New Template",
           content: "[Topic] Guide",
+          workspace_id: 1,
           created_at: "2025-10-21T00:00:00Z",
           updated_at: "2025-10-21T00:00:00Z",
         };
@@ -798,6 +803,7 @@ describe("API Client", () => {
           type: "title",
           name: "Updated Template",
           content: "[Updated] Content",
+          workspace_id: 1,
           created_at: "2025-10-21T00:00:00Z",
           updated_at: "2025-10-21T01:00:00Z",
         };

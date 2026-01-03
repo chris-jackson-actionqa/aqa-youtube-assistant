@@ -3,7 +3,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { deleteTemplate, getTemplates } from "@/app/lib/api";
-import { Template } from "@/app/types/template";
+import {
+  formatTemplateTypeLabel,
+  normalizeTemplateType,
+  NormalizedTemplate,
+  Template,
+  TemplateType,
+} from "@/app/types/template";
 
 /**
  * TemplatesPage Component
@@ -27,17 +33,13 @@ import { Template } from "@/app/types/template";
  * // URL: /templates -> Displays all templates
  */
 export default function TemplatesPage() {
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [filteredTemplates, setFilteredTemplates] = useState<Template[]>([]);
+  const [templates, setTemplates] = useState<NormalizedTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedType, setSelectedType] = useState<
-    "All" | "Title" | "Description"
-  >("All");
+  const [selectedType, setSelectedType] = useState<TemplateType | "all">("all");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(
-    null
-  );
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<NormalizedTemplate | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -49,8 +51,8 @@ export default function TemplatesPage() {
 
       try {
         const data = await getTemplates();
-        setTemplates(data);
-        setFilteredTemplates(data);
+        const normalized = data.map(normalizeTemplateFromApi);
+        setTemplates(normalized);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Failed to load templates"
@@ -63,14 +65,21 @@ export default function TemplatesPage() {
     fetchTemplates();
   }, []);
 
-  const filteredByType = useMemo(() => {
-    if (selectedType === "All") return templates;
-    return templates.filter((template) => template.type === selectedType);
-  }, [selectedType, templates]);
+  const templateCounts = useMemo(
+    () => calculateTemplateCounts(templates),
+    [templates]
+  );
 
-  useEffect(() => {
-    setFilteredTemplates(filteredByType);
-  }, [filteredByType]);
+  const filteredTemplates = useMemo(
+    () => filterTemplatesByType(templates, selectedType),
+    [selectedType, templates]
+  );
+
+  const selectedTypeLabel = useMemo(
+    () =>
+      selectedType === "all" ? "All" : formatTemplateTypeLabel(selectedType),
+    [selectedType]
+  );
 
   useEffect(() => {
     if (!isDeleteDialogOpen) return;
@@ -97,7 +106,7 @@ export default function TemplatesPage() {
     setDeleteError(null);
   };
 
-  const handleDeleteClick = (template: Template) => {
+  const handleDeleteClick = (template: NormalizedTemplate) => {
     setSelectedTemplate(template);
     setDeleteError(null);
     setIsDeleteDialogOpen(true);
@@ -112,17 +121,10 @@ export default function TemplatesPage() {
     try {
       await deleteTemplate(selectedTemplate.id);
 
-      const updatedTemplates = templates.filter(
-        (template) => template.id !== selectedTemplate.id
-      );
-
-      setTemplates(updatedTemplates);
-      setFilteredTemplates(
-        selectedType === "All"
-          ? updatedTemplates
-          : updatedTemplates.filter(
-              (template) => template.type === selectedType
-            )
+      setTemplates((currentTemplates) =>
+        currentTemplates.filter(
+          (template) => template.id !== selectedTemplate.id
+        )
       );
 
       closeDeleteDialog();
@@ -209,44 +211,43 @@ export default function TemplatesPage() {
           </label>
           <div className="inline-flex rounded-lg border border-gray-300 dark:border-gray-600 overflow-hidden">
             <button
-              onClick={() => setSelectedType("All")}
+              onClick={() => setSelectedType("all")}
               className={`px-4 py-2 text-sm font-medium transition-colors duration-200
                 ${
-                  selectedType === "All"
+                  selectedType === "all"
                     ? "bg-blue-600 text-white"
                     : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                 }
                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset`}
-              aria-pressed={selectedType === "All"}
+              aria-pressed={selectedType === "all"}
             >
-              All ({templates.length})
+              All ({templateCounts.all})
             </button>
             <button
-              onClick={() => setSelectedType("Title")}
+              onClick={() => setSelectedType("title")}
               className={`px-4 py-2 text-sm font-medium transition-colors duration-200 border-l border-gray-300 dark:border-gray-600
                 ${
-                  selectedType === "Title"
+                  selectedType === "title"
                     ? "bg-blue-600 text-white"
                     : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                 }
                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset`}
-              aria-pressed={selectedType === "Title"}
+              aria-pressed={selectedType === "title"}
             >
-              Title ({templates.filter((t) => t.type === "Title").length})
+              Title ({templateCounts.title})
             </button>
             <button
-              onClick={() => setSelectedType("Description")}
+              onClick={() => setSelectedType("description")}
               className={`px-4 py-2 text-sm font-medium transition-colors duration-200 border-l border-gray-300 dark:border-gray-600
                 ${
-                  selectedType === "Description"
+                  selectedType === "description"
                     ? "bg-blue-600 text-white"
                     : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                 }
                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset`}
-              aria-pressed={selectedType === "Description"}
+              aria-pressed={selectedType === "description"}
             >
-              Description (
-              {templates.filter((t) => t.type === "Description").length})
+              Description ({templateCounts.description})
             </button>
           </div>
         </div>
@@ -259,9 +260,9 @@ export default function TemplatesPage() {
               role="status"
             >
               <p className="text-gray-600 dark:text-gray-400">
-                {selectedType === "All"
+                {selectedType === "all"
                   ? "No templates found. Create your first template to get started."
-                  : `No ${selectedType} templates found.`}
+                  : `No ${selectedTypeLabel} templates found.`}
               </p>
             </div>
           ) : (
@@ -279,12 +280,12 @@ export default function TemplatesPage() {
                       </h3>
                       <span
                         className={`inline-block px-2 py-1 text-xs font-medium rounded ${
-                          template.type === "Title"
+                          template.type === "title"
                             ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300"
                             : "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
                         }`}
                       >
-                        {template.type}
+                        {formatTemplateTypeLabel(template.type)}
                       </span>
                     </div>
 
@@ -370,6 +371,33 @@ export default function TemplatesPage() {
       )}
     </div>
   );
+}
+
+function normalizeTemplateFromApi(template: Template): NormalizedTemplate {
+  return {
+    ...template,
+    type: normalizeTemplateType(template.type),
+  };
+}
+
+function calculateTemplateCounts(templates: NormalizedTemplate[]) {
+  return templates.reduce(
+    (counts, template) => {
+      counts.all += 1;
+      if (template.type === "title") counts.title += 1;
+      if (template.type === "description") counts.description += 1;
+      return counts;
+    },
+    { all: 0, title: 0, description: 0 }
+  );
+}
+
+function filterTemplatesByType(
+  templates: NormalizedTemplate[],
+  selectedType: TemplateType | "all"
+) {
+  if (selectedType === "all") return templates;
+  return templates.filter((template) => template.type === selectedType);
 }
 
 /**
