@@ -91,7 +91,6 @@ class TestCreateTemplate:
 
         assert response.status_code == 409
         assert "already exists" in response.json()["detail"]
-        assert "ID: 1" in response.json()["detail"]
 
     def test_create_template_duplicate_different_case(
         self, client, create_sample_template
@@ -889,8 +888,8 @@ class TestTemplateWorkspaceScoping:
 
         # Should default to 1 or accept valid workspace_id
         assert response.status_code == 201
-        # When X-Workspace-Id is not a valid workspace, it could default to 1
-        assert response.json()["workspace_id"] in [1, 0]
+        # When X-Workspace-Id is not a valid workspace, it should default to 1
+        assert response.json()["workspace_id"] == 1
 
     def test_create_template_with_nonexistent_workspace_returns_404(self, client):
         """Test that creating template with non-existent workspace returns 404."""

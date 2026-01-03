@@ -136,17 +136,12 @@ class TemplateService:
     def create_template(
         template_data: TemplateCreate, workspace_id: int, db: Session
     ) -> Template:
-        """Create a template scoped to a workspace with duplicate protection."""
-        WorkspaceService.get_workspace_or_404(workspace_id, db)
+        """Create a template scoped to a workspace with duplicate protection.
 
-        existing = TemplateService.check_duplicate_content(
-            template_data.type, template_data.content, workspace_id, db
-        )
-        if existing:
-            raise HTTPException(
-                status_code=409,
-                detail=f"Template with this content already exists (ID: {existing.id})",
-            )
+        Relies on database unique constraint for duplicate detection,
+        which provides better concurrency handling and atomic operations.
+        """
+        WorkspaceService.get_workspace_or_404(workspace_id, db)
 
         db_template = Template(
             type=template_data.type,

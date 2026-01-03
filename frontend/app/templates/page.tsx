@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { deleteTemplate, getTemplates } from "@/app/lib/api";
 import {
@@ -81,6 +81,12 @@ export default function TemplatesPage() {
     [selectedType]
   );
 
+  const closeDeleteDialog = useCallback(() => {
+    setIsDeleteDialogOpen(false);
+    setSelectedTemplate(null);
+    setDeleteError(null);
+  }, []);
+
   useEffect(() => {
     if (!isDeleteDialogOpen) return;
 
@@ -92,19 +98,13 @@ export default function TemplatesPage() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isDeleteDialogOpen]);
+  }, [isDeleteDialogOpen, closeDeleteDialog]);
 
   useEffect(() => {
     if (isDeleteDialogOpen && cancelButtonRef.current) {
       cancelButtonRef.current.focus();
     }
   }, [isDeleteDialogOpen]);
-
-  const closeDeleteDialog = () => {
-    setIsDeleteDialogOpen(false);
-    setSelectedTemplate(null);
-    setDeleteError(null);
-  };
 
   const handleDeleteClick = (template: NormalizedTemplate) => {
     setSelectedTemplate(template);
