@@ -217,7 +217,7 @@ describe("TemplateSelector", () => {
   it("clears error and confirmation when reopening dropdown", async () => {
     const mockGetTemplates = getTemplates as jest.Mock;
     mockGetTemplates.mockResolvedValue([mockTemplates[0]]);
-    const { onApply } = renderComponent("Existing Title");
+    renderComponent("Existing Title");
 
     // Open dropdown and select template to show confirmation
     await user.click(screen.getByRole("button", { name: /apply template/i }));

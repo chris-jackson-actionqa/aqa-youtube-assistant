@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { getTemplates } from "@/app/lib/api";
 import { Template } from "@/app/types/template";
 
@@ -207,12 +208,12 @@ export function TemplateSelector({
             ) : templates.length === 0 ? (
               <div className="text-sm text-gray-600 dark:text-gray-400 space-y-2">
                 <p>No templates available</p>
-                <a
+                <Link
                   href="/templates"
                   className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline"
                 >
                   Create your first template →
-                </a>
+                </Link>
               </div>
             ) : (
               <div className="space-y-2">
