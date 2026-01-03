@@ -168,7 +168,7 @@ export function TemplateSelector({
 
       {isOpen && (
         <div
-          className="absolute right-0 z-20 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl p-4"
+          className="absolute left-0 z-20 mt-2 w-80 max-w-[calc(100vw-2rem)] min-w-0 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl p-4"
           role="menu"
           aria-label="Template list"
         >
@@ -258,7 +258,7 @@ export function TemplateSelector({
           role="alertdialog"
           aria-modal="true"
           aria-labelledby="template-overwrite-heading"
-          className="absolute right-0 z-30 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-lg border border-orange-200 dark:border-orange-700 bg-white dark:bg-gray-800 shadow-2xl p-4"
+          className="absolute left-0 z-30 mt-2 w-80 max-w-[calc(100vw-2rem)] min-w-0 rounded-lg border border-orange-200 dark:border-orange-700 bg-white dark:bg-gray-800 shadow-2xl p-4"
         >
           <h3
             id="template-overwrite-heading"
