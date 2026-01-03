@@ -247,4 +247,59 @@ describe("TemplateSelector", () => {
       screen.queryByText(/replace existing video title/i)
     ).not.toBeInTheDocument();
   });
+
+  it("prevents race condition from rapid confirmation clicks", async () => {
+    const mockGetTemplates = getTemplates as jest.Mock;
+
+    // Mock applyTemplate to simulate slow API call
+    let resolveApply: () => void;
+    const applyPromise = new Promise<void>((resolve) => {
+      resolveApply = resolve;
+    });
+    const mockApplyTemplate = jest.fn().mockReturnValue(applyPromise);
+    mockGetTemplates.mockResolvedValue([mockTemplates[0]]);
+
+    render(
+      <TemplateSelector
+        currentTitle="Existing Title"
+        onApply={mockApplyTemplate}
+      />
+    );
+
+    const user = userEvent.setup();
+
+    // Open dropdown and select template
+    await user.click(screen.getByRole("button", { name: /apply template/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(mockTemplates[0].name)).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByText(mockTemplates[0].name));
+
+    // Wait for confirmation to appear
+    await waitFor(() => {
+      expect(
+        screen.getByText(/replace existing video title/i)
+      ).toBeInTheDocument();
+    });
+
+    // Click Replace multiple times rapidly
+    const replaceButton = screen.getByRole("button", { name: /^replace$/i });
+    await user.click(replaceButton);
+    await user.click(replaceButton); // Second click should be ignored
+    await user.click(replaceButton); // Third click should be ignored
+
+    // applyTemplate should only be called once despite multiple clicks
+    expect(mockApplyTemplate).toHaveBeenCalledTimes(1);
+
+    // Resolve the promise to finish the test
+    resolveApply!();
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText(/replace existing video title/i)
+      ).not.toBeInTheDocument();
+    });
+  });
 });

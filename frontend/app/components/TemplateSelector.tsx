@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { getTemplates } from "@/app/lib/api";
 import { Template } from "@/app/types/template";
@@ -68,6 +68,13 @@ export function TemplateSelector({
     };
   }, [isOpen]);
 
+  const closeAll = useCallback(() => {
+    setIsOpen(false);
+    setShowConfirm(false);
+    setSelectedTemplate(null);
+    setIsApplying(false);
+  }, []);
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -93,14 +100,7 @@ export function TemplateSelector({
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen]);
-
-  const closeAll = () => {
-    setIsOpen(false);
-    setShowConfirm(false);
-    setSelectedTemplate(null);
-    setIsApplying(false);
-  };
+  }, [isOpen, closeAll]);
 
   const toggleDropdown = () => {
     if (isOpen) {
@@ -113,14 +113,14 @@ export function TemplateSelector({
     }
   };
 
-  const handleTemplateSelect = (template: Template) => {
+  const handleTemplateSelect = async (template: Template) => {
     setSelectedTemplate(template);
 
     if (hasExistingTitle) {
       setIsOpen(false);
       setShowConfirm(true);
     } else {
-      void applyTemplate(template);
+      await applyTemplate(template);
     }
   };
 
@@ -144,9 +144,12 @@ export function TemplateSelector({
   };
 
   const handleConfirmApply = async () => {
-    if (selectedTemplate) {
-      await applyTemplate(selectedTemplate);
+    // Prevent multiple concurrent apply operations from rapid "Replace" clicks
+    if (isApplying || !selectedTemplate) {
+      return;
     }
+
+    await applyTemplate(selectedTemplate);
   };
 
   const handleCancelConfirm = () => {
