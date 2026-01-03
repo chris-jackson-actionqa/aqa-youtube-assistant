@@ -165,7 +165,6 @@ export function TemplateSelector({
         className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded transition-colors duration-200 flex items-center gap-1"
         aria-expanded={isOpen}
         aria-haspopup="menu"
-        aria-label="Apply template"
       >
         <span aria-hidden="true">📋</span>
         <span className="sr-only">Apply template</span>
