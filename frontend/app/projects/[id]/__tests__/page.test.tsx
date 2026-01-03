@@ -37,6 +37,24 @@ jest.mock("@/app/lib/api", () => ({
   updateProject: jest.fn(),
 }));
 
+// Mock TemplateSelector component
+jest.mock("@/app/components/TemplateSelector", () => ({
+  TemplateSelector: ({
+    onApply,
+  }: {
+    onApply: (content: string) => Promise<void>;
+  }) => {
+    return (
+      <button
+        data-testid="template-selector"
+        onClick={() => onApply("Template {{content}}")}
+      >
+        Apply Template
+      </button>
+    );
+  },
+}));
+
 const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
 const mockUseRouter = useRouter as jest.MockedFunction<typeof useRouter>;
 const mockGetProject = api.getProject as jest.MockedFunction<
@@ -361,6 +379,32 @@ describe("ProjectDetailPage", () => {
         const main = container.querySelector("main");
         const firstChild = main?.firstChild;
         expect(firstChild?.nodeName).toBe("A");
+      });
+    });
+
+    it("applies template via TemplateSelector", async () => {
+      const mockUpdateProject = api.updateProject as jest.MockedFunction<
+        typeof api.updateProject
+      >;
+      mockUpdateProject.mockResolvedValue({
+        ...mockProject,
+        video_title: "Template {{content}}",
+      });
+
+      render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId("template-selector")).toBeInTheDocument();
+      });
+
+      // Click the template selector button
+      const templateButton = screen.getByTestId("template-selector");
+      templateButton.click();
+
+      await waitFor(() => {
+        expect(mockUpdateProject).toHaveBeenCalledWith(1, {
+          video_title: "Template {{content}}",
+        });
       });
     });
   });

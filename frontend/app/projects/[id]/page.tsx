@@ -6,6 +6,7 @@ import Link from "next/link";
 import { getProject, updateProject } from "@/app/lib/api";
 import { Project } from "@/app/types/project";
 import { VideoTitleEditor } from "@/app/components/VideoTitleEditor";
+import { TemplateSelector } from "@/app/components/TemplateSelector";
 
 /**
  * ProjectDetailPage Component
@@ -164,13 +165,24 @@ export default function ProjectDetailPage() {
           <h2 className="text-xl font-semibold mb-3 text-gray-900 dark:text-gray-100">
             Video Title
           </h2>
-          <VideoTitleEditor
-            initialTitle={project.video_title}
-            onSave={async (newTitle) => {
-              await updateProject(project.id, { video_title: newTitle });
-              setProject({ ...project, video_title: newTitle });
-            }}
-          />
+          <div className="flex flex-col sm:flex-row sm:items-start sm:gap-3">
+            <VideoTitleEditor
+              initialTitle={project.video_title}
+              onSave={async (newTitle) => {
+                await updateProject(project.id, { video_title: newTitle });
+                setProject({ ...project, video_title: newTitle });
+              }}
+            />
+            <TemplateSelector
+              currentTitle={project.video_title}
+              onApply={async (templateContent) => {
+                await updateProject(project.id, {
+                  video_title: templateContent,
+                });
+                setProject({ ...project, video_title: templateContent });
+              }}
+            />
+          </div>
         </section>
       </main>
     </div>
