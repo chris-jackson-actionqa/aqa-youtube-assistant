@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { getProject, updateProject } from "@/app/lib/api";
@@ -34,6 +34,16 @@ export default function ProjectDetailPage() {
   const [error, setError] = useState<string | null>(null);
 
   const id = params.id as string;
+
+  // Memoized handler for updating project video title to avoid duplication
+  // Used by both VideoTitleEditor and TemplateSelector
+  const handleTitleUpdate = useCallback(
+    async (newTitle: string | null) => {
+      await updateProject(project!.id, { video_title: newTitle });
+      setProject((prev) => (prev ? { ...prev, video_title: newTitle } : null));
+    },
+    [project?.id]
+  );
 
   useEffect(() => {
     // Validate ID is a positive integer
@@ -168,19 +178,11 @@ export default function ProjectDetailPage() {
           <div className="flex flex-col sm:flex-row sm:items-start sm:gap-3">
             <VideoTitleEditor
               initialTitle={project.video_title}
-              onSave={async (newTitle) => {
-                await updateProject(project.id, { video_title: newTitle });
-                setProject({ ...project, video_title: newTitle });
-              }}
+              onSave={handleTitleUpdate}
             />
             <TemplateSelector
               currentTitle={project.video_title}
-              onApply={async (templateContent) => {
-                await updateProject(project.id, {
-                  video_title: templateContent,
-                });
-                setProject({ ...project, video_title: templateContent });
-              }}
+              onApply={handleTitleUpdate}
             />
           </div>
         </section>
