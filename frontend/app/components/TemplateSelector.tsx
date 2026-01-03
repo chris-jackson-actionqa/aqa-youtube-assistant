@@ -145,11 +145,11 @@ export function TemplateSelector({
 
   const handleConfirmApply = async () => {
     // Prevent multiple concurrent apply operations from rapid "Replace" clicks
-    if (isApplying || !selectedTemplate) {
-      return;
+    // selectedTemplate is guaranteed to be non-null when this handler is called
+    // because the confirmation dialog only appears after selecting a template
+    if (!isApplying) {
+      await applyTemplate(selectedTemplate!);
     }
-
-    await applyTemplate(selectedTemplate);
   };
 
   const handleCancelConfirm = () => {

@@ -28,9 +28,11 @@ const config = {
     '!**/.next/**',
   ],
   
+  // IMPORTANT: Never lower coverage thresholds without explicit user permission.
+  // If coverage drops, fix the code or tests - don't lower the bar.
   coverageThreshold: {
     global: {
-      branches: 98.9,
+      branches: 99,
       functions: 98,
       lines: 98,
       statements: 99,
