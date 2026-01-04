@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { getProject, updateProject } from "@/app/lib/api";
 import { Project } from "@/app/types/project";
 import { VideoTitleEditor } from "@/app/components/VideoTitleEditor";
+import { TemplateSelector } from "@/app/components/TemplateSelector";
 
 /**
  * ProjectDetailPage Component
@@ -33,6 +34,17 @@ export default function ProjectDetailPage() {
   const [error, setError] = useState<string | null>(null);
 
   const id = params.id as string;
+
+  // Memoized handler for updating project video title to avoid duplication
+  // Used by both VideoTitleEditor and TemplateSelector
+  // Accepts projectId as parameter to avoid capturing unstable project state
+  const handleTitleUpdate = useCallback(
+    async (projectId: number, newTitle: string | null) => {
+      await updateProject(projectId, { video_title: newTitle });
+      setProject((prev) => (prev ? { ...prev, video_title: newTitle } : null));
+    },
+    []
+  );
 
   useEffect(() => {
     // Validate ID is a positive integer
@@ -164,13 +176,16 @@ export default function ProjectDetailPage() {
           <h2 className="text-xl font-semibold mb-3 text-gray-900 dark:text-gray-100">
             Video Title
           </h2>
-          <VideoTitleEditor
-            initialTitle={project.video_title}
-            onSave={async (newTitle) => {
-              await updateProject(project.id, { video_title: newTitle });
-              setProject({ ...project, video_title: newTitle });
-            }}
-          />
+          <div className="flex flex-col sm:flex-row sm:items-start sm:gap-3">
+            <VideoTitleEditor
+              initialTitle={project.video_title}
+              onSave={(title) => handleTitleUpdate(project.id, title)}
+            />
+            <TemplateSelector
+              currentTitle={project.video_title}
+              onApply={(content) => handleTitleUpdate(project.id, content)}
+            />
+          </div>
         </section>
       </main>
     </div>
