@@ -1,6 +1,7 @@
 import { useRef, useEffect } from "react";
 import Modal from "@/app/components/Modal";
 import useModalKeyboardHandler from "@/app/hooks/useModalKeyboardHandler";
+import Button from "@/app/components/Button";
 import { NormalizedTemplate } from "@/app/types/template";
 
 interface TemplateDeleteModalProps {
@@ -87,22 +88,22 @@ export default function TemplateDeleteModal({
       )}
 
       <div className="flex justify-end gap-3">
-        <button
+        <Button
           type="button"
+          variant="secondary"
           ref={cancelButtonRef}
           onClick={onClose}
-          className="inline-flex items-center rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
           Cancel
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="danger"
           onClick={onConfirm}
           disabled={isDeleting}
-          className="inline-flex items-center rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-70"
         >
           {isDeleting ? "Deleting..." : "Delete Template"}
-        </button>
+        </Button>
       </div>
     </Modal>
   );
