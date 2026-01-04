@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Project } from "../types/project";
 import { getProjects, deleteProject, ApiError } from "../lib/api";
+import { ERROR_MESSAGES } from "../constants/messages";
 import ProjectDeleteConfirmation from "./ProjectDeleteConfirmation";
 import { useProject } from "../contexts/ProjectContext";
 
@@ -55,7 +56,7 @@ export default function ProjectList({
       if (err instanceof ApiError) {
         setError(err.message);
       } else {
-        setError("Failed to load projects. Please try again.");
+        setError(ERROR_MESSAGES.LOAD_PROJECTS);
       }
     } finally {
       setIsLoading(false);
@@ -86,7 +87,7 @@ export default function ProjectList({
       if (err instanceof ApiError) {
         setError(err.message);
       } else {
-        setError("Failed to delete project. Please try again.");
+        setError(ERROR_MESSAGES.DELETE_PROJECT);
       }
       // Re-throw so modal can also display the error
       throw err;

@@ -8,6 +8,7 @@ import { ReactNode } from "react";
 import { ProjectProvider, useProject } from "../ProjectContext";
 import { getProject } from "../../lib/api";
 import { Project } from "../../types/project";
+import { ERROR_MESSAGES } from "../../constants/messages";
 
 // Mock the API module
 jest.mock("../../lib/api");
@@ -284,7 +285,7 @@ describe("ProjectContext", () => {
         );
       });
 
-      expect(result.current.error).toBe("Failed to load project");
+      expect(result.current.error).toBe(ERROR_MESSAGES.LOAD_PROJECT);
       expect(result.current.currentProject).toBeNull();
     });
   });

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Project } from "../types/project";
+import { ERROR_MESSAGES } from "../constants/messages";
 
 /**
  * Props for the ProjectDeleteConfirmation modal component
@@ -68,7 +69,7 @@ export default function ProjectDeleteConfirmation({
       // Parent handles post-delete actions (like closing modal)
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Failed to delete project";
+        err instanceof Error ? err.message : ERROR_MESSAGES.DELETE_PROJECT;
       setError(errorMessage);
     } finally {
       setIsDeleting(false);

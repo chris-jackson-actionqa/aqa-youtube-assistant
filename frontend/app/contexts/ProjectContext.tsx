@@ -17,7 +17,7 @@ import {
 } from "react";
 import { Project } from "../types/project";
 import { getProject } from "../lib/api";
-
+import { ERROR_MESSAGES } from "../constants/messages";
 interface ProjectContextValue {
   /** Currently selected project */
   currentProject: Project | null;
@@ -91,7 +91,7 @@ export function ProjectProvider({ children }: ProjectProviderProps) {
         saveToStorage(project);
       } catch (err) {
         const errorMessage =
-          err instanceof Error ? err.message : "Failed to load project";
+          err instanceof Error ? err.message : ERROR_MESSAGES.LOAD_PROJECT;
         setError(errorMessage);
         // NOTE: localStorage cleanup disabled
         throw err;
@@ -126,7 +126,7 @@ export function ProjectProvider({ children }: ProjectProviderProps) {
       saveToStorage(project);
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Failed to refresh project";
+        err instanceof Error ? err.message : ERROR_MESSAGES.REFRESH_PROJECT;
       setError(errorMessage);
       // Clear project if it no longer exists, but preserve error
       setCurrentProject(null);

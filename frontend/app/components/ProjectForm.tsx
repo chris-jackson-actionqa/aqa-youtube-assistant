@@ -7,6 +7,7 @@ import {
   ProjectStatus,
 } from "../types/project";
 import { createProject, ApiError } from "../lib/api";
+import { SUCCESS_MESSAGES } from "../constants/messages";
 import Spinner from "./Spinner";
 
 interface FormErrors {
@@ -53,7 +54,7 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
 
       const newProject = await createProject(projectData);
 
-      setSuccessMessage(`Project "${newProject.name}" created successfully!`);
+      setSuccessMessage(SUCCESS_MESSAGES.PROJECT_CREATED(newProject.name));
 
       // Reset form
       setName("");

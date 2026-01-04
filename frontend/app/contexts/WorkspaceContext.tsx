@@ -17,6 +17,7 @@ import {
   WorkspaceUpdate,
 } from "../types/workspace";
 import { workspaceApi } from "../lib/workspaceApi";
+import { ERROR_MESSAGES } from "../constants/messages";
 
 /**
  * Context type definition
@@ -91,7 +92,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         }
       } catch (err) {
         const errorMessage =
-          err instanceof Error ? err.message : "Failed to load workspaces";
+          err instanceof Error ? err.message : ERROR_MESSAGES.LOAD_WORKSPACES;
         setError(errorMessage);
       } finally {
         setIsLoading(false);
@@ -131,7 +132,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       return newWorkspace;
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Failed to create workspace";
+        err instanceof Error ? err.message : ERROR_MESSAGES.CREATE_WORKSPACE;
       setError(errorMessage);
       throw err;
     }
@@ -150,7 +151,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       await refreshWorkspaces();
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Failed to update workspace";
+        err instanceof Error ? err.message : ERROR_MESSAGES.UPDATE_WORKSPACE;
       setError(errorMessage);
       throw err;
     }
@@ -174,7 +175,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       }
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Failed to delete workspace";
+        err instanceof Error ? err.message : ERROR_MESSAGES.DELETE_WORKSPACE;
       setError(errorMessage);
       throw err;
     }
@@ -200,7 +201,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       }
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Failed to refresh workspaces";
+        err instanceof Error ? err.message : ERROR_MESSAGES.REFRESH_WORKSPACES;
       setError(errorMessage);
       throw err;
     }

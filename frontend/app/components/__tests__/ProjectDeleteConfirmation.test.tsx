@@ -18,6 +18,7 @@ import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import ProjectDeleteConfirmation from "../ProjectDeleteConfirmation";
 import { Project } from "../../types/project";
+import { ERROR_MESSAGES } from "../../constants/messages";
 
 describe("ProjectDeleteConfirmation", () => {
   // Mock project data
@@ -466,7 +467,7 @@ describe("ProjectDeleteConfirmation", () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText("Failed to delete project")
+          screen.getByText(ERROR_MESSAGES.DELETE_PROJECT)
         ).toBeInTheDocument();
       });
     });
