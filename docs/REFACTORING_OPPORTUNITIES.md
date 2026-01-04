@@ -119,7 +119,7 @@ Functions to move:
 - [x] #2: Reusable Modal Wrapper ✅ COMPLETED
 - [x] #3: useModalKeyboardHandler Hook ✅ COMPLETED
 - [x] #4: Filter Button Component ✅ COMPLETED
-- [ ] #5: Button Styling Utility
+- [x] #5: Button Styling Utility ✅ COMPLETED
 - [ ] #6: Shared Utility Functions
 - [ ] #7: Test File Refactoring
 
