@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { deleteTemplate, getTemplates } from "@/app/lib/api";
-import TemplateForm from "@/app/components/TemplateForm";
+import TemplateFormModal from "@/app/components/TemplateFormModal";
+import TemplateDeleteModal from "@/app/components/TemplateDeleteModal";
 import {
   formatTemplateTypeLabel,
   normalizeTemplateType,
@@ -52,7 +53,6 @@ export default function TemplatesPage() {
     useState<NormalizedTemplate | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -105,25 +105,6 @@ export default function TemplatesPage() {
     setEditingTemplate(null);
   }, []);
 
-  useEffect(() => {
-    if (!isDeleteDialogOpen) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        closeDeleteDialog();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isDeleteDialogOpen, closeDeleteDialog]);
-
-  useEffect(() => {
-    if (isDeleteDialogOpen && cancelButtonRef.current) {
-      cancelButtonRef.current.focus();
-    }
-  }, [isDeleteDialogOpen]);
-
   const handleDeleteClick = (template: NormalizedTemplate) => {
     setSelectedTemplate(template);
     setDeleteError(null);
@@ -149,18 +130,16 @@ export default function TemplatesPage() {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!selectedTemplate) return;
-
+    // selectedTemplate is always non-null here because the delete modal only renders when it's set
+    const templateId = selectedTemplate!.id;
     setIsDeleting(true);
     setDeleteError(null);
 
     try {
-      await deleteTemplate(selectedTemplate.id);
+      await deleteTemplate(templateId);
 
       setTemplates((currentTemplates) =>
-        currentTemplates.filter(
-          (template) => template.id !== selectedTemplate.id
-        )
+        currentTemplates.filter((template) => template.id !== templateId)
       );
 
       closeDeleteDialog();
@@ -379,102 +358,30 @@ export default function TemplatesPage() {
         </section>
       </main>
 
-      {/* Create Template Modal */}
-      {showCreateForm && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Create new template"
-          onClick={closeCreateForm}
-        >
-          <div
-            className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg bg-white dark:bg-gray-900 p-6 shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <TemplateForm
-              mode="create"
-              onSuccess={handleCreateSuccess}
-              onCancel={closeCreateForm}
-            />
-          </div>
-        </div>
-      )}
+      {/* Template Modals */}
+      <TemplateFormModal
+        isOpen={showCreateForm}
+        mode="create"
+        onSuccess={handleCreateSuccess}
+        onClose={closeCreateForm}
+      />
 
-      {/* Edit Template Modal */}
-      {editingTemplate && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Edit template"
-          onClick={closeEditForm}
-        >
-          <div
-            className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg bg-white dark:bg-gray-900 p-6 shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <TemplateForm
-              mode="edit"
-              initialTemplate={editingTemplate}
-              onSuccess={handleEditSuccess}
-              onCancel={closeEditForm}
-            />
-          </div>
-        </div>
-      )}
+      <TemplateFormModal
+        isOpen={!!editingTemplate}
+        mode="edit"
+        initialTemplate={editingTemplate || undefined}
+        onSuccess={handleEditSuccess}
+        onClose={closeEditForm}
+      />
 
-      {/* Delete Confirmation Dialog */}
-      {isDeleteDialogOpen && selectedTemplate && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Delete template"
-          onClick={closeDeleteDialog}
-        >
-          <div
-            className="w-full max-w-lg rounded-lg bg-white dark:bg-gray-900 p-6 shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              Delete template
-            </h2>
-            <p className="text-gray-700 dark:text-gray-300 mb-4">
-              Are you sure you want to delete &quot;{selectedTemplate.name}
-              &quot;? This action cannot be undone.
-            </p>
-
-            {deleteError && (
-              <div
-                role="alert"
-                className="mb-4 rounded border border-red-200 dark:border-red-700 bg-red-50 dark:bg-red-900/30 px-4 py-3 text-sm text-red-800 dark:text-red-200"
-              >
-                {deleteError}
-              </div>
-            )}
-
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                ref={cancelButtonRef}
-                onClick={closeDeleteDialog}
-                className="inline-flex items-center rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleDeleteConfirm}
-                disabled={isDeleting}
-                className="inline-flex items-center rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-70"
-              >
-                {isDeleting ? "Deleting..." : "Delete Template"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <TemplateDeleteModal
+        isOpen={isDeleteDialogOpen}
+        template={selectedTemplate}
+        error={deleteError}
+        isDeleting={isDeleting}
+        onConfirm={handleDeleteConfirm}
+        onClose={closeDeleteDialog}
+      />
     </div>
   );
 }
