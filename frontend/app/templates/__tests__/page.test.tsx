@@ -8,7 +8,15 @@
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import TemplatesPage from "../page";
 import * as api from "@/app/lib/api";
-import { Template, NormalizedTemplate } from "@/app/types/template";
+import { Template } from "@/app/types/template";
+import { mockTemplates } from "../test-utils/fixtures";
+import {
+  waitForTemplatesLoad,
+  clickFilterButton,
+  expectTemplateVisible,
+  expectTemplateNotVisible,
+  waitForElement,
+} from "../test-utils/helpers";
 
 // Mock next/navigation
 jest.mock("next/navigation", () => ({
@@ -49,7 +57,7 @@ jest.mock("@/app/components/Modal", () => {
     isOpen: boolean;
     children: React.ReactNode;
     onClose?: () => void;
-    [key: string]: string | boolean | undefined;
+    [key: string]: unknown;
   }) {
     if (!isOpen) return null;
     return (
@@ -69,8 +77,18 @@ jest.mock("@/app/components/TemplateForm", () => {
     onCancel,
   }: {
     mode?: "create" | "edit";
-    initialTemplate?: NormalizedTemplate | undefined;
-    onSuccess?: (template: Template) => void;
+    initialTemplate?:
+      | { id?: number; type?: string; name?: string; content?: string }
+      | undefined;
+    onSuccess?: (template: {
+      id: number;
+      type: string;
+      name: string;
+      content: string;
+      workspace_id: number;
+      created_at: string;
+      updated_at: string;
+    }) => void;
     onCancel?: () => void;
   }) {
     return (
@@ -82,16 +100,22 @@ jest.mock("@/app/components/TemplateForm", () => {
           type="button"
           onClick={() => {
             const mockTemplate = {
-              id: mode === "edit" ? initialTemplate?.id : 4,
-              type: mode === "edit" ? initialTemplate?.type : "title",
-              name: mode === "edit" ? initialTemplate?.name : "New Template",
+              id: mode === "edit" ? (initialTemplate?.id ?? 0) : 4,
+              type:
+                mode === "edit" ? (initialTemplate?.type ?? "title") : "title",
+              name:
+                mode === "edit"
+                  ? (initialTemplate?.name ?? "New Template")
+                  : "New Template",
               content:
-                mode === "edit" ? initialTemplate?.content : "Template content",
+                mode === "edit"
+                  ? (initialTemplate?.content ?? "Template content")
+                  : "Template content",
               workspace_id: 1,
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             };
-            onSuccess?.(mockTemplate as Template);
+            onSuccess?.(mockTemplate);
           }}
         >
           Save Form
@@ -112,9 +136,7 @@ jest.mock("@/app/components/TemplateDeleteModal", () => {
     onClose,
   }: {
     isOpen: boolean;
-    template: NormalizedTemplate | null;
-    error: string | null;
-    isDeleting: boolean;
+    template: { name: string } | null;
     onConfirm?: () => void;
     onClose?: () => void;
   }) {
@@ -135,36 +157,6 @@ jest.mock("@/app/components/TemplateDeleteModal", () => {
 });
 
 describe("TemplatesPage", () => {
-  const mockTemplates: Template[] = [
-    {
-      id: 1,
-      type: "title",
-      name: "Standard Title Template",
-      content: "How to {topic} in {year}",
-      workspace_id: 1,
-      created_at: "2025-01-01T10:00:00Z",
-      updated_at: "2025-01-01T10:00:00Z",
-    },
-    {
-      id: 2,
-      type: "description",
-      name: "Tutorial Description",
-      content: "In this video, we cover {topic}. Subscribe for more!",
-      workspace_id: 1,
-      created_at: "2025-01-02T11:00:00Z",
-      updated_at: "2025-01-02T11:00:00Z",
-    },
-    {
-      id: 3,
-      type: "title",
-      name: "Question Title Template",
-      content: "What is {topic}? (Explained)",
-      workspace_id: 1,
-      created_at: "2025-01-03T12:00:00Z",
-      updated_at: "2025-01-03T12:00:00Z",
-    },
-  ];
-
   beforeEach(() => {
     jest.clearAllMocks();
     (api.getTemplates as jest.Mock).mockResolvedValue(mockTemplates);
@@ -226,12 +218,10 @@ describe("TemplatesPage", () => {
     it("should display templates after loading", async () => {
       render(<TemplatesPage />);
 
-      await waitFor(() => {
-        expect(screen.getByText("Standard Title Template")).toBeInTheDocument();
-      });
+      await waitForTemplatesLoad();
 
-      expect(screen.getByText("Tutorial Description")).toBeInTheDocument();
-      expect(screen.getByText("Question Title Template")).toBeInTheDocument();
+      expectTemplateVisible("Tutorial Description");
+      expectTemplateVisible("Question Title Template");
     });
   });
 
@@ -239,9 +229,7 @@ describe("TemplatesPage", () => {
     it("should display template name", async () => {
       render(<TemplatesPage />);
 
-      await waitFor(() => {
-        expect(screen.getByText("Standard Title Template")).toBeInTheDocument();
-      });
+      await waitForTemplatesLoad();
     });
 
     it("should display template type badge", async () => {
@@ -310,70 +298,50 @@ describe("TemplatesPage", () => {
     it("should show all templates by default", async () => {
       render(<TemplatesPage />);
 
-      await waitFor(() => {
-        expect(screen.getByText("Standard Title Template")).toBeInTheDocument();
-      });
+      await waitForTemplatesLoad();
 
-      expect(screen.getByText("Tutorial Description")).toBeInTheDocument();
-      expect(screen.getByText("Question Title Template")).toBeInTheDocument();
+      expectTemplateVisible("Tutorial Description");
+      expectTemplateVisible("Question Title Template");
     });
 
     it("should filter to show only Title templates", async () => {
       render(<TemplatesPage />);
 
-      await waitFor(() => {
-        expect(screen.getByText("Standard Title Template")).toBeInTheDocument();
-      });
+      await waitForTemplatesLoad();
 
-      const titleButton = screen.getByRole("button", { name: /Title \(2\)/ });
-      fireEvent.click(titleButton);
+      clickFilterButton(/Title \(2\)/);
 
-      expect(screen.getByText("Standard Title Template")).toBeInTheDocument();
-      expect(screen.getByText("Question Title Template")).toBeInTheDocument();
-      expect(
-        screen.queryByText("Tutorial Description")
-      ).not.toBeInTheDocument();
+      expectTemplateVisible("Standard Title Template");
+      expectTemplateVisible("Question Title Template");
+      expectTemplateNotVisible("Tutorial Description");
     });
 
     it("should filter to show only Description templates", async () => {
       render(<TemplatesPage />);
 
-      await waitFor(() => {
-        expect(screen.getByText("Standard Title Template")).toBeInTheDocument();
-      });
+      await waitForTemplatesLoad();
 
-      const descButton = screen.getByRole("button", {
-        name: /Description \(1\)/,
-      });
-      fireEvent.click(descButton);
+      clickFilterButton(/Description \(1\)/);
 
-      expect(screen.getByText("Tutorial Description")).toBeInTheDocument();
-      expect(
-        screen.queryByText("Standard Title Template")
-      ).not.toBeInTheDocument();
-      expect(
-        screen.queryByText("Question Title Template")
-      ).not.toBeInTheDocument();
+      expectTemplateVisible("Tutorial Description");
+      expectTemplateNotVisible("Standard Title Template");
+      expectTemplateNotVisible("Question Title Template");
     });
 
     it("should return to all templates when All button clicked", async () => {
       render(<TemplatesPage />);
 
-      await waitFor(() => {
-        expect(screen.getByText("Standard Title Template")).toBeInTheDocument();
-      });
+      await waitForTemplatesLoad();
 
       // Filter to Title
-      const titleButton = screen.getByRole("button", { name: /Title \(2\)/ });
-      fireEvent.click(titleButton);
+      clickFilterButton(/Title \(2\)/);
 
       // Click All
-      const allButton = screen.getByRole("button", { name: /All \(3\)/ });
-      fireEvent.click(allButton);
+      clickFilterButton(/All \(3\)/);
 
-      expect(screen.getByText("Standard Title Template")).toBeInTheDocument();
-      expect(screen.getByText("Tutorial Description")).toBeInTheDocument();
-      expect(screen.getByText("Question Title Template")).toBeInTheDocument();
+      expectTemplateVisible("Standard Title Template");
+      expectTemplateVisible("Tutorial Description");
+      expectTemplateVisible("Question Title Template");
     });
 
     it("should have aria-pressed state on active filter button", async () => {
@@ -384,8 +352,7 @@ describe("TemplatesPage", () => {
         expect(allButton).toHaveAttribute("aria-pressed", "true");
       });
 
-      const titleButton = screen.getByRole("button", { name: /Title \(2\)/ });
-      fireEvent.click(titleButton);
+      const titleButton = clickFilterButton(/Title \(2\)/);
 
       expect(titleButton).toHaveAttribute("aria-pressed", "true");
     });
@@ -423,14 +390,9 @@ describe("TemplatesPage", () => {
 
       render(<TemplatesPage />);
 
-      await waitFor(() => {
-        expect(screen.getByText("Title Template")).toBeInTheDocument();
-      });
+      await waitForElement("Title Template");
 
-      const descButton = screen.getByRole("button", {
-        name: /Description \(0\)/,
-      });
-      fireEvent.click(descButton);
+      clickFilterButton(/Description \(0\)/);
 
       expect(
         screen.getByText("No Description templates found.")

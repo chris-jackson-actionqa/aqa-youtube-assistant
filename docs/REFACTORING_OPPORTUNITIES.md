@@ -120,7 +120,7 @@ Functions to move:
 - [x] #3: useModalKeyboardHandler Hook ✅ COMPLETED
 - [x] #4: Filter Button Component ✅ COMPLETED
 - [x] #5: Button Styling Utility ✅ COMPLETED
-- [ ] #6: Shared Utility Functions
+- [x] #6: Shared Utility Functions ✅ COMPLETED
 - [ ] #7: Test File Refactoring
 
 ---
