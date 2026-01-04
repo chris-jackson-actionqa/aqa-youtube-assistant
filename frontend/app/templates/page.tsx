@@ -9,11 +9,16 @@ import FilterButton from "@/app/components/FilterButton";
 import Button from "@/app/components/Button";
 import {
   formatTemplateTypeLabel,
-  normalizeTemplateType,
   NormalizedTemplate,
   Template,
   TemplateType,
 } from "@/app/types/template";
+import {
+  normalizeTemplateFromApi,
+  calculateTemplateCounts,
+  filterTemplatesByType,
+  formatDate,
+} from "@/app/utils/template";
 
 /**
  * TemplatesPage Component
@@ -366,42 +371,4 @@ export default function TemplatesPage() {
       />
     </div>
   );
-}
-
-function normalizeTemplateFromApi(template: Template): NormalizedTemplate {
-  return {
-    ...template,
-    type: normalizeTemplateType(template.type),
-  };
-}
-
-function calculateTemplateCounts(templates: NormalizedTemplate[]) {
-  return templates.reduce(
-    (counts, template) => {
-      counts.all += 1;
-      if (template.type === "title") counts.title += 1;
-      if (template.type === "description") counts.description += 1;
-      return counts;
-    },
-    { all: 0, title: 0, description: 0 }
-  );
-}
-
-function filterTemplatesByType(
-  templates: NormalizedTemplate[],
-  selectedType: TemplateType | "all"
-) {
-  if (selectedType === "all") return templates;
-  return templates.filter((template) => template.type === selectedType);
-}
-
-/**
- * Format ISO date string to readable format
- */
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
 }
