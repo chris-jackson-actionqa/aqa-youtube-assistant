@@ -50,23 +50,22 @@ export default function TemplateDeleteModal({
 }: TemplateDeleteModalProps) {
   const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  // Focus on cancel button when modal opens
+  // Focus on cancel button when modal opens and a template is present
   useEffect(() => {
-    if (isOpen && cancelButtonRef.current) {
+    if (isOpen && template && cancelButtonRef.current) {
       cancelButtonRef.current.focus();
     }
-  }, [isOpen]);
+  }, [isOpen, template]);
 
-  // Use keyboard handler hook for Escape key
-  useModalKeyboardHandler(isOpen, onClose);
+  // Use keyboard handler hook for Escape key only when modal is open with a template
+  useModalKeyboardHandler(isOpen && !!template, onClose);
 
-  if (!template) return null;
+  if (!isOpen || !template) return null;
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Delete Template"
       maxWidth="lg"
       ariaLabel="Delete template confirmation"
     >

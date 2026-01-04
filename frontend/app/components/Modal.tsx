@@ -3,10 +3,9 @@ import { ReactNode } from "react";
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title?: string;
   children: ReactNode;
   maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl";
-  ariaLabel?: string;
+  ariaLabel: string;
 }
 
 /**
@@ -26,7 +25,6 @@ interface ModalProps {
  * <Modal
  *   isOpen={showModal}
  *   onClose={handleClose}
- *   title="Delete Item"
  *   maxWidth="lg"
  *   ariaLabel="Delete confirmation dialog"
  * >
@@ -38,7 +36,6 @@ interface ModalProps {
 export default function Modal({
   isOpen,
   onClose,
-  title,
   children,
   maxWidth = "2xl",
   ariaLabel,
@@ -58,7 +55,7 @@ export default function Modal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       role="dialog"
       aria-modal="true"
-      aria-label={ariaLabel || title}
+      aria-label={ariaLabel}
       onClick={onClose}
     >
       <div

@@ -137,8 +137,11 @@ export default function TemplatesPage() {
   };
 
   const handleDeleteConfirm = async () => {
-    // selectedTemplate is always non-null here because the delete modal only renders when it's set
-    const templateId = selectedTemplate!.id;
+    if (!selectedTemplate) {
+      return;
+    }
+
+    const templateId = selectedTemplate.id;
     setIsDeleting(true);
     setDeleteError(null);
 

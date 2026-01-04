@@ -288,31 +288,40 @@ describe("filterTemplatesByType", () => {
 });
 
 describe("formatDate", () => {
-  it("formats ISO date string to readable format", () => {
+  it("formats ISO date string to readable format (UTC)", () => {
     const result = formatDate("2026-01-03T12:34:56Z");
 
     expect(result).toBe("January 3, 2026");
   });
 
-  it("formats date at start of year", () => {
+  it("formats date at start of year (UTC)", () => {
     const result = formatDate("2026-01-01T12:00:00Z");
 
     expect(result).toBe("January 1, 2026");
   });
 
-  it("formats date at end of year", () => {
+  it("formats date at end of year (UTC)", () => {
     const result = formatDate("2025-12-31T12:00:00Z");
 
     expect(result).toBe("December 31, 2025");
   });
 
-  it("formats date with different month", () => {
+  it("formats date with different month (UTC)", () => {
     const result = formatDate("2026-06-15T14:22:33Z");
 
     expect(result).toBe("June 15, 2026");
   });
 
-  it("handles date without time component", () => {
+  it("uses UTC timezone for consistent date formatting", () => {
+    // Test using UTC date to ensure consistent results across timezones
+    const date = new Date(Date.UTC(2026, 0, 15)).toISOString();
+    const result = formatDate(date);
+    expect(result).toContain("2026");
+    expect(result).toContain("January");
+    expect(result).toContain("15");
+  });
+
+  it("handles date without time component (UTC)", () => {
     const result = formatDate("2026-03-20T12:00:00Z");
 
     expect(result).toBe("March 20, 2026");

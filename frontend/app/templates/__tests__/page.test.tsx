@@ -137,6 +137,8 @@ jest.mock("@/app/components/TemplateDeleteModal", () => {
   }: {
     isOpen: boolean;
     template: { name: string } | null;
+    error: string | null;
+    isDeleting: boolean;
     onConfirm?: () => void;
     onClose?: () => void;
   }) {

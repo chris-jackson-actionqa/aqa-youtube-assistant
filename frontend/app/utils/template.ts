@@ -50,11 +50,13 @@ export function filterTemplatesByType(
 /**
  * Format ISO date string to readable format
  * Returns date in format: "Month Day, Year" (e.g., "January 3, 2026")
+ * Dates are formatted in UTC to avoid timezone-dependent shifts
  */
 export function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
+    timeZone: "UTC",
   });
 }

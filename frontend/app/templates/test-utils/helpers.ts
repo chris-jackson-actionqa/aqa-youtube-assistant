@@ -7,10 +7,13 @@ import { screen, waitFor, fireEvent } from "@testing-library/react";
 
 /**
  * Wait for templates to finish loading
+ * @param expectedTemplateName Optional template name to check for (defaults to "Standard Title Template")
  */
-export async function waitForTemplatesLoad() {
+export async function waitForTemplatesLoad(
+  expectedTemplateName = "Standard Title Template"
+) {
   await waitFor(() => {
-    expect(screen.getByText("Standard Title Template")).toBeInTheDocument();
+    expect(screen.getByText(expectedTemplateName)).toBeInTheDocument();
   });
 }
 

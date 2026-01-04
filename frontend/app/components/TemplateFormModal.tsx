@@ -1,5 +1,6 @@
 import TemplateForm from "@/app/components/TemplateForm";
 import Modal from "@/app/components/Modal";
+import useModalKeyboardHandler from "@/app/hooks/useModalKeyboardHandler";
 import { NormalizedTemplate, Template } from "@/app/types/template";
 
 interface TemplateFormModalProps {
@@ -49,15 +50,17 @@ export default function TemplateFormModal({
   onSuccess,
   onClose,
 }: TemplateFormModalProps) {
-  const title = mode === "create" ? "Create New Template" : "Edit Template";
+  const ariaLabel = mode === "create" ? "Create New Template" : "Edit Template";
+
+  // Use keyboard handler hook for Escape key to close form
+  useModalKeyboardHandler(isOpen, onClose);
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={title}
       maxWidth="2xl"
-      ariaLabel={title}
+      ariaLabel={ariaLabel}
     >
       <TemplateForm
         mode={mode}
