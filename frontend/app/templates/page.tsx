@@ -1,15 +1,24 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { deleteTemplate, getTemplates } from "@/app/lib/api";
+import TemplateFormModal from "@/app/components/TemplateFormModal";
+import TemplateDeleteModal from "@/app/components/TemplateDeleteModal";
+import FilterButton from "@/app/components/FilterButton";
+import Button from "@/app/components/Button";
 import {
   formatTemplateTypeLabel,
-  normalizeTemplateType,
   NormalizedTemplate,
   Template,
   TemplateType,
 } from "@/app/types/template";
+import {
+  normalizeTemplateFromApi,
+  calculateTemplateCounts,
+  filterTemplatesByType,
+  formatDate,
+} from "@/app/utils/template";
 
 /**
  * TemplatesPage Component
@@ -37,12 +46,20 @@ export default function TemplatesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<TemplateType | "all">("all");
+
+  // Create form state
+  const [showCreateForm, setShowCreateForm] = useState(false);
+
+  // Edit form state
+  const [editingTemplate, setEditingTemplate] =
+    useState<NormalizedTemplate | null>(null);
+
+  // Delete confirmation state
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] =
     useState<NormalizedTemplate | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -87,24 +104,13 @@ export default function TemplatesPage() {
     setDeleteError(null);
   }, []);
 
-  useEffect(() => {
-    if (!isDeleteDialogOpen) return;
+  const closeCreateForm = useCallback(() => {
+    setShowCreateForm(false);
+  }, []);
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        closeDeleteDialog();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isDeleteDialogOpen, closeDeleteDialog]);
-
-  useEffect(() => {
-    if (isDeleteDialogOpen && cancelButtonRef.current) {
-      cancelButtonRef.current.focus();
-    }
-  }, [isDeleteDialogOpen]);
+  const closeEditForm = useCallback(() => {
+    setEditingTemplate(null);
+  }, []);
 
   const handleDeleteClick = (template: NormalizedTemplate) => {
     setSelectedTemplate(template);
@@ -112,19 +118,38 @@ export default function TemplatesPage() {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleDeleteConfirm = async () => {
-    if (!selectedTemplate) return;
+  const handleCreateSuccess = (newTemplate: Template) => {
+    const normalized = normalizeTemplateFromApi(newTemplate);
+    setTemplates((currentTemplates) => [normalized, ...currentTemplates]);
+    closeCreateForm();
+  };
 
+  const handleEditClick = (template: NormalizedTemplate) => {
+    setEditingTemplate(template);
+  };
+
+  const handleEditSuccess = (updatedTemplate: Template) => {
+    const normalized = normalizeTemplateFromApi(updatedTemplate);
+    setTemplates((currentTemplates) =>
+      currentTemplates.map((t) => (t.id === normalized.id ? normalized : t))
+    );
+    closeEditForm();
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedTemplate) {
+      return;
+    }
+
+    const templateId = selectedTemplate.id;
     setIsDeleting(true);
     setDeleteError(null);
 
     try {
-      await deleteTemplate(selectedTemplate.id);
+      await deleteTemplate(templateId);
 
       setTemplates((currentTemplates) =>
-        currentTemplates.filter(
-          (template) => template.id !== selectedTemplate.id
-        )
+        currentTemplates.filter((template) => template.id !== templateId)
       );
 
       closeDeleteDialog();
@@ -168,13 +193,9 @@ export default function TemplatesPage() {
               Error
             </h2>
             <p className="mb-4 text-red-700 dark:text-red-400">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg
-                       transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-            >
+            <Button variant="danger" onClick={() => window.location.reload()}>
               Retry
-            </button>
+            </Button>
           </div>
         </main>
       </div>
@@ -183,7 +204,10 @@ export default function TemplatesPage() {
 
   return (
     <div className="min-h-screen p-8 pb-20 gap-16 sm:p-20 font-sans bg-gray-50 dark:bg-gray-900">
-      <main className="max-w-6xl mx-auto" aria-hidden={isDeleteDialogOpen}>
+      <main
+        className="max-w-6xl mx-auto"
+        aria-hidden={isDeleteDialogOpen || showCreateForm || !!editingTemplate}
+      >
         {/* Back Navigation */}
         <Link
           href="/"
@@ -196,9 +220,17 @@ export default function TemplatesPage() {
 
         {/* Page Header */}
         <header className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 text-gray-900 dark:text-gray-100">
-            Templates
-          </h1>
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
+              Templates
+            </h1>
+            <Button
+              onClick={() => setShowCreateForm(true)}
+              aria-label="Create new template"
+            >
+              Create Template
+            </Button>
+          </div>
           <p className="text-lg text-gray-600 dark:text-gray-400">
             Manage video title and description templates
           </p>
@@ -210,45 +242,30 @@ export default function TemplatesPage() {
             Filter by template type
           </label>
           <div className="inline-flex rounded-lg border border-gray-300 dark:border-gray-600 overflow-hidden">
-            <button
-              onClick={() => setSelectedType("all")}
-              className={`px-4 py-2 text-sm font-medium transition-colors duration-200
-                ${
-                  selectedType === "all"
-                    ? "bg-blue-600 text-white"
-                    : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+            {[
+              { type: "all" as const, label: "All", count: templateCounts.all },
+              {
+                type: "title" as const,
+                label: "Title",
+                count: templateCounts.title,
+              },
+              {
+                type: "description" as const,
+                label: "Description",
+                count: templateCounts.description,
+              },
+            ].map((filter, index) => (
+              <FilterButton
+                key={filter.type}
+                label={filter.label}
+                count={filter.count}
+                isActive={selectedType === filter.type}
+                onClick={() => setSelectedType(filter.type)}
+                position={
+                  index === 0 ? "first" : index === 2 ? "last" : "middle"
                 }
-                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset`}
-              aria-pressed={selectedType === "all"}
-            >
-              All ({templateCounts.all})
-            </button>
-            <button
-              onClick={() => setSelectedType("title")}
-              className={`px-4 py-2 text-sm font-medium transition-colors duration-200 border-l border-gray-300 dark:border-gray-600
-                ${
-                  selectedType === "title"
-                    ? "bg-blue-600 text-white"
-                    : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                }
-                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset`}
-              aria-pressed={selectedType === "title"}
-            >
-              Title ({templateCounts.title})
-            </button>
-            <button
-              onClick={() => setSelectedType("description")}
-              className={`px-4 py-2 text-sm font-medium transition-colors duration-200 border-l border-gray-300 dark:border-gray-600
-                ${
-                  selectedType === "description"
-                    ? "bg-blue-600 text-white"
-                    : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                }
-                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset`}
-              aria-pressed={selectedType === "description"}
-            >
-              Description ({templateCounts.description})
-            </button>
+              />
+            ))}
           </div>
         </div>
 
@@ -289,14 +306,26 @@ export default function TemplatesPage() {
                       </span>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteClick(template)}
-                      className="ml-4 inline-flex items-center rounded-md border border-red-200 dark:border-red-700 bg-white dark:bg-gray-900 px-3 py-1 text-sm font-medium text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-800/30 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                      aria-label={`Delete template ${template.name}`}
-                    >
-                      Delete template
-                    </button>
+                    <div className="ml-4 flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline-primary"
+                        size="sm"
+                        onClick={() => handleEditClick(template)}
+                        aria-label={`Edit template ${template.name}`}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={() => handleDeleteClick(template)}
+                        aria-label={`Delete template ${template.name}`}
+                      >
+                        Delete
+                      </Button>
+                    </div>
                   </div>
 
                   {/* Template Content */}
@@ -319,94 +348,30 @@ export default function TemplatesPage() {
         </section>
       </main>
 
-      {isDeleteDialogOpen && selectedTemplate && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Delete template"
-          onClick={closeDeleteDialog}
-        >
-          <div
-            className="w-full max-w-lg rounded-lg bg-white dark:bg-gray-900 p-6 shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              Delete template
-            </h2>
-            <p className="text-gray-700 dark:text-gray-300 mb-4">
-              Are you sure you want to delete &quot;{selectedTemplate.name}
-              &quot;? This action cannot be undone.
-            </p>
+      {/* Template Modals */}
+      <TemplateFormModal
+        isOpen={showCreateForm}
+        mode="create"
+        onSuccess={handleCreateSuccess}
+        onClose={closeCreateForm}
+      />
 
-            {deleteError && (
-              <div
-                role="alert"
-                className="mb-4 rounded border border-red-200 dark:border-red-700 bg-red-50 dark:bg-red-900/30 px-4 py-3 text-sm text-red-800 dark:text-red-200"
-              >
-                {deleteError}
-              </div>
-            )}
+      <TemplateFormModal
+        isOpen={!!editingTemplate}
+        mode="edit"
+        initialTemplate={editingTemplate || undefined}
+        onSuccess={handleEditSuccess}
+        onClose={closeEditForm}
+      />
 
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                ref={cancelButtonRef}
-                onClick={closeDeleteDialog}
-                className="inline-flex items-center rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleDeleteConfirm}
-                disabled={isDeleting}
-                className="inline-flex items-center rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-70"
-              >
-                {isDeleting ? "Deleting..." : "Delete Template"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <TemplateDeleteModal
+        isOpen={isDeleteDialogOpen}
+        template={selectedTemplate}
+        error={deleteError}
+        isDeleting={isDeleting}
+        onConfirm={handleDeleteConfirm}
+        onClose={closeDeleteDialog}
+      />
     </div>
   );
-}
-
-function normalizeTemplateFromApi(template: Template): NormalizedTemplate {
-  return {
-    ...template,
-    type: normalizeTemplateType(template.type),
-  };
-}
-
-function calculateTemplateCounts(templates: NormalizedTemplate[]) {
-  return templates.reduce(
-    (counts, template) => {
-      counts.all += 1;
-      if (template.type === "title") counts.title += 1;
-      if (template.type === "description") counts.description += 1;
-      return counts;
-    },
-    { all: 0, title: 0, description: 0 }
-  );
-}
-
-function filterTemplatesByType(
-  templates: NormalizedTemplate[],
-  selectedType: TemplateType | "all"
-) {
-  if (selectedType === "all") return templates;
-  return templates.filter((template) => template.type === selectedType);
-}
-
-/**
- * Format ISO date string to readable format
- */
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
 }
