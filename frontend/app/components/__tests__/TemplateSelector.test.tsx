@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TemplateSelector } from "../TemplateSelector";
 import { getTemplates } from "@/app/lib/api";
@@ -301,5 +301,125 @@ describe("TemplateSelector", () => {
         screen.queryByText(/replace existing video title/i)
       ).not.toBeInTheDocument();
     });
+  });
+
+  it("implements focus trap in confirmation dialog", async () => {
+    const mockGetTemplates = getTemplates as jest.Mock;
+    mockGetTemplates.mockResolvedValue([mockTemplates[0]]);
+    renderComponent("Existing Title");
+
+    // Open dropdown and select template to show confirmation
+    await user.click(screen.getByRole("button", { name: /apply template/i }));
+    await waitFor(() => {
+      expect(screen.getByText(mockTemplates[0].name)).toBeInTheDocument();
+    });
+    await user.click(screen.getByText(mockTemplates[0].name));
+
+    // Confirmation dialog should be showing
+    await waitFor(() => {
+      expect(
+        screen.getByText(/replace existing video title/i)
+      ).toBeInTheDocument();
+    });
+
+    // Verify focus is on Replace button (initial focus)
+    const replaceButton = screen.getByRole("button", { name: /^replace$/i });
+    await waitFor(() => {
+      expect(replaceButton).toHaveFocus();
+    });
+  });
+
+  it("closes confirmation dialog on Escape key", async () => {
+    const mockGetTemplates = getTemplates as jest.Mock;
+    mockGetTemplates.mockResolvedValue([mockTemplates[0]]);
+    renderComponent("Existing Title");
+
+    // Open dropdown and select template to show confirmation
+    await user.click(screen.getByRole("button", { name: /apply template/i }));
+    await waitFor(() => {
+      expect(screen.getByText(mockTemplates[0].name)).toBeInTheDocument();
+    });
+    await user.click(screen.getByText(mockTemplates[0].name));
+
+    // Confirmation should be showing
+    await waitFor(() => {
+      expect(
+        screen.getByText(/replace existing video title/i)
+      ).toBeInTheDocument();
+    });
+
+    // Press Escape key to close confirmation
+    await user.keyboard("{Escape}");
+
+    // Confirmation should be closed
+    await waitFor(() => {
+      expect(
+        screen.queryByText(/replace existing video title/i)
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  it("uses template cache to reduce API calls", async () => {
+    const mockGetTemplates = getTemplates as jest.Mock;
+    mockGetTemplates.mockResolvedValue([mockTemplates[0]]);
+    renderComponent();
+
+    // Open dropdown - first API call
+    await user.click(screen.getByRole("button", { name: /apply template/i }));
+    await waitFor(() => {
+      expect(screen.getByText(mockTemplates[0].name)).toBeInTheDocument();
+    });
+    expect(mockGetTemplates).toHaveBeenCalledTimes(1);
+
+    // Close dropdown
+    await user.click(screen.getByRole("button", { name: /^close$/i }));
+
+    // Reopen dropdown - should use cache (no new API call)
+    await user.click(screen.getByRole("button", { name: /apply template/i }));
+    await waitFor(() => {
+      expect(screen.getByText(mockTemplates[0].name)).toBeInTheDocument();
+    });
+
+    // API should still only have been called once (cached)
+    expect(mockGetTemplates).toHaveBeenCalledTimes(1);
+  });
+
+  it("traps focus within confirmation dialog using Tab", async () => {
+    const mockGetTemplates = getTemplates as jest.Mock;
+    mockGetTemplates.mockResolvedValue([mockTemplates[0]]);
+    renderComponent("Existing Title");
+
+    // Open dropdown and select template to show confirmation
+    await user.click(screen.getByRole("button", { name: /apply template/i }));
+    await waitFor(() => {
+      expect(screen.getByText(mockTemplates[0].name)).toBeInTheDocument();
+    });
+    await user.click(screen.getByText(mockTemplates[0].name));
+
+    // Confirmation dialog should be showing
+    await waitFor(() => {
+      expect(
+        screen.getByText(/replace existing video title/i)
+      ).toBeInTheDocument();
+    });
+
+    const cancelButton = screen.getByRole("button", { name: /^cancel$/i });
+    const replaceButton = screen.getByRole("button", { name: /^replace$/i });
+
+    // Wait for initial focus on Replace button
+    await waitFor(() => {
+      expect(replaceButton).toHaveFocus();
+    });
+
+    // Simulate Tab key from last element (Replace button)
+    fireEvent.keyDown(document, { key: "Tab", code: "Tab" });
+    // Focus should wrap back to first element
+    expect(cancelButton).toHaveFocus();
+
+    // Focus on Cancel button, then simulate Shift+Tab from first element
+    cancelButton.focus();
+    fireEvent.keyDown(document, { key: "Tab", code: "Tab", shiftKey: true });
+    // Focus should wrap to last element
+    expect(replaceButton).toHaveFocus();
   });
 });

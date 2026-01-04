@@ -15,6 +15,11 @@ interface TemplateSelectorProps {
  *
  * Dropdown/menu for selecting and applying title templates.
  * Shows confirmation dialog if current title will be overwritten.
+ *
+ * Z-index Strategy (coordinated with VideoTitleEditor):
+ * - Dropdown menu: z-20
+ * - Confirmation dialog: z-30
+ * - VideoTitleEditor dialog: z-40 (always appears above TemplateSelector)
  */
 export function TemplateSelector({
   currentTitle,
@@ -31,6 +36,13 @@ export function TemplateSelector({
   const [isApplying, setIsApplying] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const confirmDialogRef = useRef<HTMLDivElement>(null);
+  const initialFocusRef = useRef<HTMLButtonElement>(null);
+  // Template caching: store last fetch time and cached templates to reduce API calls
+  const cacheRef = useRef<{ templates: Template[]; timestamp: number } | null>(
+    null
+  );
+  const CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds
 
   const hasExistingTitle =
     currentTitle !== null && currentTitle.trim().length > 0;
@@ -40,6 +52,13 @@ export function TemplateSelector({
 
     let isMounted = true;
     const loadTemplates = async () => {
+      // Check cache before making API call
+      const now = Date.now();
+      if (cacheRef.current && now - cacheRef.current.timestamp < CACHE_TTL) {
+        setTemplates(cacheRef.current.templates);
+        return; // Use cached data
+      }
+
       setLoading(true);
       setError(null);
 
@@ -47,6 +66,8 @@ export function TemplateSelector({
         const data = await getTemplates("title");
         if (isMounted) {
           setTemplates(data);
+          // Update cache with fresh data
+          cacheRef.current = { templates: data, timestamp: now };
         }
       } catch (err) {
         console.error("Failed to load templates:", err);
@@ -66,13 +87,14 @@ export function TemplateSelector({
     return () => {
       isMounted = false;
     };
-  }, [isOpen]);
+  }, [isOpen, CACHE_TTL]);
 
   const closeAll = useCallback(() => {
     setIsOpen(false);
     setShowConfirm(false);
     setSelectedTemplate(null);
     setIsApplying(false);
+    setError(null); // Clear error state when closing to avoid stale error messages
   }, []);
 
   useEffect(() => {
@@ -101,6 +123,51 @@ export function TemplateSelector({
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen, closeAll]);
+
+  // Focus management for confirmation dialog (accessibility improvement)
+  useEffect(() => {
+    if (!showConfirm) return;
+
+    // Move focus to the Replace button when dialog opens
+    initialFocusRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setShowConfirm(false);
+        setSelectedTemplate(null);
+      }
+      // Implement focus trap: prevent Tab from exiting dialog
+      if (event.key === "Tab" && confirmDialogRef.current) {
+        const focusableElements = confirmDialogRef.current.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusableElements.length === 0) return;
+
+        const firstElement = focusableElements[0] as HTMLElement;
+        const lastElement = focusableElements[
+          focusableElements.length - 1
+        ] as HTMLElement;
+        const activeElement = document.activeElement;
+
+        if (event.shiftKey) {
+          // Shift+Tab on first element -> focus last element
+          if (activeElement === firstElement) {
+            event.preventDefault();
+            lastElement.focus();
+          }
+        } else {
+          // Tab on last element -> focus first element
+          if (activeElement === lastElement) {
+            event.preventDefault();
+            firstElement.focus();
+          }
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [showConfirm]);
 
   const toggleDropdown = () => {
     if (isOpen) {
@@ -166,8 +233,12 @@ export function TemplateSelector({
         aria-expanded={isOpen}
         aria-haspopup="menu"
         aria-label="Apply template"
+        title="Apply template"
       >
-        📋
+        <span aria-hidden="true" className="mr-1">
+          📋
+        </span>
+        <span className="sr-only">Apply template</span>
       </button>
 
       {isOpen && (
@@ -259,6 +330,7 @@ export function TemplateSelector({
 
       {showConfirm && selectedTemplate && (
         <div
+          ref={confirmDialogRef}
           role="alertdialog"
           aria-modal="true"
           aria-labelledby="template-overwrite-heading"
@@ -296,6 +368,7 @@ export function TemplateSelector({
               Cancel
             </button>
             <button
+              ref={initialFocusRef}
               type="button"
               onClick={handleConfirmApply}
               disabled={isApplying}
