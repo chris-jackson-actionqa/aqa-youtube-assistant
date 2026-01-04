@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getTemplates } from "@/app/lib/api";
 import { Template } from "@/app/types/template";
+import { ERROR_MESSAGES } from "@/app/constants/messages";
 import { TemplateDropdown } from "./TemplateDropdown";
 import { TemplateConfirmDialog } from "./TemplateConfirmDialog";
 
@@ -79,7 +80,7 @@ export function TemplateSelector({
         console.error("Failed to load templates:", err);
         if (isMounted) {
           setTemplates([]);
-          setError("Unable to load templates. Please try again.");
+          setError(ERROR_MESSAGES.LOAD_TEMPLATES);
         }
       } finally {
         if (isMounted) {
@@ -175,7 +176,7 @@ export function TemplateSelector({
       closeAll();
     } catch (err) {
       console.error("Failed to apply template:", err);
-      setError("Failed to apply template. Please try again.");
+      setError(ERROR_MESSAGES.APPLY_TEMPLATE);
       setShowConfirm(hasExistingTitle);
       if (!hasExistingTitle) {
         setIsOpen(true);
