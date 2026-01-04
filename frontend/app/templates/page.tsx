@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { deleteTemplate, getTemplates } from "@/app/lib/api";
+import TemplateForm from "@/app/components/TemplateForm";
 import {
   formatTemplateTypeLabel,
   normalizeTemplateType,
@@ -37,6 +38,15 @@ export default function TemplatesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<TemplateType | "all">("all");
+
+  // Create form state
+  const [showCreateForm, setShowCreateForm] = useState(false);
+
+  // Edit form state
+  const [editingTemplate, setEditingTemplate] =
+    useState<NormalizedTemplate | null>(null);
+
+  // Delete confirmation state
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] =
     useState<NormalizedTemplate | null>(null);
@@ -87,6 +97,14 @@ export default function TemplatesPage() {
     setDeleteError(null);
   }, []);
 
+  const closeCreateForm = useCallback(() => {
+    setShowCreateForm(false);
+  }, []);
+
+  const closeEditForm = useCallback(() => {
+    setEditingTemplate(null);
+  }, []);
+
   useEffect(() => {
     if (!isDeleteDialogOpen) return;
 
@@ -110,6 +128,24 @@ export default function TemplatesPage() {
     setSelectedTemplate(template);
     setDeleteError(null);
     setIsDeleteDialogOpen(true);
+  };
+
+  const handleCreateSuccess = (newTemplate: Template) => {
+    const normalized = normalizeTemplateFromApi(newTemplate);
+    setTemplates((currentTemplates) => [normalized, ...currentTemplates]);
+    closeCreateForm();
+  };
+
+  const handleEditClick = (template: NormalizedTemplate) => {
+    setEditingTemplate(template);
+  };
+
+  const handleEditSuccess = (updatedTemplate: Template) => {
+    const normalized = normalizeTemplateFromApi(updatedTemplate);
+    setTemplates((currentTemplates) =>
+      currentTemplates.map((t) => (t.id === normalized.id ? normalized : t))
+    );
+    closeEditForm();
   };
 
   const handleDeleteConfirm = async () => {
@@ -183,7 +219,10 @@ export default function TemplatesPage() {
 
   return (
     <div className="min-h-screen p-8 pb-20 gap-16 sm:p-20 font-sans bg-gray-50 dark:bg-gray-900">
-      <main className="max-w-6xl mx-auto" aria-hidden={isDeleteDialogOpen}>
+      <main
+        className="max-w-6xl mx-auto"
+        aria-hidden={isDeleteDialogOpen || showCreateForm || !!editingTemplate}
+      >
         {/* Back Navigation */}
         <Link
           href="/"
@@ -196,9 +235,20 @@ export default function TemplatesPage() {
 
         {/* Page Header */}
         <header className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 text-gray-900 dark:text-gray-100">
-            Templates
-          </h1>
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
+              Templates
+            </h1>
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                       transition-colors duration-200"
+              aria-label="Create new template"
+            >
+              Create Template
+            </button>
+          </div>
           <p className="text-lg text-gray-600 dark:text-gray-400">
             Manage video title and description templates
           </p>
@@ -289,14 +339,24 @@ export default function TemplatesPage() {
                       </span>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteClick(template)}
-                      className="ml-4 inline-flex items-center rounded-md border border-red-200 dark:border-red-700 bg-white dark:bg-gray-900 px-3 py-1 text-sm font-medium text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-800/30 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                      aria-label={`Delete template ${template.name}`}
-                    >
-                      Delete template
-                    </button>
+                    <div className="ml-4 flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleEditClick(template)}
+                        className="inline-flex items-center rounded-md border border-blue-200 dark:border-blue-700 bg-white dark:bg-gray-900 px-3 py-1 text-sm font-medium text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-800/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        aria-label={`Edit template ${template.name}`}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteClick(template)}
+                        className="inline-flex items-center rounded-md border border-red-200 dark:border-red-700 bg-white dark:bg-gray-900 px-3 py-1 text-sm font-medium text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-800/30 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                        aria-label={`Delete template ${template.name}`}
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
 
                   {/* Template Content */}
@@ -319,6 +379,52 @@ export default function TemplatesPage() {
         </section>
       </main>
 
+      {/* Create Template Modal */}
+      {showCreateForm && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Create new template"
+          onClick={closeCreateForm}
+        >
+          <div
+            className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg bg-white dark:bg-gray-900 p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <TemplateForm
+              mode="create"
+              onSuccess={handleCreateSuccess}
+              onCancel={closeCreateForm}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Edit Template Modal */}
+      {editingTemplate && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Edit template"
+          onClick={closeEditForm}
+        >
+          <div
+            className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg bg-white dark:bg-gray-900 p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <TemplateForm
+              mode="edit"
+              initialTemplate={editingTemplate}
+              onSuccess={handleEditSuccess}
+              onCancel={closeEditForm}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Dialog */}
       {isDeleteDialogOpen && selectedTemplate && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
