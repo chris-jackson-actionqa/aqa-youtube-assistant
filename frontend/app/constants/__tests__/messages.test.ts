@@ -25,10 +25,9 @@ describe("Error Messages Constants", () => {
 
     it("should have consistent message format", () => {
       Object.entries(ERROR_MESSAGES).forEach(([key, message]) => {
-        // All error messages should either end with a period or be lowercase
-        expect(message.endsWith(".") || message === message.toLowerCase()).toBe(
-          true
-        );
+        // All error messages should start with an uppercase letter and end with a period
+        expect(message[0]).toBe(message[0].toUpperCase());
+        expect(message.endsWith(".")).toBe(true);
       });
     });
 
@@ -66,14 +65,16 @@ describe("Error Messages Constants", () => {
 
     describe("LOAD_PROJECT", () => {
       it("should have descriptive message", () => {
-        expect(ERROR_MESSAGES.LOAD_PROJECT).toBe("Failed to load project.");
+        expect(ERROR_MESSAGES.LOAD_PROJECT).toBe(
+          "Failed to load project. Please try again."
+        );
       });
     });
 
     describe("REFRESH_PROJECT", () => {
       it("should have descriptive message", () => {
         expect(ERROR_MESSAGES.REFRESH_PROJECT).toBe(
-          "Failed to refresh project."
+          "Failed to refresh project. Please try again."
         );
       });
     });
@@ -81,7 +82,7 @@ describe("Error Messages Constants", () => {
     describe("LOAD_WORKSPACES", () => {
       it("should have descriptive message", () => {
         expect(ERROR_MESSAGES.LOAD_WORKSPACES).toBe(
-          "Failed to load workspaces."
+          "Failed to load workspaces. Please try again."
         );
       });
     });
@@ -89,7 +90,7 @@ describe("Error Messages Constants", () => {
     describe("CREATE_WORKSPACE", () => {
       it("should have descriptive message", () => {
         expect(ERROR_MESSAGES.CREATE_WORKSPACE).toBe(
-          "Failed to create workspace."
+          "Failed to create workspace. Please try again."
         );
       });
     });
@@ -97,7 +98,7 @@ describe("Error Messages Constants", () => {
     describe("UPDATE_WORKSPACE", () => {
       it("should have descriptive message", () => {
         expect(ERROR_MESSAGES.UPDATE_WORKSPACE).toBe(
-          "Failed to update workspace."
+          "Failed to update workspace. Please try again."
         );
       });
     });
@@ -105,7 +106,7 @@ describe("Error Messages Constants", () => {
     describe("DELETE_WORKSPACE", () => {
       it("should have descriptive message", () => {
         expect(ERROR_MESSAGES.DELETE_WORKSPACE).toBe(
-          "Failed to delete workspace."
+          "Failed to delete workspace. Please try again."
         );
       });
     });
@@ -113,7 +114,7 @@ describe("Error Messages Constants", () => {
     describe("REFRESH_WORKSPACES", () => {
       it("should have descriptive message", () => {
         expect(ERROR_MESSAGES.REFRESH_WORKSPACES).toBe(
-          "Failed to refresh workspaces."
+          "Failed to refresh workspaces. Please try again."
         );
       });
     });
@@ -159,12 +160,13 @@ describe("Error Messages Constants", () => {
   });
 
   describe("Type safety", () => {
-    it("should be readonly (const assertion)", () => {
-      // The 'as const' assertion ensures keys are literal types
-      // This is verified by TypeScript, but we can check the structure
-      expect(
-        Object.isFrozen(ERROR_MESSAGES) || !Object.isFrozen(ERROR_MESSAGES)
-      ).toBe(true); // Just ensure it exists
+    it("should have all messages as literal string types", () => {
+      // The 'as const' assertion ensures keys and values are literal types
+      // TypeScript enforces this at compile time for type safety
+      // Verify that the messages object contains expected keys with string values
+      expect(typeof ERROR_MESSAGES.LOAD_TEMPLATES).toBe("string");
+      expect(typeof ERROR_MESSAGES.APPLY_TEMPLATE).toBe("string");
+      expect(typeof ERROR_MESSAGES.LOAD_PROJECTS).toBe("string");
     });
 
     it("should allow accessing messages by key", () => {

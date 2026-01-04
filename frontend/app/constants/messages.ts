@@ -12,15 +12,15 @@ export const ERROR_MESSAGES = {
   // Project operations
   LOAD_PROJECTS: "Failed to load projects. Please try again.",
   DELETE_PROJECT: "Failed to delete project. Please try again.",
-  LOAD_PROJECT: "Failed to load project.",
-  REFRESH_PROJECT: "Failed to refresh project.",
+  LOAD_PROJECT: "Failed to load project. Please try again.",
+  REFRESH_PROJECT: "Failed to refresh project. Please try again.",
 
   // Workspace operations
-  LOAD_WORKSPACES: "Failed to load workspaces.",
-  CREATE_WORKSPACE: "Failed to create workspace.",
-  UPDATE_WORKSPACE: "Failed to update workspace.",
-  DELETE_WORKSPACE: "Failed to delete workspace.",
-  REFRESH_WORKSPACES: "Failed to refresh workspaces.",
+  LOAD_WORKSPACES: "Failed to load workspaces. Please try again.",
+  CREATE_WORKSPACE: "Failed to create workspace. Please try again.",
+  UPDATE_WORKSPACE: "Failed to update workspace. Please try again.",
+  DELETE_WORKSPACE: "Failed to delete workspace. Please try again.",
+  REFRESH_WORKSPACES: "Failed to refresh workspaces. Please try again.",
 } as const;
 
 export const SUCCESS_MESSAGES = {
