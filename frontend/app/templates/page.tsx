@@ -5,6 +5,7 @@ import Link from "next/link";
 import { deleteTemplate, getTemplates } from "@/app/lib/api";
 import TemplateFormModal from "@/app/components/TemplateFormModal";
 import TemplateDeleteModal from "@/app/components/TemplateDeleteModal";
+import FilterButton from "@/app/components/FilterButton";
 import {
   formatTemplateTypeLabel,
   normalizeTemplateType,
@@ -239,45 +240,30 @@ export default function TemplatesPage() {
             Filter by template type
           </label>
           <div className="inline-flex rounded-lg border border-gray-300 dark:border-gray-600 overflow-hidden">
-            <button
-              onClick={() => setSelectedType("all")}
-              className={`px-4 py-2 text-sm font-medium transition-colors duration-200
-                ${
-                  selectedType === "all"
-                    ? "bg-blue-600 text-white"
-                    : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+            {[
+              { type: "all" as const, label: "All", count: templateCounts.all },
+              {
+                type: "title" as const,
+                label: "Title",
+                count: templateCounts.title,
+              },
+              {
+                type: "description" as const,
+                label: "Description",
+                count: templateCounts.description,
+              },
+            ].map((filter, index) => (
+              <FilterButton
+                key={filter.type}
+                label={filter.label}
+                count={filter.count}
+                isActive={selectedType === filter.type}
+                onClick={() => setSelectedType(filter.type)}
+                position={
+                  index === 0 ? "first" : index === 2 ? "last" : "middle"
                 }
-                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset`}
-              aria-pressed={selectedType === "all"}
-            >
-              All ({templateCounts.all})
-            </button>
-            <button
-              onClick={() => setSelectedType("title")}
-              className={`px-4 py-2 text-sm font-medium transition-colors duration-200 border-l border-gray-300 dark:border-gray-600
-                ${
-                  selectedType === "title"
-                    ? "bg-blue-600 text-white"
-                    : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                }
-                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset`}
-              aria-pressed={selectedType === "title"}
-            >
-              Title ({templateCounts.title})
-            </button>
-            <button
-              onClick={() => setSelectedType("description")}
-              className={`px-4 py-2 text-sm font-medium transition-colors duration-200 border-l border-gray-300 dark:border-gray-600
-                ${
-                  selectedType === "description"
-                    ? "bg-blue-600 text-white"
-                    : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                }
-                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset`}
-              aria-pressed={selectedType === "description"}
-            >
-              Description ({templateCounts.description})
-            </button>
+              />
+            ))}
           </div>
         </div>
 
