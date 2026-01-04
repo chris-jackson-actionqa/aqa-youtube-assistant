@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { getTemplates } from "@/app/lib/api";
 import { Template } from "@/app/types/template";
+import { TemplateDropdown } from "./TemplateDropdown";
+import { TemplateConfirmDialog } from "./TemplateConfirmDialog";
 
 interface TemplateSelectorProps {
   currentTitle: string | null;
@@ -13,8 +14,15 @@ interface TemplateSelectorProps {
 /**
  * TemplateSelector Component
  *
- * Dropdown/menu for selecting and applying title templates.
- * Shows confirmation dialog if current title will be overwritten.
+ * Orchestrator component that manages state and coordinates between
+ * TemplateDropdown and TemplateConfirmDialog sub-components.
+ *
+ * Responsibilities:
+ * - Manage overall state (isOpen, showConfirm, selectedTemplate)
+ * - Coordinate between sub-components
+ * - Handle click-outside and keyboard events
+ * - Load and cache templates
+ * - Apply templates via the onApply callback
  *
  * Z-index Strategy (coordinated with VideoTitleEditor):
  * - Dropdown menu: z-20
@@ -36,8 +44,6 @@ export function TemplateSelector({
   const [isApplying, setIsApplying] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const confirmDialogRef = useRef<HTMLDivElement>(null);
-  const initialFocusRef = useRef<HTMLButtonElement>(null);
   // Template caching: store last fetch time and cached templates to reduce API calls
   const cacheRef = useRef<{ templates: Template[]; timestamp: number } | null>(
     null
@@ -128,40 +134,9 @@ export function TemplateSelector({
   useEffect(() => {
     if (!showConfirm) return;
 
-    // Move focus to the Replace button when dialog opens
-    initialFocusRef.current?.focus();
-
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setShowConfirm(false);
-        setSelectedTemplate(null);
-      }
-      // Implement focus trap: prevent Tab from exiting dialog
-      if (event.key === "Tab" && confirmDialogRef.current) {
-        const focusableElements = confirmDialogRef.current.querySelectorAll(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        );
-        if (focusableElements.length === 0) return;
-
-        const firstElement = focusableElements[0] as HTMLElement;
-        const lastElement = focusableElements[
-          focusableElements.length - 1
-        ] as HTMLElement;
-        const activeElement = document.activeElement;
-
-        if (event.shiftKey) {
-          // Shift+Tab on first element -> focus last element
-          if (activeElement === firstElement) {
-            event.preventDefault();
-            lastElement.focus();
-          }
-        } else {
-          // Tab on last element -> focus first element
-          if (activeElement === lastElement) {
-            event.preventDefault();
-            firstElement.focus();
-          }
-        }
+        handleCancelConfirm();
       }
     };
 
@@ -242,142 +217,25 @@ export function TemplateSelector({
       </button>
 
       {isOpen && (
-        <div
-          className="absolute left-0 z-20 mt-2 w-80 max-w-[calc(100vw-2rem)] min-w-0 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl p-4"
-          role="menu"
-          aria-label="Template list"
-        >
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-                Apply Template
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Pick a saved title to apply.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={closeAll}
-              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
-            >
-              Close
-            </button>
-          </div>
-
-          {error && (
-            <div
-              role="alert"
-              className="mt-3 text-sm text-red-600 dark:text-red-400"
-            >
-              {error}
-            </div>
-          )}
-
-          <div className="mt-4 space-y-2" aria-live="polite">
-            {loading ? (
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                Loading templates...
-              </div>
-            ) : templates.length === 0 ? (
-              <div className="text-sm text-gray-600 dark:text-gray-400 space-y-2">
-                <p>No templates available</p>
-                <Link
-                  href="/templates"
-                  className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline"
-                >
-                  Create your first template →
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {templates.map((template) => (
-                  <button
-                    key={template.id}
-                    type="button"
-                    onClick={() => handleTemplateSelect(template)}
-                    disabled={isApplying}
-                    className="w-full text-left p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-200"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-semibold text-gray-900 dark:text-gray-100">
-                        {template.name}
-                      </span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        Select
-                      </span>
-                    </div>
-                    <p className="mt-1 text-sm text-gray-700 dark:text-gray-300 break-words">
-                      {template.content}
-                    </p>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="mt-4 flex justify-end">
-            <button
-              type="button"
-              onClick={closeAll}
-              className="text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 rounded"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
+        <TemplateDropdown
+          templates={templates}
+          loading={loading}
+          error={error}
+          isApplying={isApplying}
+          onTemplateSelect={handleTemplateSelect}
+          onClose={closeAll}
+        />
       )}
 
       {showConfirm && selectedTemplate && (
-        <div
-          ref={confirmDialogRef}
-          role="alertdialog"
-          aria-modal="true"
-          aria-labelledby="template-overwrite-heading"
-          className="absolute left-0 z-30 mt-2 w-80 max-w-[calc(100vw-2rem)] min-w-0 rounded-lg border border-orange-200 dark:border-orange-700 bg-white dark:bg-gray-800 shadow-2xl p-4"
-        >
-          <h3
-            id="template-overwrite-heading"
-            className="text-base font-semibold text-gray-900 dark:text-gray-100"
-          >
-            Replace existing video title?
-          </h3>
-          <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
-            This will overwrite:
-          </p>
-          <p className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100 break-words">
-            &ldquo;{currentTitle}&rdquo;
-          </p>
-
-          {error && (
-            <div
-              role="alert"
-              className="mt-3 text-sm text-red-600 dark:text-red-400"
-            >
-              {error}
-            </div>
-          )}
-
-          <div className="mt-4 flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={handleCancelConfirm}
-              disabled={isApplying}
-              className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Cancel
-            </button>
-            <button
-              ref={initialFocusRef}
-              type="button"
-              onClick={handleConfirmApply}
-              disabled={isApplying}
-              className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isApplying ? "Applying..." : "Replace"}
-            </button>
-          </div>
-        </div>
+        <TemplateConfirmDialog
+          selectedTemplate={selectedTemplate}
+          currentTitle={currentTitle}
+          isApplying={isApplying}
+          error={error}
+          onConfirm={handleConfirmApply}
+          onCancel={handleCancelConfirm}
+        />
       )}
     </div>
   );
