@@ -37,12 +37,13 @@ export default function ProjectDetailPage() {
 
   // Memoized handler for updating project video title to avoid duplication
   // Used by both VideoTitleEditor and TemplateSelector
+  // Accepts projectId as parameter to avoid capturing unstable project state
   const handleTitleUpdate = useCallback(
-    async (newTitle: string | null) => {
-      await updateProject(project!.id, { video_title: newTitle });
+    async (projectId: number, newTitle: string | null) => {
+      await updateProject(projectId, { video_title: newTitle });
       setProject((prev) => (prev ? { ...prev, video_title: newTitle } : null));
     },
-    [project?.id]
+    []
   );
 
   useEffect(() => {
@@ -178,11 +179,11 @@ export default function ProjectDetailPage() {
           <div className="flex flex-col sm:flex-row sm:items-start sm:gap-3">
             <VideoTitleEditor
               initialTitle={project.video_title}
-              onSave={handleTitleUpdate}
+              onSave={(title) => handleTitleUpdate(project.id, title)}
             />
             <TemplateSelector
               currentTitle={project.video_title}
-              onApply={handleTitleUpdate}
+              onApply={(content) => handleTitleUpdate(project.id, content)}
             />
           </div>
         </section>
