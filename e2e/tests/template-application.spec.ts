@@ -12,13 +12,18 @@
  * Epic: Issue #166 - Title Template Management
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 import { ProjectHelpers, TemplateHelpers } from '../helpers/test-helpers';
 
 test.describe('Template Application to Projects', () => {
   let projectHelpers: ProjectHelpers;
   let templateHelpers: TemplateHelpers;
   let projectId: number;
+  let templateOneId: number;
+  let templateOneName: string;
+  let templateTwoName: string;
+  let templateOneContent: string;
+  let templateTwoContent: string;
 
   test.beforeEach(async ({ page }) => {
     // Initialize helpers
@@ -39,16 +44,20 @@ test.describe('Template Application to Projects', () => {
     projectId = project.id;
 
     // Create test templates
-    await templateHelpers.createTemplateViaAPI(
-      'Title',
-      `Template 1 ${Date.now()}`,
-      'How to {{action}} with {{tool}}'
+    const templateTimestamp = Date.now();
+
+    templateOneName = `Template 1 ${templateTimestamp}`;
+    templateOneContent = 'How to {{action}} with {{tool}}';
+    const templateOne = await templateHelpers.createTemplateViaAPI(
+      'title',
+      templateOneName,
+      templateOneContent
     );
-    await templateHelpers.createTemplateViaAPI(
-      'Title',
-      `Template 2 ${Date.now()}`,
-      '{{subject}} Guide: {{topic}}'
-    );
+    templateOneId = templateOne.id;
+
+    templateTwoName = `Template 2 ${templateTimestamp + 1}`;
+    templateTwoContent = '{{subject}} Guide: {{topic}}';
+    await templateHelpers.createTemplateViaAPI('title', templateTwoName, templateTwoContent);
   });
 
   test.afterEach(async () => {
@@ -57,6 +66,25 @@ test.describe('Template Application to Projects', () => {
     // Clean up workspace
     await projectHelpers.teardownWorkspace();
   });
+
+  const goToProjectPage = async (page: Page) => {
+    await page.goto(`/projects/${projectId}`);
+    // eslint-disable-next-line playwright/no-networkidle
+    await page.waitForLoadState('networkidle');
+  };
+
+  const getVideoTitleDisplay = (page: Page) =>
+    page.locator('section:has-text("Video Title")').locator('span').first();
+
+  const openTemplateDropdown = async (page: Page) => {
+    await page.getByRole('button', { name: /apply template/i }).click();
+    await expect(page.getByRole('menu', { name: /template list/i })).toBeVisible();
+  };
+
+  const applyTemplateFromDropdown = async (page: Page, templateName: string) => {
+    await openTemplateDropdown(page);
+    await page.getByRole('button', { name: new RegExp(templateName) }).click();
+  };
 
   test.describe('Project Detail Page', () => {
     test('TA-001: Project detail page loads successfully', async ({ page }) => {
@@ -160,6 +188,105 @@ test.describe('Template Application to Projects', () => {
       expect(response.ok()).toBeTruthy();
       const project = await response.json();
       expect(project.id).toBe(projectId);
+    });
+  });
+
+  test.describe('Template Application Workflows', () => {
+    test('TA-021: Applies title template to new project', async ({ page }) => {
+      // Act
+      await goToProjectPage(page);
+      const titleDisplay = getVideoTitleDisplay(page);
+      await expect(titleDisplay).toHaveText('No video title set');
+
+      await applyTemplateFromDropdown(page, templateOneName);
+
+      // Assert
+      await expect(titleDisplay).toHaveText(templateOneContent);
+    });
+
+    test('TA-022: Applied template can be edited without changing templates', async ({ page }) => {
+      // Arrange
+      await goToProjectPage(page);
+      await applyTemplateFromDropdown(page, templateOneName);
+
+      // Act - edit applied title
+      await page.getByRole('button', { name: /edit video title/i }).click();
+      const titleInput = page.getByRole('textbox', { name: /video title input/i });
+      await titleInput.fill('Custom edited title');
+      await page.getByRole('button', { name: /^ok$/i }).click();
+
+      // Assert - new title saved and template source remains available
+      const titleDisplay = getVideoTitleDisplay(page);
+      await expect(titleDisplay).toHaveText('Custom edited title');
+
+      await openTemplateDropdown(page);
+      await expect(page.getByRole('button', { name: new RegExp(templateOneName) })).toBeVisible();
+      await expect(page.getByText(templateOneContent)).toBeVisible();
+    });
+
+    test('TA-023: Applying template over existing title requires confirmation', async ({
+      page,
+    }) => {
+      // Arrange
+      const existingTitle = 'Existing video title';
+      await projectHelpers.updateProjectViaAPI(projectId, { video_title: existingTitle });
+
+      // Act
+      await goToProjectPage(page);
+      const titleDisplay = getVideoTitleDisplay(page);
+      await expect(titleDisplay).toHaveText(existingTitle);
+
+      await openTemplateDropdown(page);
+      await page.getByRole('button', { name: new RegExp(templateTwoName) }).click();
+
+      // Assert - confirmation dialog appears
+      const confirmDialog = page.getByRole('alertdialog');
+      await expect(confirmDialog).toBeVisible();
+      await expect(
+        confirmDialog.getByRole('heading', { name: /replace existing video title/i })
+      ).toBeVisible();
+      await expect(confirmDialog.getByText(`“${existingTitle}”`)).toBeVisible();
+
+      await page.getByRole('button', { name: /replace/i }).click();
+      await expect(titleDisplay).toHaveText(templateTwoContent);
+    });
+
+    test('TA-024: Applied title persists after template deletion', async ({ page }) => {
+      // Arrange
+      await goToProjectPage(page);
+      await applyTemplateFromDropdown(page, templateOneName);
+      const titleDisplay = getVideoTitleDisplay(page);
+      await expect(titleDisplay).toHaveText(templateOneContent);
+
+      // Act
+      await templateHelpers.deleteTemplateViaAPI(templateOneId);
+      await page.reload();
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      // Assert
+      await expect(titleDisplay).toHaveText(templateOneContent);
+    });
+
+    test('TA-025: Manual title entry works without applying template', async ({ page }) => {
+      // Arrange
+      await goToProjectPage(page);
+
+      // Act - set manual title
+      await page.getByRole('button', { name: /edit video title/i }).click();
+      const titleInput = page.getByRole('textbox', { name: /video title input/i });
+      await titleInput.fill('Manual title without template');
+      await page.getByRole('button', { name: /^ok$/i }).click();
+
+      const titleDisplay = getVideoTitleDisplay(page);
+      await expect(titleDisplay).toHaveText('Manual title without template');
+
+      // Open and close dropdown without selecting a template
+      await openTemplateDropdown(page);
+      await page.getByRole('button', { name: /^close$/i }).click();
+
+      // Assert manual title unchanged
+      await expect(titleDisplay).toHaveText('Manual title without template');
     });
   });
 
