@@ -134,12 +134,8 @@ test.describe('Template Application to Projects', () => {
         .filter({ hasText: /back|home|projects/i })
         .first();
 
-      // Assert - Back link might exist
-      try {
-        await expect(backLink).toBeVisible();
-      } catch {
-        // Link may not always be visible in all layouts
-      }
+      // Assert - Back link exists
+      await expect(backLink).toBeVisible();
     });
   });
 

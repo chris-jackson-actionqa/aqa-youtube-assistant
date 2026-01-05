@@ -114,9 +114,6 @@ export class ProjectHelpers {
 
       // Delete workspace
       await context.delete(`${this.baseURL}/api/workspaces/${this.workspaceId}`);
-    } catch (error) {
-      console.error('Workspace teardown failed:', error);
-      // Don't throw - cleanup failures shouldn't fail tests
     } finally {
       this.workspaceId = null;
     }
