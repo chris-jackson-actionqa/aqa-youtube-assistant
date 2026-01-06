@@ -110,7 +110,8 @@ test.describe('Template Application to Projects', () => {
 
       // Assert - Page content includes expected sections
       await expect(page.getByText(/Description/i)).toBeVisible();
-      await expect(page.getByText(/Video Title/i)).toBeVisible();
+      // Use heading selector to avoid matching multiple "Video Title" elements
+      await expect(page.getByRole('heading', { name: /video title/i })).toBeVisible();
     });
 
     test('TA-003: Template selector is present on project page', async ({ page }) => {
@@ -298,9 +299,12 @@ test.describe('Template Application to Projects', () => {
       // eslint-disable-next-line playwright/no-networkidle
       await page.waitForLoadState('networkidle');
 
-      // Assert - Check for error heading or page indicator
-      const errorHeading = page.locator('h1, h2').filter({ hasText: /404|not found|error/i });
-      await expect(errorHeading.or(page.locator('text=does not exist'))).toBeVisible();
+      // Assert - Check for error heading (use first to select single element in strict mode)
+      const errorHeading = page
+        .locator('h1, h2')
+        .filter({ hasText: /404|not found|error/i })
+        .first();
+      await expect(errorHeading).toBeVisible();
     });
 
     test('TA-009: Invalid project ID shows error', async ({ page }) => {
@@ -309,8 +313,11 @@ test.describe('Template Application to Projects', () => {
       // eslint-disable-next-line playwright/no-networkidle
       await page.waitForLoadState('networkidle');
 
-      // Assert - Check for error message
-      const errorHeading = page.locator('h1, h2').filter({ hasText: /404|error|not found/i });
+      // Assert - Check for error message (use first to select single element in strict mode)
+      const errorHeading = page
+        .locator('h1, h2')
+        .filter({ hasText: /404|error|not found/i })
+        .first();
       await expect(errorHeading).toBeVisible();
     });
   });
@@ -401,8 +408,17 @@ test.describe('Template Application to Projects', () => {
       expect(linkCount).toBeGreaterThan(0);
 
       // Assert - At least one link has meaningful text content or aria-label
-      const accessibleLink = page.locator('a[aria-label], a:has-text(/\\S/)').first();
-      await expect(accessibleLink).toBeVisible();
+      // Check for links with aria-label or text content without using regex in CSS selector
+      const ariaLabelLink = page.locator('a[aria-label]').first();
+      const textLink = page
+        .locator('a')
+        .filter({ has: page.locator(':not(:empty)') })
+        .first();
+      const link = (await ariaLabelLink.isVisible()) ? ariaLabelLink : textLink;
+
+      const text = (await link.textContent())?.trim() ?? '';
+      const ariaLabel = await link.getAttribute('aria-label');
+      expect(text.length > 0 || ariaLabel).toBeTruthy();
     });
   });
 
