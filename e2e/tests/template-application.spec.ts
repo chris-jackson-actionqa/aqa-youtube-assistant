@@ -15,6 +15,9 @@
 import { test, expect, Page } from '@playwright/test';
 import { ProjectHelpers, TemplateHelpers } from '../helpers/test-helpers';
 
+// Configuration
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8000';
+
 test.describe('Template Application to Projects', () => {
   let projectHelpers: ProjectHelpers;
   let templateHelpers: TemplateHelpers;
@@ -106,9 +109,8 @@ test.describe('Template Application to Projects', () => {
       await page.waitForLoadState('networkidle');
 
       // Assert - Page content includes expected sections
-      const content = await page.content();
-      expect(content).toContain('Description');
-      expect(content).toContain('Video Title');
+      await expect(page.getByText(/Description/i)).toBeVisible();
+      await expect(page.getByText(/Video Title/i)).toBeVisible();
     });
 
     test('TA-003: Template selector is present on project page', async ({ page }) => {
@@ -117,9 +119,9 @@ test.describe('Template Application to Projects', () => {
       // eslint-disable-next-line playwright/no-networkidle
       await page.waitForLoadState('networkidle');
 
-      // Assert - Page contains template-related content
-      const pageContent = await page.content();
-      expect(pageContent).toContain('Template');
+      // Assert - Template selector button is visible
+      const templateSelector = page.getByRole('button', { name: /apply template/i });
+      await expect(templateSelector).toBeVisible();
     });
 
     test('TA-004: Back navigation link is present', async ({ page }) => {
@@ -150,9 +152,9 @@ test.describe('Template Application to Projects', () => {
       const videoSection = page.locator('text=Video Title').first();
       await expect(videoSection).toBeVisible();
 
-      // Assert - Input or editor present
-      const editorContent = await page.content();
-      expect(editorContent).toContain('Title');
+      // Assert - Edit button present
+      const editButton = page.getByRole('button', { name: /edit video title/i });
+      await expect(editButton).toBeVisible();
     });
 
     test('TA-006: Templates API returns data', async ({ request }) => {
@@ -160,7 +162,7 @@ test.describe('Template Application to Projects', () => {
       const workspaceId = projectHelpers.getCurrentWorkspaceId();
 
       // Act
-      const response = await request.get('http://localhost:8000/api/templates', {
+      const response = await request.get(`${API_BASE_URL}/api/templates`, {
         headers: { 'X-Workspace-Id': workspaceId.toString() },
       });
 
@@ -176,7 +178,7 @@ test.describe('Template Application to Projects', () => {
       const workspaceId = projectHelpers.getCurrentWorkspaceId();
 
       // Act
-      const response = await request.get(`http://localhost:8000/api/projects/${projectId}`, {
+      const response = await request.get(`${API_BASE_URL}/api/projects/${projectId}`, {
         headers: { 'X-Workspace-Id': workspaceId.toString() },
       });
 
@@ -288,14 +290,17 @@ test.describe('Template Application to Projects', () => {
 
   test.describe('Error Handling', () => {
     test('TA-008: 404 page shown for non-existent project', async ({ page }) => {
+      // Using a very high ID that should never exist in practice
+      const nonExistentProjectId = Number.MAX_SAFE_INTEGER - 1;
+
       // Act
-      await page.goto('/projects/999999999');
+      await page.goto(`/projects/${nonExistentProjectId}`);
       // eslint-disable-next-line playwright/no-networkidle
       await page.waitForLoadState('networkidle');
 
-      // Assert
-      const errorContent = await page.content();
-      expect(errorContent).toMatch(/404|not found|does not exist/i);
+      // Assert - Check for error heading or page indicator
+      const errorHeading = page.locator('h1, h2').filter({ hasText: /404|not found|error/i });
+      await expect(errorHeading.or(page.locator('text=does not exist'))).toBeVisible();
     });
 
     test('TA-009: Invalid project ID shows error', async ({ page }) => {
@@ -304,9 +309,9 @@ test.describe('Template Application to Projects', () => {
       // eslint-disable-next-line playwright/no-networkidle
       await page.waitForLoadState('networkidle');
 
-      // Assert
-      const errorContent = await page.content();
-      expect(errorContent).toMatch(/404|error|not found/i);
+      // Assert - Check for error message
+      const errorHeading = page.locator('h1, h2').filter({ hasText: /404|error|not found/i });
+      await expect(errorHeading).toBeVisible();
     });
   });
 
@@ -390,15 +395,14 @@ test.describe('Template Application to Projects', () => {
       // eslint-disable-next-line playwright/no-networkidle
       await page.waitForLoadState('networkidle');
 
-      // Assert - Navigation link visible with text
+      // Assert - Navigation links exist
       const navLinks = page.locator('a');
       const linkCount = await navLinks.count();
       expect(linkCount).toBeGreaterThan(0);
 
-      // Assert - At least one link has text content
-      const firstLink = navLinks.first();
-      const linkText = await firstLink.textContent();
-      expect(linkText?.trim().length).toBeGreaterThan(0);
+      // Assert - At least one link has meaningful text content or aria-label
+      const accessibleLink = page.locator('a[aria-label], a:has-text(/\\S/)').first();
+      await expect(accessibleLink).toBeVisible();
     });
   });
 
@@ -446,13 +450,13 @@ test.describe('Template Application to Projects', () => {
       await page.waitForLoadState('networkidle');
       const endTime = Date.now();
 
-      // Assert - Page loads in under 10 seconds
+      // Assert - Page loads in under 5 seconds (reasonable user experience threshold)
       const loadTime = endTime - startTime;
-      expect(loadTime).toBeLessThan(10000);
+      expect(loadTime).toBeLessThan(5000);
     });
 
     test('TA-020: No console errors on page load', async ({ page }) => {
-      // Collect console messages
+      // Collect console error messages
       const messages: string[] = [];
       page.on('console', (msg) => {
         if (msg.type() === 'error') {
@@ -465,9 +469,15 @@ test.describe('Template Application to Projects', () => {
       // eslint-disable-next-line playwright/no-networkidle
       await page.waitForLoadState('networkidle');
 
-      // Assert - No critical errors
+      // Assert - No critical errors (some known, non-critical errors are filtered)
+      // Note: Hydration warnings/errors may occur in SSR contexts and are intentionally filtered.
+      // Only unexpected, critical errors should cause test failure.
+      const nonCriticalPatterns = [
+        'hydration', // SSR hydration mismatches
+        'act warning', // React act() warnings from test setup
+      ];
       const criticalErrors = messages.filter(
-        (msg) => !msg.includes('hydration') && !msg.includes('warning')
+        (msg) => !nonCriticalPatterns.some((pattern) => msg.toLowerCase().includes(pattern))
       );
       expect(criticalErrors).toHaveLength(0);
     });
