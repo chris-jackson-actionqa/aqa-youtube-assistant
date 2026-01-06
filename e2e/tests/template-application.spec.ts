@@ -18,6 +18,18 @@ import { ProjectHelpers, TemplateHelpers } from '../helpers/test-helpers';
 // Configuration
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8000';
 
+// Viewport sizes for responsive testing
+const VIEWPORTS = {
+  mobile: { width: 375, height: 667 },
+  tablet: { width: 768, height: 1024 },
+  desktop: { width: 1920, height: 1080 },
+} as const;
+
+// Performance thresholds (milliseconds)
+const PERFORMANCE_THRESHOLDS = {
+  pageLoad: 5000, // Maximum acceptable page load time
+} as const;
+
 test.describe('Template Application to Projects', () => {
   let projectHelpers: ProjectHelpers;
   let templateHelpers: TemplateHelpers;
@@ -291,7 +303,8 @@ test.describe('Template Application to Projects', () => {
 
   test.describe('Error Handling', () => {
     test('TA-008: 404 page shown for non-existent project', async ({ page }) => {
-      // Using a very high ID that should never exist in practice
+      // Using Number.MAX_SAFE_INTEGER - 1 as an intentionally invalid project ID
+      // that should never collide with real database records
       const nonExistentProjectId = Number.MAX_SAFE_INTEGER - 1;
 
       // Act
@@ -325,7 +338,7 @@ test.describe('Template Application to Projects', () => {
   test.describe('Responsive Design', () => {
     test('TA-010: Page renders on mobile viewport', async ({ page }) => {
       // Arrange
-      await page.setViewportSize({ width: 375, height: 667 });
+      await page.setViewportSize(VIEWPORTS.mobile);
 
       // Act
       await page.goto(`/projects/${projectId}`);
@@ -339,7 +352,7 @@ test.describe('Template Application to Projects', () => {
 
     test('TA-011: Page renders on tablet viewport', async ({ page }) => {
       // Arrange
-      await page.setViewportSize({ width: 768, height: 1024 });
+      await page.setViewportSize(VIEWPORTS.tablet);
 
       // Act
       await page.goto(`/projects/${projectId}`);
@@ -353,7 +366,7 @@ test.describe('Template Application to Projects', () => {
 
     test('TA-012: Page renders on desktop viewport', async ({ page }) => {
       // Arrange
-      await page.setViewportSize({ width: 1920, height: 1080 });
+      await page.setViewportSize(VIEWPORTS.desktop);
 
       // Act
       await page.goto(`/projects/${projectId}`);
@@ -409,11 +422,13 @@ test.describe('Template Application to Projects', () => {
 
       // Assert - At least one link has meaningful text content or aria-label
       // Check for links with aria-label or text content without using regex in CSS selector
+      // This pattern is necessary because we can't use regex in CSS :has-text() selectors
       const ariaLabelLink = page.locator('a[aria-label]').first();
       const textLink = page
         .locator('a')
         .filter({ has: page.locator(':not(:empty)') })
         .first();
+      // Use conditional to prefer visible aria-labeled links for better accessibility testing
       const link = (await ariaLabelLink.isVisible()) ? ariaLabelLink : textLink;
 
       const text = (await link.textContent())?.trim() ?? '';
@@ -466,9 +481,11 @@ test.describe('Template Application to Projects', () => {
       await page.waitForLoadState('networkidle');
       const endTime = Date.now();
 
-      // Assert - Page loads in under 5 seconds (reasonable user experience threshold)
+      // Assert - Page loads within acceptable user experience threshold
+      // 5 seconds is chosen as a reasonable maximum that balances user experience
+      // with CI environment variability. Adjust PERFORMANCE_THRESHOLDS.pageLoad if needed.
       const loadTime = endTime - startTime;
-      expect(loadTime).toBeLessThan(5000);
+      expect(loadTime).toBeLessThan(PERFORMANCE_THRESHOLDS.pageLoad);
     });
 
     test('TA-020: No console errors on page load', async ({ page }) => {
