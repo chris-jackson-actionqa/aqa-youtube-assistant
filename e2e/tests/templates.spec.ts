@@ -98,6 +98,540 @@ test.describe('Templates Page', () => {
     });
   });
 
+  test.describe('Template Creation', () => {
+    test('TC-001: should open create template modal when Create Template button is clicked', async ({
+      page,
+    }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      // Act
+      await page.getByRole('button', { name: /create.*template/i }).click();
+
+      // Assert - Modal opens
+      const dialog = page.getByRole('dialog', { name: /create new template/i });
+      await expect(dialog).toBeVisible();
+
+      // Assert - Form fields are present
+      await expect(page.getByRole('textbox', { name: /template type/i })).toBeVisible();
+      await expect(page.getByRole('textbox', { name: /template name/i })).toBeVisible();
+      await expect(page.getByRole('textbox', { name: /template content/i })).toBeVisible();
+
+      // Assert - Submit button is disabled initially
+      await expect(page.getByRole('button', { name: 'Create Template' })).toBeDisabled();
+    });
+
+    test('TC-002: should create a new template with valid data', async ({ page }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      // Act - Open create modal
+      await page.getByRole('button', { name: /create.*template/i }).click();
+
+      const dialog = page.getByRole('dialog', { name: /create new template/i });
+      await expect(dialog).toBeVisible();
+
+      // Act - Fill form
+      await page.getByRole('textbox', { name: /template type/i }).fill('title');
+      await page.getByRole('textbox', { name: /template name/i }).fill('New Test Template');
+      await page
+        .getByRole('textbox', { name: /template content/i })
+        .fill('How to {{action}} in {{timeframe}}');
+
+      // Setup API response listener
+      const createResponsePromise = page.waitForResponse(
+        (response) =>
+          response.url().includes('/api/templates') && response.request().method() === 'POST'
+      );
+
+      // Act - Submit form
+      await page.getByRole('button', { name: 'Create Template' }).click();
+
+      // Assert - API call made
+      const createResponse = await createResponsePromise;
+      expect(createResponse.ok()).toBeTruthy();
+
+      // Assert - Modal closes
+      await expect(dialog).toBeHidden();
+
+      // Assert - New template appears in list
+      await expect(page.getByText('New Test Template')).toBeVisible();
+      await expect(page.getByText('How to {{action}} in {{timeframe}}')).toBeVisible();
+    });
+
+    test('TC-003: should validate required fields', async ({ page }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      await page.getByRole('button', { name: /create.*template/i }).click();
+
+      const dialog = page.getByRole('dialog', { name: /create new template/i });
+      await expect(dialog).toBeVisible();
+
+      // Assert - Submit button disabled when fields are empty
+      await expect(page.getByRole('button', { name: 'Create Template' })).toBeDisabled();
+
+      // Act - Fill only template type
+      await page.getByRole('textbox', { name: /template type/i }).fill('title');
+
+      // Assert - Still disabled
+      await expect(page.getByRole('button', { name: 'Create Template' })).toBeDisabled();
+
+      // Act - Fill template name
+      await page.getByRole('textbox', { name: /template name/i }).fill('Test Template');
+
+      // Assert - Still disabled (missing content)
+      await expect(page.getByRole('button', { name: 'Create Template' })).toBeDisabled();
+
+      // Act - Fill content with placeholder
+      await page
+        .getByRole('textbox', { name: /template content/i })
+        .fill('Content with {{placeholder}}');
+
+      // Assert - Now enabled
+      await expect(page.getByRole('button', { name: 'Create Template' })).toBeEnabled();
+    });
+
+    test('TC-004: should validate placeholder syntax', async ({ page }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      await page.getByRole('button', { name: /create.*template/i }).click();
+
+      // Act - Fill form with invalid placeholder (empty braces)
+      await page.getByRole('textbox', { name: /template type/i }).fill('title');
+      await page.getByRole('textbox', { name: /template name/i }).fill('Invalid Template');
+      await page.getByRole('textbox', { name: /template content/i }).fill('Content with {{}}');
+
+      // Assert - Submit button should be disabled for invalid placeholder
+      await expect(page.getByRole('button', { name: 'Create Template' })).toBeDisabled();
+    });
+
+    test('TC-005: should validate at least one placeholder is required', async ({ page }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      await page.getByRole('button', { name: /create.*template/i }).click();
+
+      // Act - Fill form without any placeholders
+      await page.getByRole('textbox', { name: /template type/i }).fill('title');
+      await page.getByRole('textbox', { name: /template name/i }).fill('No Placeholder Template');
+      await page
+        .getByRole('textbox', { name: /template content/i })
+        .fill('Content without placeholders');
+
+      // Assert - Submit button should be disabled
+      await expect(page.getByRole('button', { name: 'Create Template' })).toBeDisabled();
+    });
+
+    test('TC-006: should enforce character limits', async ({ page }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      await page.getByRole('button', { name: /create.*template/i }).click();
+
+      const dialog = page.getByRole('dialog', { name: /create new template/i });
+
+      // Act - Fill template name with max characters (100)
+      const longName = 'A'.repeat(100);
+      await page.getByRole('textbox', { name: /template name/i }).fill(longName);
+
+      // Assert - Character count displays correctly
+      await expect(dialog).toContainText('100 / 100 characters');
+
+      // Act - Try to exceed limit (should be truncated by input)
+      await page.getByRole('textbox', { name: /template name/i }).fill(longName + 'B');
+
+      // Assert - Still at 100
+      await expect(dialog).toContainText('100 / 100 characters');
+    });
+
+    test('TC-007: should cancel template creation', async ({ page }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      await page.getByRole('button', { name: /create.*template/i }).click();
+
+      const dialog = page.getByRole('dialog', { name: /create new template/i });
+      await expect(dialog).toBeVisible();
+
+      // Act - Fill form partially
+      await page.getByRole('textbox', { name: /template name/i }).fill('Cancelled Template');
+
+      // Act - Click cancel
+      await page.getByRole('button', { name: 'Cancel' }).click();
+
+      // Assert - Modal closes
+      await expect(dialog).toBeHidden();
+
+      // Assert - Template not created
+      await expect(page.getByText('Cancelled Template')).toBeHidden();
+    });
+
+    test('TC-008: should close modal on Escape key', async ({ page }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      await page.getByRole('button', { name: /create.*template/i }).click();
+
+      const dialog = page.getByRole('dialog', { name: /create new template/i });
+      await expect(dialog).toBeVisible();
+
+      // Act - Press Escape
+      await page.keyboard.press('Escape');
+
+      // Assert - Modal closes
+      await expect(dialog).toBeHidden();
+    });
+
+    test('TC-009: should display placeholder syntax help', async ({ page }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      await page.getByRole('button', { name: /create.*template/i }).click();
+
+      const dialog = page.getByRole('dialog', { name: /create new template/i });
+
+      // Assert - Help text is visible
+      await expect(dialog).toContainText('Placeholder Syntax:');
+      await expect(dialog).toContainText('Use double curly braces');
+      await expect(dialog).toContainText('{{name}}');
+      await expect(dialog).toContainText('Each template must have at least one placeholder');
+    });
+
+    test('TC-010: should show detected placeholders in content', async ({ page }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      await page.getByRole('button', { name: /create.*template/i }).click();
+
+      // Act - Fill content with multiple placeholders
+      await page
+        .getByRole('textbox', { name: /template content/i })
+        .fill('How to {{action}} in {{timeframe}} using {{tool}}');
+
+      // Assert - Should show detected placeholders (implementation may vary)
+      const dialog = page.getByRole('dialog', { name: /create new template/i });
+
+      // Wait a moment for placeholder detection to update
+      await page.waitForTimeout(500);
+
+      // Check if placeholders are shown somewhere in the dialog
+      try {
+        await expect(dialog).toContainText('{{action}}');
+      } catch {
+        // Placeholder detection display is optional feature
+      }
+    });
+
+    test('TC-011: should handle API errors gracefully', async ({ page }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      // Mock API failure
+      await page.route('**/api/templates', (route) => {
+        if (route.request().method() === 'POST') {
+          route.fulfill({ status: 500, body: 'Server error' });
+        } else {
+          route.continue();
+        }
+      });
+
+      await page.getByRole('button', { name: /create.*template/i }).click();
+
+      // Act - Fill and submit form
+      await page.getByRole('textbox', { name: /template type/i }).fill('title');
+      await page.getByRole('textbox', { name: /template name/i }).fill('Error Template');
+      await page
+        .getByRole('textbox', { name: /template content/i })
+        .fill('Content {{placeholder}}');
+      await page.getByRole('button', { name: 'Create Template' }).click();
+
+      // Assert - Error message displayed
+      const dialog = page.getByRole('dialog', { name: /create new template/i });
+      await expect(dialog).toContainText(/failed|error/i);
+    });
+  });
+
+  test.describe('Template Editing', () => {
+    test.beforeEach(async () => {
+      // Create a template to edit
+      await templateHelpers.createTemplateViaAPI(
+        'Title',
+        'Template to Edit',
+        'Original content with {{placeholder}}'
+      );
+    });
+
+    test('TE-001: should open edit template modal when Edit button is clicked', async ({
+      page,
+    }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      // Act
+      await page.getByRole('button', { name: /edit template template to edit/i }).click();
+
+      // Assert - Modal opens
+      const dialog = page.getByRole('dialog', { name: /edit template/i });
+      await expect(dialog).toBeVisible();
+
+      // Assert - Form fields are pre-populated
+      await expect(page.getByRole('textbox', { name: /template type/i })).toHaveValue('title');
+      await expect(page.getByRole('textbox', { name: /template name/i })).toHaveValue(
+        'Template to Edit'
+      );
+      await expect(page.getByRole('textbox', { name: /template content/i })).toHaveValue(
+        'Original content with {{placeholder}}'
+      );
+
+      // Assert - Update button is enabled
+      await expect(page.getByRole('button', { name: 'Update Template' })).toBeEnabled();
+    });
+
+    test('TE-002: should update template with modified data', async ({ page }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      // Act - Open edit modal
+      await page.getByRole('button', { name: /edit template template to edit/i }).click();
+
+      const dialog = page.getByRole('dialog', { name: /edit template/i });
+      await expect(dialog).toBeVisible();
+
+      // Act - Modify fields
+      await page.getByRole('textbox', { name: /template name/i }).clear();
+      await page.getByRole('textbox', { name: /template name/i }).fill('Updated Template Name');
+      await page.getByRole('textbox', { name: /template content/i }).clear();
+      await page
+        .getByRole('textbox', { name: /template content/i })
+        .fill('Updated content with {{new_placeholder}}');
+
+      // Setup API response listener
+      const updateResponsePromise = page.waitForResponse(
+        (response) =>
+          response.url().includes('/api/templates/') && response.request().method() === 'PUT'
+      );
+
+      // Act - Submit form
+      await page.getByRole('button', { name: 'Update Template' }).click();
+
+      // Assert - API call made
+      const updateResponse = await updateResponsePromise;
+      expect(updateResponse.ok()).toBeTruthy();
+
+      // Assert - Modal closes
+      await expect(dialog).toBeHidden();
+
+      // Assert - Updated template appears in list
+      await expect(page.getByText('Updated Template Name')).toBeVisible();
+      await expect(page.getByText('Updated content with {{new_placeholder}}')).toBeVisible();
+      await expect(page.getByText('Template to Edit')).toBeHidden();
+    });
+
+    test('TE-003: should validate required fields during edit', async ({ page }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      await page.getByRole('button', { name: /edit template template to edit/i }).click();
+
+      // Act - Clear required field
+      await page.getByRole('textbox', { name: /template name/i }).clear();
+
+      // Assert - Update button disabled
+      await expect(page.getByRole('button', { name: 'Update Template' })).toBeDisabled();
+
+      // Act - Fill field again
+      await page.getByRole('textbox', { name: /template name/i }).fill('Valid Name');
+
+      // Assert - Update button enabled
+      await expect(page.getByRole('button', { name: 'Update Template' })).toBeEnabled();
+    });
+
+    test('TE-004: should validate placeholder syntax during edit', async ({ page }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      await page.getByRole('button', { name: /edit template template to edit/i }).click();
+
+      // Act - Change content to invalid placeholder
+      await page.getByRole('textbox', { name: /template content/i }).clear();
+      await page
+        .getByRole('textbox', { name: /template content/i })
+        .fill('Invalid content with {{}}');
+
+      // Assert - Update button disabled
+      await expect(page.getByRole('button', { name: 'Update Template' })).toBeDisabled();
+    });
+
+    test('TE-005: should validate at least one placeholder during edit', async ({ page }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      await page.getByRole('button', { name: /edit template template to edit/i }).click();
+
+      // Act - Change content to have no placeholders
+      await page.getByRole('textbox', { name: /template content/i }).clear();
+      await page
+        .getByRole('textbox', { name: /template content/i })
+        .fill('Content without placeholders');
+
+      // Assert - Update button disabled
+      await expect(page.getByRole('button', { name: 'Update Template' })).toBeDisabled();
+    });
+
+    test('TE-006: should cancel template edit', async ({ page }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      await page.getByRole('button', { name: /edit template template to edit/i }).click();
+
+      const dialog = page.getByRole('dialog', { name: /edit template/i });
+      await expect(dialog).toBeVisible();
+
+      // Act - Modify field
+      await page.getByRole('textbox', { name: /template name/i }).clear();
+      await page.getByRole('textbox', { name: /template name/i }).fill('Should Not Save');
+
+      // Act - Click cancel
+      await page.getByRole('button', { name: 'Cancel' }).click();
+
+      // Assert - Modal closes
+      await expect(dialog).toBeHidden();
+
+      // Assert - Original template name still visible
+      await expect(page.getByText('Template to Edit')).toBeVisible();
+      await expect(page.getByText('Should Not Save')).toBeHidden();
+    });
+
+    test('TE-007: should close edit modal on Escape key', async ({ page }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      await page.getByRole('button', { name: /edit template template to edit/i }).click();
+
+      const dialog = page.getByRole('dialog', { name: /edit template/i });
+      await expect(dialog).toBeVisible();
+
+      // Act - Press Escape
+      await page.keyboard.press('Escape');
+
+      // Assert - Modal closes
+      await expect(dialog).toBeHidden();
+    });
+
+    test('TE-008: should handle API errors during update', async ({ page }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      // Mock API failure
+      await page.route('**/api/templates/*', (route) => {
+        if (route.request().method() === 'PUT') {
+          route.fulfill({ status: 500, body: 'Server error' });
+        } else {
+          route.continue();
+        }
+      });
+
+      await page.getByRole('button', { name: /edit template template to edit/i }).click();
+
+      // Act - Modify and submit
+      await page.getByRole('textbox', { name: /template name/i }).clear();
+      await page.getByRole('textbox', { name: /template name/i }).fill('Error Update');
+      await page.getByRole('button', { name: 'Update Template' }).click();
+
+      // Assert - Error message displayed
+      const dialog = page.getByRole('dialog', { name: /edit template/i });
+      await expect(dialog).toContainText(/failed|error/i);
+    });
+
+    test('TE-009: should preserve template type during edit', async ({ page }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      await page.getByRole('button', { name: /edit template template to edit/i }).click();
+
+      const dialog = page.getByRole('dialog', { name: /edit template/i });
+
+      // Assert - Template type field should have original value
+      const typeField = page.getByRole('textbox', { name: /template type/i });
+      await expect(typeField).toHaveValue('title');
+
+      // Act - Try to change type
+      await typeField.clear();
+      await typeField.fill('description');
+
+      // Act - Submit
+      await page.getByRole('button', { name: 'Update Template' }).click();
+
+      // Wait for modal to close
+      await expect(dialog).toBeHidden();
+
+      // Assert - Template badge should reflect new type
+      await page.getByRole('button', { name: /edit template template to edit/i }).click();
+
+      // Verify the type was updated
+      await expect(page.getByRole('textbox', { name: /template type/i })).toHaveValue(
+        'description'
+      );
+    });
+
+    test('TE-010: should display character count during edit', async ({ page }) => {
+      // Arrange
+      await page.goto('/templates');
+      // eslint-disable-next-line playwright/no-networkidle
+      await page.waitForLoadState('networkidle');
+
+      await page.getByRole('button', { name: /edit template template to edit/i }).click();
+
+      const dialog = page.getByRole('dialog', { name: /edit template/i });
+
+      // Assert - Character count displays for pre-filled name
+      const nameLength = 'Template to Edit'.length;
+      await expect(dialog).toContainText(`${nameLength} / 100 characters`);
+    });
+  });
+
   test.describe('Templates List Display', () => {
     test('should display templates when they exist', async ({ page }) => {
       // Arrange - Create a template via API

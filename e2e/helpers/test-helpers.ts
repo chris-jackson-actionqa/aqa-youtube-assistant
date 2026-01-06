@@ -12,6 +12,7 @@ export interface Project {
   name: string;
   description?: string;
   status: string;
+  video_title?: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -113,9 +114,6 @@ export class ProjectHelpers {
 
       // Delete workspace
       await context.delete(`${this.baseURL}/api/workspaces/${this.workspaceId}`);
-    } catch (error) {
-      console.error('Workspace teardown failed:', error);
-      // Don't throw - cleanup failures shouldn't fail tests
     } finally {
       this.workspaceId = null;
     }
@@ -371,6 +369,7 @@ export class ProjectHelpers {
     const context = this.request || this.page.request;
     const response = await context.put(`${this.baseURL}/api/projects/${id}`, {
       data: updates,
+      headers: { 'X-Workspace-Id': this.getWorkspaceId().toString() },
     });
 
     if (!response.ok()) {
